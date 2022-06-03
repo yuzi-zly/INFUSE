@@ -135,6 +135,7 @@ public class OfflineStarter {
         InputStreamReader inputStreamReader = new InputStreamReader(new FileInputStream(dataFile), StandardCharsets.UTF_8);
         BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
         while((line = bufferedReader.readLine()) != null){
+            //System.out.println(line);
             this.contextHandler.generateChanges(line, changeList);
             while(!changeList.isEmpty()){
                 ContextChange chg = changeList.get(0);

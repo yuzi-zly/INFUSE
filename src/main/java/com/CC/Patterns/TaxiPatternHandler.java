@@ -56,6 +56,14 @@ public class TaxiPatternHandler extends PatternHandler{
     public boolean ctxPatternMatched(Context context, Pattern pattern) {
         assert context instanceof TaxiContext;
         assert pattern instanceof TaxiPattern;
-        return ((TaxiPattern) pattern).getSite().equals("any") || ((TaxiContext) context).getCtx_site().equals(((TaxiPattern) pattern).getSite());
+        if(!((TaxiContext) context).getCtx_category().equals(((TaxiPattern) pattern).getCategory()))
+            return false;
+        else if(!((TaxiPattern) pattern).getSubject().equals("any") && !((TaxiContext) context).getCtx_subject().equals(((TaxiPattern) pattern).getSubject()))
+            return false;
+        else if(!((TaxiPattern) pattern).getPredicate().equals("any") && !((TaxiContext) context).getCtx_predicate().equals(((TaxiPattern) pattern).getPredicate()))
+            return false;
+        else if(!((TaxiPattern) pattern).getSite().equals("any") && !((TaxiContext) context).getCtx_site().equals(((TaxiPattern) pattern).getSite()))
+            return false;
+        return true;
     }
 }

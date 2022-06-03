@@ -7,7 +7,6 @@ import org.apache.commons.cli.*;
 public class CLIParser {
 
     public static void main(String[] args) throws Exception {
-        // 根据命令行参数定义Option对象，第1/2/3/4个参数分别是指命令行参数名缩写、参数名全称、是否有参数值、参数描述
         Option opt_h = new Option("h", "help", false, "help information");
         opt_h.setRequired(false);
         Option opt_r = new Option("r","run",false,"run mode");
@@ -29,7 +28,7 @@ public class CLIParser {
 
 
         Option opt_t = new Option("t","test",false,"test mode");
-        opt_t.setRequired(false); // 设置该参数是否是必须的
+        opt_t.setRequired(false);
         Option opt_cp = new Option("cp",  "contextPool", true, "context pool file");
         opt_cp.setRequired(false);
 
@@ -55,7 +54,6 @@ public class CLIParser {
         try {
             cli = cliParser.parse(options, args);
         } catch (ParseException e) {
-            // 解析失败用 HelpFormatter 打印 帮助信息
             helpFormatter.printHelp(">>>>>>help information<<<<<<", options);
             e.printStackTrace();
         }
