@@ -351,6 +351,9 @@ public class FBfunc extends Formula {
 
 
 
+
+
+
     public boolean bfuncCaller(HashMap<String, Context> varEnv, Checker checker){
         Map<String, Map<String, String>> vcMap = new HashMap<>();
         for(String pos : params.keySet()){

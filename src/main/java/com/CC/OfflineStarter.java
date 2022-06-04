@@ -27,32 +27,31 @@ import java.util.List;
 import java.util.Map;
 
 public class OfflineStarter {
+    private RuleHandler ruleHandler;
+    private PatternHandler patternHandler;
+    private ContextHandler contextHandler;
+    private ContextPool contextPool;
 
-    protected RuleHandler ruleHandler;
-    protected PatternHandler patternHandler;
-    protected ContextHandler contextHandler;
-    protected ContextPool contextPool;
+    private String dataFile;
+    private String ruleFile;
+    private String patternFile;
+    private String bfuncFile;
 
-    protected String dataFile;
-    protected String ruleFile;
-    protected String patternFile;
-    protected String bfuncFile;
+    private Scheduler scheduler;
+    private Checker checker;
 
-    protected Scheduler scheduler;
-    protected Checker checker;
+    public OfflineStarter() {}
 
-
-    public OfflineStarter(String ruleFile, String patternFile, String dataFile, String technique,
-                          String schedule, String bfuncFile, String type) {
-        this.ruleHandler = new RuleHandler();
-        this.patternHandler = new PatternHandlerFactory().getPatternHandler(type);
-        this.contextHandler = new ContextHandlerFactory().getContextHandler(type, patternHandler);
-        this.contextPool = new ContextPool();
-
+    public void start(String approach, String ruleFile, String patternFile, String dataFile, String bfuncFile, String type){
         this.dataFile = dataFile;
         this.ruleFile = ruleFile;
         this.patternFile = patternFile;
         this.bfuncFile = bfuncFile;
+
+        this.ruleHandler = new RuleHandler();
+        this.patternHandler = new PatternHandlerFactory().getPatternHandler(type);
+        this.contextHandler = new ContextHandlerFactory().getContextHandler(type, patternHandler);
+        this.contextPool = new ContextPool();
 
         try {
             buildRulesAndPatterns();
@@ -67,6 +66,25 @@ public class OfflineStarter {
             throw new RuntimeException(e);
         }
 
+        String technique = null;
+        String schedule = null;
+        if(approach.contains("+")){
+            technique = approach.substring(0, approach.indexOf("+"));
+            schedule = approach.substring(approach.indexOf("+") + 1);
+        }
+        else{
+            if(approach.equalsIgnoreCase("INFUSE_base")){
+                technique = "INFUSE_base";
+                schedule = "IMD";
+            }
+            else if(approach.equalsIgnoreCase("INFUSE")){
+                technique = "INFUSE_C";
+                schedule = "INFUSE_S";
+            }
+        }
+
+        assert technique != null;
+
         switch (technique) {
             case "ECC":
                 this.checker = new ECC(this.ruleHandler, this.contextPool, bfunctions);
@@ -77,7 +95,7 @@ public class OfflineStarter {
             case "PCC":
                 this.checker = new PCC(this.ruleHandler, this.contextPool, bfunctions);
                 break;
-            case "BASE":
+            case "INFUSE_base":
                 this.checker = new BASE(this.ruleHandler, this.contextPool, bfunctions);
                 break;
             case "INFUSE_C":
@@ -101,6 +119,14 @@ public class OfflineStarter {
             case "INFUSE_S":
                 this.scheduler = new INFUSE_S(ruleHandler, contextPool, checker);
                 break;
+        }
+
+
+        //run
+        try {
+            runWithOriginData();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -129,7 +155,8 @@ public class OfflineStarter {
         return constructor.newInstance();
     }
 
-    public void runWithOriginData() throws Exception{
+
+    private void runWithOriginData() throws Exception{
         String line;
         List<ContextChange> changeList = new ArrayList<>();
         InputStreamReader inputStreamReader = new InputStreamReader(new FileInputStream(dataFile), StandardCharsets.UTF_8);
