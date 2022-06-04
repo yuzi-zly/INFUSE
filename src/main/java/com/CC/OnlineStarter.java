@@ -168,8 +168,9 @@ public class OnlineStarter {
                 datagramSocket.receive(datagramPacket);
                 oldTime_gen = System.currentTimeMillis();
                 String line = new String(datagramPacket.getData(), datagramPacket.getOffset(), datagramPacket.getLength(), StandardCharsets.UTF_8);
+                //System.out.println(line);
 
-                this.contextHandler.generateChanges(line, changeList);
+                this.contextHandler.generateChanges(line.trim(), changeList);
                 changeBuffer.addAll(changeList);
                 ContextChange ret = changeBuffer.get(0);
                 changeBuffer.remove(0);
