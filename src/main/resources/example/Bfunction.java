@@ -1,12 +1,12 @@
 import java.util.Map;
 
-public class Bfunctions {
+public class Bfunction {
 
     public void test(String funcName){
         System.out.println(funcName);
     }
 
-    public boolean evaluateBfunc(String funcName, Map<String, Map<String, String>> vcMap) throws Exception {
+    public boolean bfunc(String funcName, Map<String, Map<String, String>> vcMap) throws Exception {
         switch (funcName){
             case "same": return funcSame(vcMap);
             case "sz_loc_range": return funcSZLocRange(vcMap);

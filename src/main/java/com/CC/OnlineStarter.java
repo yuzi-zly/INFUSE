@@ -2,6 +2,7 @@ package com.CC;
 
 import com.CC.Constraints.Rule;
 import com.CC.Constraints.RuleHandler;
+import com.CC.Constraints.Runtime.Link;
 import com.CC.Contexts.*;
 import com.CC.Middleware.Checkers.*;
 import com.CC.Middleware.Schedulers.*;
@@ -26,6 +27,7 @@ public class OnlineStarter {
     public static final int dataPacketLen = 100;
 
     static class CCEServer implements Callable<Void> {
+        private final String type;
         private final String dataFile;
         private final String ruleFile;
         private final String patternFile;
@@ -43,6 +45,8 @@ public class OnlineStarter {
         private long totalTime_gen, totalTime_det, oldTime_gen;
 
         public CCEServer(String approach, String ruleFile, String patternFile, String dataFile, String bfuncFile, String type) {
+            this.type = type;
+
             this.changeBuffer = new ArrayList<>();
             this.cleaned = false;
             this.totalTime_gen = 0;
@@ -212,20 +216,42 @@ public class OnlineStarter {
         }
 
         private void IncOutput() throws Exception {
-            String ansFile = "src/main/resources/example/results.txt";
-            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(new FileOutputStream(ansFile), StandardCharsets.UTF_8);
-            BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
-            for(Map.Entry<String, Map.Entry<String, Map<String,String>>> entry : this.checker.getAnswers()){
-                StringBuilder stringBuilder = new StringBuilder();
-                stringBuilder.append(entry.getKey()).append('(');
-                stringBuilder.append(entry.getValue().getKey().toLowerCase()).append(",{");
-                entry.getValue().getValue().forEach((var, ctx_id) -> {
-                    stringBuilder.append("(").append(var).append(", ").append(Integer.parseInt(ctx_id.substring(4)) + 1).append("),");
-                });
-                stringBuilder.deleteCharAt(stringBuilder.length() - 1);
-                stringBuilder.append("})");
-                bufferedWriter.write(stringBuilder.toString() + "\n");
-                bufferedWriter.flush();
+            if(type.equalsIgnoreCase("taxi")){
+                String ansFile = "src/main/resources/example/results.txt";
+                OutputStreamWriter outputStreamWriter = new OutputStreamWriter(new FileOutputStream(ansFile), StandardCharsets.UTF_8);
+                BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
+                //对每个rule遍历
+                for(Map.Entry<String, Set<Link>> entry : this.checker.getRuleLinksMap().entrySet()){
+                    StringBuilder stringBuilder = new StringBuilder();
+                    stringBuilder.append(entry.getKey()).append('(');
+                    Link.Link_Type linkType = null;
+                    //对当前rule的每个link遍历
+                    for(Link link : entry.getValue()){
+                        if(linkType == null){
+                            linkType = link.getLinkType();
+                        }
+                        else{
+                            assert linkType == link.getLinkType();
+                        }
+                        StringBuilder tmpBuilder = new StringBuilder(stringBuilder);
+                        tmpBuilder.append(linkType.name()).append(",{");
+                        //对当前每个link的变量赋值遍历
+                        for(Map.Entry<String, Context> va : link.getVaSet()){
+                            tmpBuilder.append("(").append(va.getKey()).append(",").append(Integer.parseInt(va.getValue().getCtx_id().substring(4)) + 1).append("),");
+                        }
+                        tmpBuilder.deleteCharAt(tmpBuilder.length() - 1);
+                        tmpBuilder.append("})");
+                        bufferedWriter.write(tmpBuilder.toString() + "\n");
+                        bufferedWriter.flush();
+                    }
+                }
+            }
+            else if (type.equalsIgnoreCase("test")){
+                String cceResult = Paths.get(dataFile).getParent().toFile().getAbsolutePath() + "/cceResult.json";
+
+            }
+            else{
+                assert false;
             }
         }
 

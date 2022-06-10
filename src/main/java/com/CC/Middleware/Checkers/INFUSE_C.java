@@ -182,7 +182,7 @@ public class INFUSE_C extends Checker{
         rule.CleanAffectedAndCanConcurrent();
         if(links2 != null){
             for(Link link : links2) {
-                FormatLinks(rule.getRule_id(),link.getLinkType(), link.getVaSet());
+                storeLink(rule.getRule_id(),link);
             }
         }
     }
@@ -213,7 +213,7 @@ public class INFUSE_C extends Checker{
                 rule.CleanAffectedAndCanConcurrent();
                 if(links2 != null){
                     for(Link link : links2) {
-                        FormatLinks(rule.getRule_id(), link.getLinkType(), link.getVaSet());
+                        storeLink(rule.getRule_id(), link);
                     }
                 }
             }

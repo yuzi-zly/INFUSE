@@ -16,21 +16,18 @@ public abstract class Checker {
     protected String technique;
     protected Object bfunctions;
 
-    protected Set<Map.Entry<String, Map.Entry<String, Map<String, String>>>> Answers;
+    protected Map<String, Set<Link>> ruleLinksMap;
 
     public Checker(RuleHandler ruleHandler, ContextPool contextPool, Object bfunctions) {
         this.ruleHandler = ruleHandler;
         this.contextPool = contextPool;
         this.bfunctions = bfunctions;
-        this.Answers = new LinkedHashSet<>();
+        this.ruleLinksMap = new HashMap<>();
     }
 
-    protected void FormatLinks(String rule_id, Link.Link_Type linkType, Set<Map.Entry<String, Context>> vaSet){
-        Map<String, String> vaMap = new HashMap<>();
-        for(Map.Entry<String, Context> entry : vaSet){
-            vaMap.put(entry.getKey(), entry.getValue().getCtx_id());
-        }
-        Answers.add(new AbstractMap.SimpleEntry<>(rule_id, new AbstractMap.SimpleEntry<>(linkType == Link.Link_Type.VIOLATED ? "VIOLATED" : "SATISFIED", vaMap)));
+    protected void storeLink(String rule_id, Link link){
+        this.ruleLinksMap.computeIfAbsent(rule_id, k -> new HashSet<>());
+        Objects.requireNonNull(this.ruleLinksMap.computeIfPresent(rule_id, (k, v) -> v)).add(link);
     }
 
     public abstract void CtxChangeCheckIMD(ContextChange contextChange);
@@ -53,7 +50,7 @@ public abstract class Checker {
         return bfunctions;
     }
 
-    public Set<Map.Entry<String, Map.Entry<String, Map<String, String>>>> getAnswers() {
-        return Answers;
+    public Map<String, Set<Link>> getRuleLinksMap() {
+        return ruleLinksMap;
     }
 }

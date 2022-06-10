@@ -37,7 +37,7 @@ public class BASE extends ConC{
                     rule.CleanAffected();
                     if(links != null){
                         for(Link link : links){
-                            FormatLinks(rule.getRule_id(), link.getLinkType(), link.getVaSet());
+                            storeLink(rule.getRule_id(), link);
                         }
                     }
                 }
@@ -55,7 +55,7 @@ public class BASE extends ConC{
                     rule.CleanAffected();
                     if(links != null){
                         for(Link link : links) {
-                            FormatLinks(rule.getRule_id(), link.getLinkType(), link.getVaSet());
+                            storeLink(rule.getRule_id(), link);
                         }
                     }
                 }

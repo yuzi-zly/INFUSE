@@ -1,29 +1,23 @@
 package com.CC;
 
-import com.CC.Middleware.Schedulers.IMD;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.cli.*;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
+
 
 
 public class CLIParser {
-
-    /*
--md
-offline
--ap
-PCC+IMD
--rf
-src/main/resources/example/rules.xml
--pf
-src/main/resources/example/patterns.xml
--df
-src/main/resources/example/data_5_0-1.txt
--bf
-src/main/resources/example/Bfunctions.class
-     */
 
     public static List<String> legalApproaches = new ArrayList<>(){{
         add("ECC+IMD");
@@ -55,8 +49,10 @@ src/main/resources/example/Bfunctions.class
         opt_pf.setRequired(false);
         Option opt_df = new Option("df", "dataFile", true, "To specify the dataFile [e.g. src/main/resources/example/data_5_0-1.txt]");
         opt_df.setRequired(false);
-        Option opt_bf = new Option("bf",  "bfunc", true, "To specify the bfuncFile [e.g src/main/resources/example/Bfunctions.class]");
+        Option opt_bf = new Option("bf",  "bfuncFile", true, "To specify the bfuncFile [e.g src/main/resources/example/Bfunctions.class]");
         opt_bf.setRequired(false);
+        Option opt_cp = new Option("cp", "contextPool", true, "To specify the contextPool file [e.g. src/main/resources/example/cp.json]");
+        opt_cp.setRequired(false);
 
         Options options = new Options();
         options.addOption(opt_h);
@@ -67,6 +63,7 @@ src/main/resources/example/Bfunctions.class
         options.addOption(opt_ap);
         options.addOption(opt_md);
         options.addOption(opt_bf);
+        options.addOption(opt_cp);
 
         CommandLine cli = null;
         CommandLineParser cliParser = new DefaultParser();
@@ -83,10 +80,90 @@ src/main/resources/example/Bfunctions.class
         if(cli.hasOption("h")){
             helpFormatter.printHelp("cmdLine Syntax", options);
         }
+/*
+-t
+-ap
+PCC+IMD
+-rf
+src/main/resources/testingExample/rules.xml
+-cp
+src/main/resources/testingExample/cp.json
+-bf
+src/main/resources/testingExample/Bfunction.class
+ */
         else if(cli.hasOption("t")){
-            System.out.println("test TODO");
+            // checking approach
+            String approach = null;
+            if(!cli.hasOption("ap")){
+                approach = defaultApproach;
+                System.out.println("\033[92m" + "The default approach is \"" + defaultApproach + "\"\033[0m");
+            }
+            else{
+                approach = cli.getOptionValue("ap");
+                if(!legalApproaches.contains(approach)){
+                    System.out.println("\033[91m" + "The approach is illegal" + "\033[0m");
+                    helpFormatter.printHelp("cmdLine Syntax", options);
+                    System.exit(1);
+                }
+            }
+            // rule file
+            String ruleFile = null;
+            if(!cli.hasOption("rf")){
+                System.out.println("\033[91m" + "The ruleFile cannot be empty" + "\033[0m");
+                helpFormatter.printHelp("cmdLine Syntax", options);
+                System.exit(1);
+            }
+            else{
+                ruleFile = cli.getOptionValue("rf");
+            }
+            //context pool file
+            String contextPool = null;
+            if(!cli.hasOption("cp")){
+                System.out.println("\033[91m" + "The contextPool cannot be empty" + "\033[0m");
+                helpFormatter.printHelp("cmdLine Syntax", options);
+                System.exit(1);
+            }
+            else{
+                contextPool = cli.getOptionValue("cp");
+            }
+            // bfunc file
+            String bfuncFile = null;
+            if(!cli.hasOption("bf")){
+                System.out.println("\033[91m" + "The bfuncFile cannot be empty" + "\033[0m");
+                helpFormatter.printHelp("cmdLine Syntax", options);
+                System.exit(1);
+            }
+            else{
+                bfuncFile = cli.getOptionValue("bf");
+            }
+
+            String parentPathStr = adapt(contextPool);
+            String patternFile = parentPathStr + "/patterns.xml";
+            String dataFile = parentPathStr + "/data.txt";
+
+            //default offline checking
+            long startTime = System.nanoTime();
+            OfflineStarter offlineStarter = new OfflineStarter();
+            offlineStarter.start(approach, ruleFile, patternFile, dataFile, bfuncFile, "test");
+            long totalTime = System.nanoTime() - startTime;
+            assert new File(patternFile).delete();
+            assert new File(dataFile).delete();
+            System.out.println("[Testing] Checking Approach: " + approach +  "\tData: " + dataFile +  "\t" + totalTime / 1000000L + " ms");
         }
-        // normal run
+/*
+-md
+offline
+-ap
+PCC+IMD
+-rf
+src/main/resources/example/rules.xml
+-pf
+src/main/resources/example/patterns.xml
+-df
+src/main/resources/example/data_5_0-1.txt
+-bf
+src/main/resources/example/Bfunction.class
+*/
         else {
             // checking mode
             String checkingMode = null;
@@ -171,5 +248,47 @@ src/main/resources/example/Bfunctions.class
             }
         }
     }
+
+
+    private static String adapt(String contextPool) throws Exception {
+        Path cpPath = Paths.get(contextPool);
+        String parent = cpPath.getParent().toAbsolutePath().toString();
+
+        OutputStreamWriter patternWriter = new OutputStreamWriter(new FileOutputStream(parent + "/patterns.xml"), StandardCharsets.UTF_8);
+        BufferedWriter patternBufferWriter = new BufferedWriter(patternWriter);
+        patternBufferWriter.write("<?xml version=\"1.0\"?>\n\n<patterns>\n\n");
+
+        OutputStreamWriter dataWriter = new OutputStreamWriter(new FileOutputStream(parent + "/data.txt"), StandardCharsets.UTF_8);
+        BufferedWriter dataBufferWriter = new BufferedWriter(dataWriter);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode root = objectMapper.readTree(new File(contextPool));
+        assert root.isArray();
+        for(int i = 0; i < root.size(); ++i){
+            JsonNode patNode = root.get(i);
+            String pattern_id = patNode.get("pat_id").asText();
+            patternBufferWriter.write("<pattern>\n<id>" + pattern_id + "</id>\n</pattern>\n\n");
+            JsonNode contexts = patNode.get("contexts");
+            assert contexts.isArray();
+            for(int j = 0; j < contexts.size(); ++j){
+                JsonNode ctxNode = contexts.get(j);
+                String ctx_id = ctxNode.get("ctx_id").asText();
+                String lineData = "+," + pattern_id + "," + ctx_id + "{";
+                List<String> fields = new ArrayList<>();
+                Iterator<String> iterator = ctxNode.get("fields").fieldNames();
+                iterator.forEachRemaining(e -> fields.add(e));
+                for(String field : fields){
+                    lineData = lineData + field + ":" + ctxNode.get("fields").get(field).asText() + ";";
+                }
+                lineData = lineData.substring(0, lineData.length() - 1) + "}\n";
+                dataBufferWriter.write(lineData);
+            }
+        }
+        dataBufferWriter.flush();
+        patternBufferWriter.write("</patterns>\n");
+        patternBufferWriter.flush();
+        return parent;
+    }
+
 }
 

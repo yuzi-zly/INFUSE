@@ -121,7 +121,7 @@ public class ConC extends Checker {
                 }
                 if(links != null){
                     for(Link link : links){
-                        FormatLinks(rule.getRule_id(), link.getLinkType(), link.getVaSet());
+                        storeLink(rule.getRule_id(), link);
                     }
                 }
             }
@@ -142,7 +142,7 @@ public class ConC extends Checker {
         }
         if(links != null){
             for(Link link : links){
-                FormatLinks(rule.getRule_id(), link.getLinkType(), link.getVaSet());
+                storeLink(rule.getRule_id(), link);
             }
         }
     }
