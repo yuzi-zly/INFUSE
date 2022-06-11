@@ -3,7 +3,6 @@ package com.CC.Middleware.Checkers;
 import com.CC.Constraints.Rule;
 import com.CC.Constraints.RuleHandler;
 import com.CC.Constraints.Runtime.Link;
-import com.CC.Contexts.Context;
 import com.CC.Contexts.ContextChange;
 import com.CC.Contexts.ContextPool;
 import com.CC.Middleware.NotSupportedException;
@@ -14,14 +13,14 @@ public abstract class Checker {
     protected RuleHandler ruleHandler;
     protected ContextPool contextPool;
     protected String technique;
-    protected Object bfunctions;
+    protected Object bfuncInstance;
 
     protected Map<String, Set<Link>> ruleLinksMap;
 
-    public Checker(RuleHandler ruleHandler, ContextPool contextPool, Object bfunctions) {
+    public Checker(RuleHandler ruleHandler, ContextPool contextPool, Object bfuncInstance) {
         this.ruleHandler = ruleHandler;
         this.contextPool = contextPool;
-        this.bfunctions = bfunctions;
+        this.bfuncInstance = bfuncInstance;
         this.ruleLinksMap = new HashMap<>();
     }
 
@@ -46,8 +45,8 @@ public abstract class Checker {
         return technique;
     }
 
-    public Object getBfunctions() {
-        return bfunctions;
+    public Object getBfuncInstance() {
+        return bfuncInstance;
     }
 
     public Map<String, Set<Link>> getRuleLinksMap() {

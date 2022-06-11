@@ -3,11 +3,11 @@ plugins {
 }
 
 group 'org.INFUSE'
-version '1.0'
+//version '1.0'
 
 jar {
     manifest {
-        attributes('Main-Class': 'com.CC.INFUSE')
+        attributes('Main-Class': 'com.CC.CLIParser')
     }
     from{
         (configurations.runtimeClasspath).collect {

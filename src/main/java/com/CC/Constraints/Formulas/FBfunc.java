@@ -364,9 +364,9 @@ public class FBfunc extends Formula {
 
         boolean result = false;
         try {
-            Object bfunctions = checker.getBfunctions();
-            Method m = bfunctions.getClass().getMethod("bfunc", String.class, Class.forName("java.util.Map"));
-            result = (boolean) m.invoke(bfunctions,func, vcMap);
+            Object bfuncInstance = checker.getBfuncInstance();
+            Method m = bfuncInstance.getClass().getMethod("bfunc", String.class, Class.forName("java.util.Map"));
+            result = (boolean) m.invoke(bfuncInstance,func, vcMap);
         } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException | ClassNotFoundException e) {
             throw new RuntimeException(e);
         }

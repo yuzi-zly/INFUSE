@@ -40,4 +40,8 @@ public class Bfunction {
             return false;
         }
     }
+
+    public void end(){
+        System.out.println("run end method.");
+    }
 }

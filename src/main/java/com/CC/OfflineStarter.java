@@ -16,6 +16,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.io.*;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
@@ -60,9 +62,9 @@ public class OfflineStarter {
             throw new RuntimeException(e);
         }
 
-        Object bfunctions = null;
+        Object bfuncInstance = null;
         try {
-            bfunctions = loadBfuncFile();
+            bfuncInstance = loadBfuncFile();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -88,19 +90,19 @@ public class OfflineStarter {
 
         switch (technique) {
             case "ECC":
-                this.checker = new ECC(this.ruleHandler, this.contextPool, bfunctions);
+                this.checker = new ECC(this.ruleHandler, this.contextPool, bfuncInstance);
                 break;
             case "ConC":
-                this.checker = new ConC(this.ruleHandler, this.contextPool, bfunctions);
+                this.checker = new ConC(this.ruleHandler, this.contextPool, bfuncInstance);
                 break;
             case "PCC":
-                this.checker = new PCC(this.ruleHandler, this.contextPool, bfunctions);
+                this.checker = new PCC(this.ruleHandler, this.contextPool, bfuncInstance);
                 break;
             case "INFUSE_base":
-                this.checker = new BASE(this.ruleHandler, this.contextPool, bfunctions);
+                this.checker = new BASE(this.ruleHandler, this.contextPool, bfuncInstance);
                 break;
             case "INFUSE_C":
-                this.checker = new INFUSE_C(this.ruleHandler, this.contextPool, bfunctions);
+                this.checker = new INFUSE_C(this.ruleHandler, this.contextPool, bfuncInstance);
                 break;
         }
 
@@ -125,9 +127,14 @@ public class OfflineStarter {
         //run
         try {
             run();
+            if(type.equals("test")){
+                testRunEnd(bfuncInstance);
+            }
+            IncOutput();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+
     }
 
     private void buildRulesAndPatterns() throws Exception {
@@ -178,8 +185,10 @@ public class OfflineStarter {
             this.scheduler.doSchedule(chg);
         }
         this.scheduler.checkEnds();
+    }
 
-        IncOutput();
+    private void testRunEnd(Object bfuncInstance) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        bfuncInstance.getClass().getMethod("end").invoke(bfuncInstance);
     }
 
     private void IncOutput() throws Exception {

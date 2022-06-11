@@ -148,7 +148,8 @@ src/main/resources/testingExample/Bfunction.class
             long totalTime = System.nanoTime() - startTime;
             assert new File(patternFile).delete();
             assert new File(dataFile).delete();
-            System.out.println("[Testing] Checking Approach: " + approach +  "\tData: " + dataFile +  "\t" + totalTime / 1000000L + " ms");
+            System.out.println("[CCE] The output is at \"" + parentPathStr + "/cceResult.json\"");
+            System.out.println("[CCE] Checking Approach: " + approach +  "\tData: " + dataFile +  "\t" + totalTime / 1000000L + " ms");
         }
 /*
 -md
