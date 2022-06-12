@@ -31,6 +31,8 @@ public class CLIParser {
     }};
     public static String defaultCheckingMode = "offline";
     public static String defaultApproach = "INFUSE";
+    public static String testDefaultOutput = "cceResult.json";
+    public static String taxiDefaultOutput = "src/main/resources/example/cceResult.txt";
 
     public static void main(String[] args) throws Exception {
         Option opt_h = new Option("h", "help", false, "To print the usage");
@@ -53,6 +55,8 @@ public class CLIParser {
         opt_bf.setRequired(false);
         Option opt_cp = new Option("cp", "contextPool", true, "To specify the contextPool file [e.g. src/main/resources/example/cp.json]");
         opt_cp.setRequired(false);
+        Option option_out = new Option("o", "out", true, "To specify the output file [e.g. src/main/resources/example/cceResult.json]");
+        option_out.setRequired(false);
 
         Options options = new Options();
         options.addOption(opt_h);
@@ -64,6 +68,7 @@ public class CLIParser {
         options.addOption(opt_md);
         options.addOption(opt_bf);
         options.addOption(opt_cp);
+        options.addOption(option_out);
 
         CommandLine cli = null;
         CommandLineParser cliParser = new DefaultParser();
@@ -90,6 +95,8 @@ src/main/resources/testingExample/rules.xml
 src/main/resources/testingExample/cp.json
 -bf
 src/main/resources/testingExample/Bfunction.class
+-o
+src/main/resources/testingExample/cceResult.json
  */
         else if(cli.hasOption("t")){
             // checking approach
@@ -116,7 +123,7 @@ src/main/resources/testingExample/Bfunction.class
             else{
                 ruleFile = cli.getOptionValue("rf");
             }
-            //context pool file
+            // context pool file
             String contextPool = null;
             if(!cli.hasOption("cp")){
                 System.out.println("\033[91m" + "The contextPool cannot be empty" + "\033[0m");
@@ -141,14 +148,24 @@ src/main/resources/testingExample/Bfunction.class
             String patternFile = parentPathStr + "/patterns.xml";
             String dataFile = parentPathStr + "/data.txt";
 
+            // output file
+            String outputFile = null;
+            if(!cli.hasOption("o")){
+                outputFile = parentPathStr + "/" + testDefaultOutput;
+                System.out.println("\033[92m" + "The default output is \"" + outputFile + "\"\033[0m");
+            }
+            else{
+                outputFile = cli.getOptionValue("o");
+            }
+
             //default offline checking
             long startTime = System.nanoTime();
             OfflineStarter offlineStarter = new OfflineStarter();
-            offlineStarter.start(approach, ruleFile, patternFile, dataFile, bfuncFile, "test");
+            offlineStarter.start(approach, ruleFile, patternFile, dataFile, bfuncFile, outputFile, "test");
             long totalTime = System.nanoTime() - startTime;
             assert new File(patternFile).delete();
             assert new File(dataFile).delete();
-            System.out.println("[CCE] The output is at \"" + parentPathStr + "/cceResult.json\"");
+            System.out.println("[CCE] The output is at \"" + outputFile + "\"");
             System.out.println("[CCE] Checking Approach: " + approach +  "\tData: " + dataFile +  "\t" + totalTime / 1000000L + " ms");
         }
 /*
@@ -164,6 +181,8 @@ src/main/resources/example/patterns.xml
 src/main/resources/example/data_5_0-1.txt
 -bf
 src/main/resources/example/Bfunction.class
+-o
+src/main/resources/example/cceResult.txt
 */
         else {
             // checking mode
@@ -234,18 +253,27 @@ src/main/resources/example/Bfunction.class
             else{
                 bfuncFile = cli.getOptionValue("bf");
             }
+            // output file
+            String outputFile = null;
+            if(!cli.hasOption("o")){
+                outputFile = taxiDefaultOutput;
+                System.out.println("\033[92m" + "The default approach is \"" + outputFile + "\"\033[0m");
+            }
+            else{
+                outputFile = cli.getOptionValue("o");
+            }
 
             // start
             if(checkingMode.equalsIgnoreCase("offline")){
                 long startTime = System.nanoTime();
                 OfflineStarter offlineStarter = new OfflineStarter();
-                offlineStarter.start(approach, ruleFile, patternFile, dataFile, bfuncFile, "taxi");
+                offlineStarter.start(approach, ruleFile, patternFile, dataFile, bfuncFile, outputFile,"taxi");
                 long totalTime = System.nanoTime() - startTime;
                 System.out.println("Checking Approach: " + approach +  "\tData: " + dataFile +  "\t" + totalTime / 1000000L + " ms");
             }
             else if(checkingMode.equalsIgnoreCase("online")){
                 OnlineStarter onlineStarter = new OnlineStarter();
-                onlineStarter.start(approach, ruleFile, patternFile, dataFile, bfuncFile, "taxi");
+                onlineStarter.start(approach, ruleFile, patternFile, dataFile, bfuncFile, outputFile,"taxi");
             }
         }
     }

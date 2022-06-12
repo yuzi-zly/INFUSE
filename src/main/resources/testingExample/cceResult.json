@@ -1,16 +1,4 @@
 {
-  "rule_2" : {
-    "truth" : true,
-    "links" : [ [ {
-      "var" : "v3",
-      "value" : {
-        "ctx_id" : "ctx_6",
-        "fields" : {
-          "key6" : "A"
-        }
-      }
-    } ] ]
-  },
   "rule_1" : {
     "truth" : false,
     "links" : [ [ {
@@ -52,5 +40,9 @@
         }
       }
     } ] ]
+  },
+  "rule_2" : {
+    "truth" : false,
+    "links" : [ ]
   }
 }

@@ -8,6 +8,11 @@ import com.CC.Middleware.Checkers.*;
 import com.CC.Middleware.Schedulers.*;
 import com.CC.Patterns.PatternHandler;
 import com.CC.Patterns.PatternHandlerFactory;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.io.*;
 import java.lang.reflect.Constructor;
@@ -32,6 +37,8 @@ public class OnlineStarter {
         private final String ruleFile;
         private final String patternFile;
         private final String bfuncFile;
+
+        private final String outputFile;
         private final RuleHandler ruleHandler;
         private final PatternHandler patternHandler;
         private final ContextHandler contextHandler;
@@ -44,7 +51,7 @@ public class OnlineStarter {
 
         private long totalTime_gen, totalTime_det, oldTime_gen;
 
-        public CCEServer(String approach, String ruleFile, String patternFile, String dataFile, String bfuncFile, String type) {
+        public CCEServer(String approach, String ruleFile, String patternFile, String dataFile, String bfuncFile, String outputFile, String type) {
             this.type = type;
 
             this.changeBuffer = new ArrayList<>();
@@ -57,6 +64,7 @@ public class OnlineStarter {
             this.ruleFile = ruleFile;
             this.patternFile = patternFile;
             this.bfuncFile = bfuncFile;
+            this.outputFile = outputFile;
 
             this.ruleHandler = new RuleHandler();
             this.patternHandler = new PatternHandlerFactory().getPatternHandler(type);
@@ -217,6 +225,7 @@ public class OnlineStarter {
 
         private void IncOutput() throws Exception {
             if(type.equalsIgnoreCase("taxi")){
+                //TODO() path
                 String ansFile = "src/main/resources/example/results.txt";
                 OutputStreamWriter outputStreamWriter = new OutputStreamWriter(new FileOutputStream(ansFile), StandardCharsets.UTF_8);
                 BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
@@ -247,8 +256,101 @@ public class OnlineStarter {
                 }
             }
             else if (type.equalsIgnoreCase("test")){
-                String cceResult = Paths.get(dataFile).getParent().toFile().getAbsolutePath() + "/cceResult.json";
+                ObjectMapper mapper = new ObjectMapper();
+                ObjectNode root = mapper.createObjectNode();
 
+                Map<String, Set<Link>> ruleLinksMap = this.checker.getRuleLinksMap();
+                for(Rule rule : this.ruleHandler.getRuleList()){
+                    String rule_id = rule.getRule_id();
+                    if(ruleLinksMap.containsKey(rule_id)){
+                        ObjectNode ruleNode = mapper.createObjectNode();
+                        String truthStr = null;
+                        ArrayNode linksNode = mapper.createArrayNode();
+                        //links foreach
+                        for(Link link : ruleLinksMap.get(rule_id)){
+                            if(truthStr == null){
+                                truthStr = link.getLinkType() == Link.Link_Type.SATISFIED ? "true" : "false";
+                                ruleNode.put("truth", Boolean.parseBoolean(truthStr));
+                            }
+                            ArrayNode linkNode = mapper.createArrayNode();
+                            //vaSet foreach
+                            for(Map.Entry<String, Context> vaEntry : link.getVaSet()){
+                                ObjectNode vaNode = mapper.createObjectNode();
+                                //set var
+                                vaNode.put("var", vaEntry.getKey());
+                                //set value
+                                Context context = vaEntry.getValue();
+                                ObjectNode valueNode = mapper.createObjectNode();
+                                valueNode.put("ctx_id", context.getCtx_id());
+                                ObjectNode fieldsNode = mapper.createObjectNode();
+                                //context fields foreach
+                                for(String fieldName : context.getCtx_fields().keySet()){
+                                    fieldsNode.put(fieldName, context.getCtx_fields().get(fieldName));
+                                }
+                                valueNode.set("fields", fieldsNode);
+                                vaNode.set("value", valueNode);
+                                //store vaNode
+                                linkNode.add(vaNode);
+                            }
+                            //store linkNode
+                            linksNode.add(linkNode);
+                        }
+                        //store linksNode
+                        ruleNode.set("links", linksNode);
+                        //store ruleNode
+                        root.set(rule_id, ruleNode);
+                    }
+                    else{
+                        ObjectNode ruleNode = mapper.createObjectNode();
+                        ruleNode.put("truth", rule.getCCTRoot().isTruth());
+                        ArrayNode linksNode = mapper.createArrayNode();
+                        ruleNode.set("links", linksNode);
+                        root.set(rule_id, ruleNode);
+                    }
+                }
+//            //rules foreach
+//            for(Map.Entry<String, Set<Link>> entry : this.checker.getRuleLinksMap().entrySet()){
+//                String rule_id = entry.getKey();
+//                ObjectNode ruleNode = mapper.createObjectNode();
+//                String truthStr = null;
+//                ArrayNode linksNode = mapper.createArrayNode();
+//                //links foreach
+//                for(Link link : entry.getValue()){
+//                    if(truthStr == null){
+//                        truthStr = link.getLinkType() == Link.Link_Type.SATISFIED ? "true" : "false";
+//                        ruleNode.put("truth", Boolean.parseBoolean(truthStr));
+//                    }
+//                    ArrayNode linkNode = mapper.createArrayNode();
+//                    //vaSet foreach
+//                    for(Map.Entry<String, Context> vaEntry : link.getVaSet()){
+//                        ObjectNode vaNode = mapper.createObjectNode();
+//                        //set var
+//                        vaNode.put("var", vaEntry.getKey());
+//                        //set value
+//                        Context context = vaEntry.getValue();
+//                        ObjectNode valueNode = mapper.createObjectNode();
+//                        valueNode.put("ctx_id", context.getCtx_id());
+//                        ObjectNode fieldsNode = mapper.createObjectNode();
+//                        //context fields foreach
+//                        for(String fieldName : context.getCtx_fields().keySet()){
+//                            fieldsNode.put(fieldName, context.getCtx_fields().get(fieldName));
+//                        }
+//                        valueNode.set("fields", fieldsNode);
+//                        vaNode.set("value", valueNode);
+//                        //store vaNode
+//                        linkNode.add(vaNode);
+//                    }
+//                    //store linkNode
+//                    linksNode.add(linkNode);
+//                }
+//                //store linksNode
+//                ruleNode.set("links", linksNode);
+//                //store ruleNode
+//                root.set(rule_id, ruleNode);
+//            }
+                //to file
+                ObjectWriter objectWriter = mapper.writer(new DefaultPrettyPrinter());
+                objectWriter.writeValue(new File(outputFile), root);
             }
             else{
                 assert false;
@@ -366,9 +468,9 @@ public class OnlineStarter {
     public OnlineStarter() {
     }
 
-    public void start(String approach, String ruleFile, String patternFile,  String dataFile, String bfuncFile, String type){
+    public void start(String approach, String ruleFile, String patternFile,  String dataFile, String bfuncFile, String outputFile, String type){
         FutureTask<Void> clientTask = new FutureTask<>(new CCEClient(dataFile));
-        FutureTask<Void> serverTask = new FutureTask<>(new CCEServer(approach, ruleFile, patternFile, dataFile, bfuncFile, type));
+        FutureTask<Void> serverTask = new FutureTask<>(new CCEServer(approach, ruleFile, patternFile, dataFile, bfuncFile, outputFile, type));
         new Thread(clientTask, "Client...").start();
         new Thread(serverTask, "Server...").start();
         try {
