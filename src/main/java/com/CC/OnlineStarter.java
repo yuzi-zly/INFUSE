@@ -158,7 +158,7 @@ public class OnlineStarter {
         }
 
         private Object loadBfuncFile() throws Exception {
-            Path bfuncPath = Paths.get(bfuncFile);
+            Path bfuncPath = Paths.get(bfuncFile).toAbsolutePath();
             URLClassLoader classLoader = new URLClassLoader(new URL[]{ bfuncPath.getParent().toFile().toURI().toURL()});
             Class<?> c = classLoader.loadClass(bfuncPath.getFileName().toString().substring(0, bfuncPath.getFileName().toString().length() - 6));
             Constructor<?> constructor = c.getConstructor();
@@ -230,28 +230,30 @@ public class OnlineStarter {
                 OutputStreamWriter outputStreamWriter = new OutputStreamWriter(new FileOutputStream(ansFile), StandardCharsets.UTF_8);
                 BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
                 //对每个rule遍历
-                for(Map.Entry<String, Set<Link>> entry : this.checker.getRuleLinksMap().entrySet()){
+                for(Map.Entry<String, List<Set<Link>>> entry : this.checker.getRuleLinksMap().entrySet()){
                     StringBuilder stringBuilder = new StringBuilder();
                     stringBuilder.append(entry.getKey()).append('(');
                     Link.Link_Type linkType = null;
                     //对当前rule的每个link遍历
-                    for(Link link : entry.getValue()){
-                        if(linkType == null){
-                            linkType = link.getLinkType();
+                    for(Set<Link> linkSet : entry.getValue()){
+                        for(Link link : linkSet){
+                            if(linkType == null){
+                                linkType = link.getLinkType();
+                            }
+                            else{
+                                assert linkType == link.getLinkType();
+                            }
+                            StringBuilder tmpBuilder = new StringBuilder(stringBuilder);
+                            tmpBuilder.append(linkType.name()).append(",{");
+                            //对当前每个link的变量赋值遍历
+                            for(Map.Entry<String, Context> va : link.getVaSet()){
+                                tmpBuilder.append("(").append(va.getKey()).append(",").append(Integer.parseInt(va.getValue().getCtx_id().substring(4)) + 1).append("),");
+                            }
+                            tmpBuilder.deleteCharAt(tmpBuilder.length() - 1);
+                            tmpBuilder.append("})");
+                            bufferedWriter.write(tmpBuilder.toString() + "\n");
+                            bufferedWriter.flush();
                         }
-                        else{
-                            assert linkType == link.getLinkType();
-                        }
-                        StringBuilder tmpBuilder = new StringBuilder(stringBuilder);
-                        tmpBuilder.append(linkType.name()).append(",{");
-                        //对当前每个link的变量赋值遍历
-                        for(Map.Entry<String, Context> va : link.getVaSet()){
-                            tmpBuilder.append("(").append(va.getKey()).append(",").append(Integer.parseInt(va.getValue().getCtx_id().substring(4)) + 1).append("),");
-                        }
-                        tmpBuilder.deleteCharAt(tmpBuilder.length() - 1);
-                        tmpBuilder.append("})");
-                        bufferedWriter.write(tmpBuilder.toString() + "\n");
-                        bufferedWriter.flush();
                     }
                 }
             }
@@ -259,15 +261,17 @@ public class OnlineStarter {
                 ObjectMapper mapper = new ObjectMapper();
                 ObjectNode root = mapper.createObjectNode();
 
-                Map<String, Set<Link>> ruleLinksMap = this.checker.getRuleLinksMap();
+                Map<String, List<Set<Link>>> ruleLinksMap = this.checker.getRuleLinksMap();
                 for(Rule rule : this.ruleHandler.getRuleList()){
                     String rule_id = rule.getRule_id();
                     if(ruleLinksMap.containsKey(rule_id)){
                         ObjectNode ruleNode = mapper.createObjectNode();
                         String truthStr = null;
                         ArrayNode linksNode = mapper.createArrayNode();
+
                         //links foreach
-                        for(Link link : ruleLinksMap.get(rule_id)){
+                        Set<Link> latestLinkSet = ruleLinksMap.get(rule_id).get(ruleLinksMap.get(rule_id).size() - 1);
+                        for(Link link : latestLinkSet){
                             if(truthStr == null){
                                 truthStr = link.getLinkType() == Link.Link_Type.SATISFIED ? "true" : "false";
                                 ruleNode.put("truth", Boolean.parseBoolean(truthStr));

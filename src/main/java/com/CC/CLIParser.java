@@ -280,8 +280,8 @@ src/main/resources/example/cceResult.txt
 
 
     private static String adapt(String contextPool) throws Exception {
-        Path cpPath = Paths.get(contextPool);
-        String parent = cpPath.getParent().toAbsolutePath().toString();
+        Path cpPath = Paths.get(contextPool).toAbsolutePath();
+        String parent = cpPath.getParent().toString();
 
         OutputStreamWriter patternWriter = new OutputStreamWriter(new FileOutputStream(parent + "/patterns.xml"), StandardCharsets.UTF_8);
         BufferedWriter patternBufferWriter = new BufferedWriter(patternWriter);

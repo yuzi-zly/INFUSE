@@ -1,0 +1,14 @@
+{
+  "rule_2_18" : {
+    "truth" : false,
+    "links" : [ [ {
+      "var" : "v1",
+      "value" : {
+        "ctx_id" : "1",
+        "fields" : {
+          "data" : "1"
+        }
+      }
+    } ] ]
+  }
+}

@@ -30,9 +30,7 @@ public class ECC extends Checker{
                 //links generation
                 Set<Link> links = rule.LinksGeneration_ECC(this);
                 if(links != null){
-                    for(Link link : links){
-                        storeLink(rule.getRule_id(), link);
-                    }
+                    storeLink(rule.getRule_id(), links);
                 }
             }
         }
@@ -54,9 +52,7 @@ public class ECC extends Checker{
             rule.addCriticalSet(links);
         }
         if(links != null){
-            for(Link link : links){
-                storeLink(rule.getRule_id(), link);
-            }
+            storeLink(rule.getRule_id(), links);
         }
     }
 }

@@ -15,7 +15,8 @@ public abstract class Checker {
     protected String technique;
     protected Object bfuncInstance;
 
-    protected Map<String, Set<Link>> ruleLinksMap;
+    // rule_id -> [linkSet1, linkSet2]
+    protected Map<String, List<Set<Link>>> ruleLinksMap;
 
     public Checker(RuleHandler ruleHandler, ContextPool contextPool, Object bfuncInstance) {
         this.ruleHandler = ruleHandler;
@@ -24,9 +25,9 @@ public abstract class Checker {
         this.ruleLinksMap = new HashMap<>();
     }
 
-    protected void storeLink(String rule_id, Link link){
-        this.ruleLinksMap.computeIfAbsent(rule_id, k -> new HashSet<>());
-        Objects.requireNonNull(this.ruleLinksMap.computeIfPresent(rule_id, (k, v) -> v)).add(link);
+    protected void storeLink(String rule_id, Set<Link> linkSet){
+        this.ruleLinksMap.computeIfAbsent(rule_id, k -> new ArrayList<>());
+        Objects.requireNonNull(this.ruleLinksMap.computeIfPresent(rule_id, (k, v) -> v)).add(linkSet);
     }
 
     public abstract void CtxChangeCheckIMD(ContextChange contextChange);
@@ -49,7 +50,7 @@ public abstract class Checker {
         return bfuncInstance;
     }
 
-    public Map<String, Set<Link>> getRuleLinksMap() {
+    public Map<String, List<Set<Link>>> getRuleLinksMap() {
         return ruleLinksMap;
     }
 }

@@ -37,9 +37,7 @@ public class PCC extends Checker{
                     }
                     rule.CleanAffected();
                     if(links != null){
-                        for(Link link : links){
-                            storeLink(rule.getRule_id(), link);
-                        }
+                        storeLink(rule.getRule_id(), links);
                     }
                 }
                 //build CCT
@@ -56,9 +54,7 @@ public class PCC extends Checker{
                     }
                     rule.CleanAffected();
                     if(links != null){
-                        for(Link link : links) {
-                            storeLink(rule.getRule_id(), link);
-                        }
+                        storeLink(rule.getRule_id(), links);
                     }
                 }
             }
@@ -91,9 +87,7 @@ public class PCC extends Checker{
         }
         rule.CleanAffected();
         if(links != null){
-            for(Link link : links) {
-                storeLink(rule.getRule_id(), link);
-            }
+            storeLink(rule.getRule_id(), links);
         }
     }
 
