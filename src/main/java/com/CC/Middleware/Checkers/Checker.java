@@ -15,8 +15,8 @@ public abstract class Checker {
     protected String technique;
     protected Object bfuncInstance;
 
-    // rule_id -> [linkSet1, linkSet2]
-    protected Map<String, List<Set<Link>>> ruleLinksMap;
+    // rule_id -> [(truthValue1, linkSet1), (truthValue2,linkSet2)]
+    protected Map<String, List<Map.Entry<Boolean, Set<Link>>>> ruleLinksMap;
 
     public Checker(RuleHandler ruleHandler, ContextPool contextPool, Object bfuncInstance) {
         this.ruleHandler = ruleHandler;
@@ -25,13 +25,22 @@ public abstract class Checker {
         this.ruleLinksMap = new HashMap<>();
     }
 
-    protected void storeLink(String rule_id, Set<Link> linkSet){
+    protected void storeLink(String rule_id, boolean truth, Set<Link> linkSet){
         this.ruleLinksMap.computeIfAbsent(rule_id, k -> new ArrayList<>());
-        Objects.requireNonNull(this.ruleLinksMap.computeIfPresent(rule_id, (k, v) -> v)).add(linkSet);
+        Objects.requireNonNull(this.ruleLinksMap.computeIfPresent(rule_id, (k, v) -> v)).add(
+                new AbstractMap.SimpleEntry<>(truth, linkSet)
+        );
     }
 
-    public abstract void CtxChangeCheckIMD(ContextChange contextChange);
-    public abstract void CtxChangeCheckBatch(Rule rule, List<ContextChange> batch) throws NotSupportedException;
+    public void checkInit(){
+        for(Rule rule : ruleHandler.getRuleList()){
+            rule.BuildCCT_ECCPCC(this);
+            rule.TruthEvaluation_ECC(this);
+            rule.LinksGeneration_ECC(this);
+        }
+    }
+    public abstract void ctxChangeCheckIMD(ContextChange contextChange);
+    public abstract void ctxChangeCheckBatch(Rule rule, List<ContextChange> batch) throws NotSupportedException;
 
 
     //getter
@@ -50,7 +59,7 @@ public abstract class Checker {
         return bfuncInstance;
     }
 
-    public Map<String, List<Set<Link>>> getRuleLinksMap() {
+    public Map<String, List<Map.Entry<Boolean, Set<Link>>>> getRuleLinksMap() {
         return ruleLinksMap;
     }
 }

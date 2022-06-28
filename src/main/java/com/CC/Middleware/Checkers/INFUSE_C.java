@@ -160,13 +160,23 @@ public class INFUSE_C extends Checker{
     }
 
     @Override
-    public void CtxChangeCheckBatch(Rule rule, List<ContextChange> batch) throws NotSupportedException {
+    public void checkInit() {
+        for(Rule rule : this.ruleHandler.getRuleList()){
+            rule.BuildCCT_CPCC_NB(this);
+            rule.TruthEvaluation_CPCC_NB(this);
+            rule.LinksGeneration_CPCC_NB(this);
+        }
+    }
+
+    @Override
+    public void ctxChangeCheckBatch(Rule rule, List<ContextChange> batch) throws NotSupportedException {
         //rule.intoFile(batch);
 
         contextPool.ApplyChanges(rule, batch);
         rule.UpdateAffectedWithChanges(this);
         rule.UpdateCanConcurrent_CPCC_NB(this);
 
+        /*
         if(rule.isCCTAlready()){
             rule.ModifyCCT_CPCC_NB(this);
         }
@@ -174,6 +184,8 @@ public class INFUSE_C extends Checker{
             rule.BuildCCT_CPCC_NB(this);
         }
 
+         */
+        rule.ModifyCCT_CPCC_NB(this);
         rule.TruthEvaluation_CPCC_NB(this);
         Set<Link> links2 = rule.LinksGeneration_CPCC_NB(this);
         if(links2 != null){
@@ -181,12 +193,12 @@ public class INFUSE_C extends Checker{
         }
         rule.CleanAffectedAndCanConcurrent();
         if(links2 != null){
-            storeLink(rule.getRule_id(), links2);
+            storeLink(rule.getRule_id(), rule.getCCTRoot().isTruth(), links2);
         }
     }
 
     @Override
-    public void CtxChangeCheckIMD(ContextChange contextChange) {
+    public void ctxChangeCheckIMD(ContextChange contextChange) {
         for(Rule rule : ruleHandler.getRuleList()) {
             if (rule.getRelatedPatterns().contains(contextChange.getPattern_id())) {
                 List<ContextChange> batch = new ArrayList<>();
@@ -196,12 +208,16 @@ public class INFUSE_C extends Checker{
                 rule.UpdateAffectedWithChanges(this);
                 rule.UpdateCanConcurrent_CPCC_NB(this);
 
+                /*
                 if(rule.isCCTAlready()){
                     rule.ModifyCCT_CPCC_NB(this);
                 }
                 else{
                     rule.BuildCCT_CPCC_NB(this);
                 }
+
+                 */
+                rule.ModifyCCT_CPCC_NB(this);
                 rule.TruthEvaluation_CPCC_NB(this);
                 Set<Link> links2 = rule.LinksGeneration_CPCC_NB(this);
                 if (links2 != null) {
@@ -210,7 +226,7 @@ public class INFUSE_C extends Checker{
                 }
                 rule.CleanAffectedAndCanConcurrent();
                 if(links2 != null){
-                    storeLink(rule.getRule_id(), links2);
+                    storeLink(rule.getRule_id(), rule.getCCTRoot().isTruth(), links2);
                 }
             }
         }

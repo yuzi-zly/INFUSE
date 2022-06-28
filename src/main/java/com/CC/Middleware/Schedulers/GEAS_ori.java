@@ -23,7 +23,7 @@ public class GEAS_ori extends Scheduler{
         Batch_Form(contextChange);
         for(Rule rule : ruleHandler.getRuleList()){
             if(rule.getNewBatch() != null){
-                this.checker.CtxChangeCheckBatch(rule, rule.getBatch());
+                this.checker.ctxChangeCheckBatch(rule, rule.getBatch());
                 rule.setBatch(rule.getNewBatch());
                 rule.setNewBatch(null);
             }
@@ -91,7 +91,7 @@ public class GEAS_ori extends Scheduler{
         //最后一次检测
         for(Rule rule : ruleHandler.getRuleList()){
             if(rule.getBatch() != null){
-                this.checker.CtxChangeCheckBatch(rule, rule.getBatch());
+                this.checker.ctxChangeCheckBatch(rule, rule.getBatch());
                 rule.setBatch(null);
             }
         }
