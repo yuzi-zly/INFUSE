@@ -19,7 +19,7 @@ import java.util.List;
 
 public class CLIParser {
 
-    public static List<String> legalApproaches = new ArrayList<>(){{
+    public static List<String> legalApproaches = new ArrayList<String>(){{
         add("ECC+IMD");
         add("ECC+GEAS_ori");
         add("PCC+IMD");

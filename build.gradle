@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'org.INFUSE'
-version '1.1'
+version 'jdk-8'
 
 jar {
     manifest {
