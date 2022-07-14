@@ -32,7 +32,7 @@ public class CLIParser {
     public static String defaultCheckingMode = "offline";
     public static String defaultApproach = "INFUSE";
     public static String testDefaultOutput = "cceResult.json";
-    public static String taxiDefaultOutput = "src/main/resources/example/cceResult.txt";
+    public static String taxiDefaultOutput = "src/test/resources/taxi/cceResult.txt";
 
     public static void main(String[] args) throws Exception {
         Option opt_h = new Option("h", "help", false, "To print the usage");
@@ -85,19 +85,6 @@ public class CLIParser {
         if(cli.hasOption("h")){
             helpFormatter.printHelp("cmdLine Syntax", options);
         }
-/*
--t
--ap
-PCC+IMD
--rf
-src/main/resources/testingExample/rules.xml
--cp
-src/main/resources/testingExample/cp.json
--bf
-src/main/resources/testingExample/Bfunction.class
--o
-src/main/resources/testingExample/cceResult.json
- */
         else if(cli.hasOption("t")){
             // checking approach
             String approach = null;
@@ -168,22 +155,6 @@ src/main/resources/testingExample/cceResult.json
             System.out.println("[CCE] The output is at \"" + outputFile + "\"");
             System.out.println("[CCE] Checking Approach: " + approach +  "\tData: " + dataFile +  "\t" + totalTime / 1000000L + " ms");
         }
-/*
--md
-offline
--ap
-PCC+IMD
--rf
-src/main/resources/example/rules.xml
--pf
-src/main/resources/example/patterns.xml
--df
-src/main/resources/example/data_5_0-1.txt
--bf
-src/main/resources/example/Bfunction.class
--o
-src/main/resources/example/cceResult.txt
-*/
         else {
             // checking mode
             String checkingMode = null;

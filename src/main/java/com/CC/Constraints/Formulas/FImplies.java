@@ -273,14 +273,13 @@ public class FImplies extends Formula{
             return curNode.getLinks();
         }
         else if(((FImplies)originFormula).getSubformulas()[0].isAffected()){
+            Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_PCC(runtimeNode1, ((FImplies)originFormula).getSubformulas()[0], contextChange, checker);
             if(runtimeNode1.isTruth()){
                 if(runtimeNode2.isTruth()){
-                    runtimeNode1.getFormula().LinksGeneration_PCC(runtimeNode1, ((FImplies)originFormula).getSubformulas()[0], contextChange, checker);
                     curNode.setLinks(runtimeNode2.getLinks());
                     return curNode.getLinks();
                 }
                 else{
-                    Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_PCC(runtimeNode1, ((FImplies)originFormula).getSubformulas()[0], contextChange, checker);
                     Set<Link> result = lgUtils.CartesianSet(lgUtils.FlipSet(ret1), runtimeNode2.getLinks());
                     curNode.setLinks(result);
                     return curNode.getLinks();
@@ -288,14 +287,12 @@ public class FImplies extends Formula{
             }
             else{
                 if(runtimeNode2.isTruth()){
-                    Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_PCC(runtimeNode1, ((FImplies)originFormula).getSubformulas()[0], contextChange, checker);
                     Set<Link> result = lgUtils.FlipSet(ret1);
                     result.addAll(runtimeNode2.getLinks());
                     curNode.setLinks(result);
                     return curNode.getLinks();
                 }
                 else{
-                    Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_PCC(runtimeNode1, ((FImplies)originFormula).getSubformulas()[0], contextChange, checker);
                     Set<Link> result = lgUtils.FlipSet(ret1);
                     curNode.setLinks(result);
                     return curNode.getLinks();
@@ -303,14 +300,13 @@ public class FImplies extends Formula{
             }
         }
         else{
+            Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_PCC(runtimeNode2, ((FImplies)originFormula).getSubformulas()[1], contextChange, checker);
             if(runtimeNode1.isTruth()){
                 if(runtimeNode2.isTruth()){
-                    Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_PCC(runtimeNode2, ((FImplies)originFormula).getSubformulas()[1], contextChange, checker);
                     curNode.setLinks(ret2);
                     return curNode.getLinks();
                 }
                 else{
-                    Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_PCC(runtimeNode2, ((FImplies)originFormula).getSubformulas()[1], contextChange, checker);
                     Set<Link> ret1 = new HashSet<>(runtimeNode1.getLinks());
                     Set<Link> result = lgUtils.CartesianSet(ret2,lgUtils.FlipSet(ret1));
                     curNode.setLinks(result);
@@ -319,14 +315,12 @@ public class FImplies extends Formula{
             }
             else{
                 if(runtimeNode2.isTruth()){
-                    Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_PCC(runtimeNode2, ((FImplies)originFormula).getSubformulas()[1], contextChange, checker);
                     Set<Link> result = lgUtils.FlipSet(runtimeNode1.getLinks());
                     result.addAll(ret2);
                     curNode.setLinks(result);
                     return curNode.getLinks();
                 }
                 else{
-                    runtimeNode2.getFormula().LinksGeneration_PCC(runtimeNode2, ((FImplies)originFormula).getSubformulas()[1], contextChange, checker);
                     Set<Link> ret1 = new HashSet<>(runtimeNode1.getLinks());
                     Set<Link> result = lgUtils.FlipSet(ret1);
                     curNode.setLinks(result);
@@ -453,14 +447,13 @@ public class FImplies extends Formula{
             return curNode.getLinks();
         }
         else if(((FImplies)originFormula).getSubformulas()[0].isAffected() && !((FImplies)originFormula).getSubformulas()[1].isAffected()){
+            Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_PCCM(runtimeNode1, ((FImplies)originFormula).getSubformulas()[0], checker);
             if(runtimeNode1.isTruth()){
                 if(runtimeNode2.isTruth()){
-                    runtimeNode1.getFormula().LinksGeneration_PCCM(runtimeNode1, ((FImplies)originFormula).getSubformulas()[0], checker);
                     curNode.setLinks(runtimeNode2.getLinks());
                     return curNode.getLinks();
                 }
                 else{
-                    Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_PCCM(runtimeNode1, ((FImplies)originFormula).getSubformulas()[0], checker);
                     Set<Link> result = lgUtils.CartesianSet(lgUtils.FlipSet(ret1), runtimeNode2.getLinks());
                     curNode.setLinks(result);
                     return curNode.getLinks();
@@ -468,14 +461,12 @@ public class FImplies extends Formula{
             }
             else{
                 if(runtimeNode2.isTruth()){
-                    Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_PCCM(runtimeNode1, ((FImplies)originFormula).getSubformulas()[0], checker);
                     Set<Link> result = lgUtils.FlipSet(ret1);
                     result.addAll(runtimeNode2.getLinks());
                     curNode.setLinks(result);
                     return curNode.getLinks();
                 }
                 else{
-                    Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_PCCM(runtimeNode1, ((FImplies)originFormula).getSubformulas()[0], checker);
                     Set<Link> result = lgUtils.FlipSet(ret1);
                     curNode.setLinks(result);
                     return curNode.getLinks();
@@ -483,14 +474,13 @@ public class FImplies extends Formula{
             }
         }
         else if(!((FImplies)originFormula).getSubformulas()[0].isAffected() && ((FImplies)originFormula).getSubformulas()[1].isAffected()){
+            Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_PCCM(runtimeNode2, ((FImplies)originFormula).getSubformulas()[1], checker);
             if(runtimeNode1.isTruth()){
                 if(runtimeNode2.isTruth()){
-                    Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_PCCM(runtimeNode2, ((FImplies)originFormula).getSubformulas()[1], checker);
                     curNode.setLinks(ret2);
                     return curNode.getLinks();
                 }
                 else{
-                    Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_PCCM(runtimeNode2, ((FImplies)originFormula).getSubformulas()[1], checker);
                     Set<Link> result = lgUtils.CartesianSet(ret2,lgUtils.FlipSet(runtimeNode1.getLinks()));
                     curNode.setLinks(result);
                     return curNode.getLinks();
@@ -498,14 +488,12 @@ public class FImplies extends Formula{
             }
             else{
                 if(runtimeNode2.isTruth()){
-                    Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_PCCM(runtimeNode2, ((FImplies)originFormula).getSubformulas()[1], checker);
                     Set<Link> result = lgUtils.FlipSet(runtimeNode1.getLinks());
                     result.addAll(ret2);
                     curNode.setLinks(result);
                     return curNode.getLinks();
                 }
                 else{
-                    runtimeNode2.getFormula().LinksGeneration_PCCM(runtimeNode2, ((FImplies)originFormula).getSubformulas()[1], checker);
                     Set<Link> ret1 = new HashSet<>(runtimeNode1.getLinks());
                     Set<Link> result = lgUtils.FlipSet(ret1);
                     curNode.setLinks(result);
@@ -514,16 +502,14 @@ public class FImplies extends Formula{
             }
         }
         else{
+            Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_PCCM(runtimeNode1, ((FImplies)originFormula).getSubformulas()[0], checker);
+            Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_PCCM(runtimeNode2, ((FImplies)originFormula).getSubformulas()[1], checker);
             if(runtimeNode1.isTruth()){
                 if(runtimeNode2.isTruth()){
-                    runtimeNode1.getFormula().LinksGeneration_PCCM(runtimeNode1, ((FImplies)originFormula).getSubformulas()[0], checker);
-                    Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_PCCM(runtimeNode2, ((FImplies)originFormula).getSubformulas()[1], checker);
                     curNode.setLinks(ret2);
                     return curNode.getLinks();
                 }
                 else{
-                    Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_PCCM(runtimeNode1, ((FImplies)originFormula).getSubformulas()[0], checker);
-                    Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_PCCM(runtimeNode2, ((FImplies)originFormula).getSubformulas()[1], checker);
                     Set<Link> result = lgUtils.CartesianSet(ret2,lgUtils.FlipSet(ret1));
                     curNode.setLinks(result);
                     return curNode.getLinks();
@@ -531,16 +517,12 @@ public class FImplies extends Formula{
             }
             else{
                 if(runtimeNode2.isTruth()){
-                    Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_PCCM(runtimeNode1, ((FImplies)originFormula).getSubformulas()[0], checker);
-                    Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_PCCM(runtimeNode2, ((FImplies)originFormula).getSubformulas()[1], checker);
                     Set<Link> result = lgUtils.FlipSet(ret1);
                     result.addAll(ret2);
                     curNode.setLinks(result);
                     return curNode.getLinks();
                 }
                 else{
-                    Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_PCCM(runtimeNode1, ((FImplies)originFormula).getSubformulas()[0], checker);
-                    runtimeNode2.getFormula().LinksGeneration_PCCM(runtimeNode2, ((FImplies)originFormula).getSubformulas()[1], checker);
                     Set<Link> result = lgUtils.FlipSet(ret1);
                     curNode.setLinks(result);
                     return curNode.getLinks();
@@ -635,13 +617,13 @@ public class FImplies extends Formula{
             return curNode.getLinks();
         }
         else if(((FImplies)originFormula).getSubformulas()[0].isAffected() && !((FImplies)originFormula).getSubformulas()[1].isAffected()){
+            Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_CPCC_NB(runtimeNode1, ((FImplies)originFormula).getSubformulas()[0], checker);
             if(runtimeNode1.isTruth()){
                 if(runtimeNode2.isTruth()){
                     curNode.setLinks(runtimeNode2.getLinks());
                     return curNode.getLinks();
                 }
                 else{
-                    Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_CPCC_NB(runtimeNode1, ((FImplies)originFormula).getSubformulas()[0], checker);
                     Set<Link> result = lgUtils.CartesianSet(lgUtils.FlipSet(ret1), runtimeNode2.getLinks());
                     curNode.setLinks(result);
                     return curNode.getLinks();
@@ -649,14 +631,12 @@ public class FImplies extends Formula{
             }
             else{
                 if(runtimeNode2.isTruth()){
-                    Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_CPCC_NB(runtimeNode1, ((FImplies)originFormula).getSubformulas()[0], checker);
                     Set<Link> result = lgUtils.FlipSet(ret1);
                     result.addAll(runtimeNode2.getLinks());
                     curNode.setLinks(result);
                     return curNode.getLinks();
                 }
                 else{
-                    Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_CPCC_NB(runtimeNode1, ((FImplies)originFormula).getSubformulas()[0], checker);
                     Set<Link> result = lgUtils.FlipSet(ret1);
                     curNode.setLinks(result);
                     return curNode.getLinks();
@@ -664,14 +644,13 @@ public class FImplies extends Formula{
             }
         }
         else if(!((FImplies)originFormula).getSubformulas()[0].isAffected() && ((FImplies)originFormula).getSubformulas()[1].isAffected()){
+            Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_CPCC_NB(runtimeNode2, ((FImplies)originFormula).getSubformulas()[1], checker);
             if(runtimeNode1.isTruth()){
                 if(runtimeNode2.isTruth()){
-                    Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_CPCC_NB(runtimeNode2, ((FImplies)originFormula).getSubformulas()[1], checker);
                     curNode.setLinks(ret2);
                     return curNode.getLinks();
                 }
                 else{
-                    Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_CPCC_NB(runtimeNode2, ((FImplies)originFormula).getSubformulas()[1], checker);
                     Set<Link> result = lgUtils.CartesianSet(ret2, lgUtils.FlipSet(runtimeNode1.getLinks()));
                     curNode.setLinks(result);
                     return curNode.getLinks();
@@ -679,7 +658,6 @@ public class FImplies extends Formula{
             }
             else{
                 if(runtimeNode2.isTruth()){
-                    Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_CPCC_NB(runtimeNode2, ((FImplies)originFormula).getSubformulas()[1], checker);
                     Set<Link> result = lgUtils.FlipSet(runtimeNode1.getLinks());
                     result.addAll(ret2);
                     curNode.setLinks(result);
@@ -694,15 +672,14 @@ public class FImplies extends Formula{
             }
         }
         else{
+            Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_CPCC_NB(runtimeNode1, ((FImplies)originFormula).getSubformulas()[0], checker);
+            Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_CPCC_NB(runtimeNode2, ((FImplies)originFormula).getSubformulas()[1], checker);
             if(runtimeNode1.isTruth()){
                 if(runtimeNode2.isTruth()){
-                    Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_CPCC_NB(runtimeNode2, ((FImplies)originFormula).getSubformulas()[1], checker);
                     curNode.setLinks(ret2);
                     return curNode.getLinks();
                 }
                 else{
-                    Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_CPCC_NB(runtimeNode2, ((FImplies)originFormula).getSubformulas()[1], checker);
-                    Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_CPCC_NB(runtimeNode1, ((FImplies)originFormula).getSubformulas()[0], checker);
                     Set<Link> result = lgUtils.CartesianSet(ret2,lgUtils.FlipSet(ret1));
                     curNode.setLinks(result);
                     return curNode.getLinks();
@@ -710,15 +687,12 @@ public class FImplies extends Formula{
             }
             else{
                 if(runtimeNode2.isTruth()){
-                    Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_CPCC_NB(runtimeNode2, ((FImplies)originFormula).getSubformulas()[1], checker);
-                    Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_CPCC_NB(runtimeNode1, ((FImplies)originFormula).getSubformulas()[0], checker);
                     Set<Link> result = lgUtils.FlipSet(ret1);
                     result.addAll(ret2);
                     curNode.setLinks(result);
                     return curNode.getLinks();
                 }
                 else{
-                    Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_CPCC_NB(runtimeNode1, ((FImplies)originFormula).getSubformulas()[0], checker);
                     Set<Link> result = lgUtils.FlipSet(ret1);
                     curNode.setLinks(result);
                     return curNode.getLinks();
@@ -772,14 +746,13 @@ public class FImplies extends Formula{
             return curNode.getLinks();
         }
         else if(((FImplies)originFormula).getSubformulas()[0].isAffected()){
+            Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_BASE(runtimeNode1, ((FImplies)originFormula).getSubformulas()[0], contextChange, checker);
             if(runtimeNode1.isTruth()){
                 if(runtimeNode2.isTruth()){
-                    runtimeNode1.getFormula().LinksGeneration_BASE(runtimeNode1, ((FImplies)originFormula).getSubformulas()[0], contextChange, checker);
                     curNode.setLinks(runtimeNode2.getLinks());
                     return curNode.getLinks();
                 }
                 else{
-                    Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_BASE(runtimeNode1, ((FImplies)originFormula).getSubformulas()[0], contextChange, checker);
                     Set<Link> result = lgUtils.CartesianSet(lgUtils.FlipSet(ret1), runtimeNode2.getLinks());
                     curNode.setLinks(result);
                     return curNode.getLinks();
@@ -787,14 +760,12 @@ public class FImplies extends Formula{
             }
             else{
                 if(runtimeNode2.isTruth()){
-                    Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_BASE(runtimeNode1, ((FImplies)originFormula).getSubformulas()[0], contextChange, checker);
                     Set<Link> result = lgUtils.FlipSet(ret1);
                     result.addAll(runtimeNode2.getLinks());
                     curNode.setLinks(result);
                     return curNode.getLinks();
                 }
                 else{
-                    Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_BASE(runtimeNode1, ((FImplies)originFormula).getSubformulas()[0], contextChange, checker);
                     Set<Link> result = lgUtils.FlipSet(ret1);
                     curNode.setLinks(result);
                     return curNode.getLinks();
@@ -802,14 +773,13 @@ public class FImplies extends Formula{
             }
         }
         else{
+            Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_BASE(runtimeNode2, ((FImplies)originFormula).getSubformulas()[1], contextChange, checker);
             if(runtimeNode1.isTruth()){
                 if(runtimeNode2.isTruth()){
-                    Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_BASE(runtimeNode2, ((FImplies)originFormula).getSubformulas()[1], contextChange, checker);
                     curNode.setLinks(ret2);
                     return curNode.getLinks();
                 }
                 else{
-                    Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_BASE(runtimeNode2, ((FImplies)originFormula).getSubformulas()[1], contextChange, checker);
                     Set<Link> ret1 = new HashSet<>(runtimeNode1.getLinks());
                     Set<Link> result = lgUtils.CartesianSet(ret2,lgUtils.FlipSet(ret1));
                     curNode.setLinks(result);
@@ -818,14 +788,12 @@ public class FImplies extends Formula{
             }
             else{
                 if(runtimeNode2.isTruth()){
-                    Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_BASE(runtimeNode2, ((FImplies)originFormula).getSubformulas()[1], contextChange, checker);
                     Set<Link> result = lgUtils.FlipSet(runtimeNode1.getLinks());
                     result.addAll(ret2);
                     curNode.setLinks(result);
                     return curNode.getLinks();
                 }
                 else{
-                    runtimeNode2.getFormula().LinksGeneration_BASE(runtimeNode2, ((FImplies)originFormula).getSubformulas()[1], contextChange, checker);
                     Set<Link> ret1 = new HashSet<>(runtimeNode1.getLinks());
                     Set<Link> result = lgUtils.FlipSet(ret1);
                     curNode.setLinks(result);

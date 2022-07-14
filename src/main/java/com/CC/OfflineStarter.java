@@ -198,9 +198,7 @@ public class OfflineStarter {
 
     private void IncOutput() throws Exception {
         if(type.equalsIgnoreCase("taxi")){
-            //TODO() path
-            String ansFile = "src/main/resources/example/results.txt";
-            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(new FileOutputStream(ansFile), StandardCharsets.UTF_8);
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(new FileOutputStream(outputFile), StandardCharsets.UTF_8);
             BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
             //对每个rule遍历
             for(Map.Entry<String, List<Map.Entry<Boolean, Set<Link>>>> entry : this.checker.getRuleLinksMap().entrySet()){
@@ -295,47 +293,6 @@ public class OfflineStarter {
                     root.set(rule_id, ruleNode);
                 }
             }
-//            //rules foreach
-//            for(Map.Entry<String, Set<Link>> entry : this.checker.getRuleLinksMap().entrySet()){
-//                String rule_id = entry.getKey();
-//                ObjectNode ruleNode = mapper.createObjectNode();
-//                String truthStr = null;
-//                ArrayNode linksNode = mapper.createArrayNode();
-//                //links foreach
-//                for(Link link : entry.getValue()){
-//                    if(truthStr == null){
-//                        truthStr = link.getLinkType() == Link.Link_Type.SATISFIED ? "true" : "false";
-//                        ruleNode.put("truth", Boolean.parseBoolean(truthStr));
-//                    }
-//                    ArrayNode linkNode = mapper.createArrayNode();
-//                    //vaSet foreach
-//                    for(Map.Entry<String, Context> vaEntry : link.getVaSet()){
-//                        ObjectNode vaNode = mapper.createObjectNode();
-//                        //set var
-//                        vaNode.put("var", vaEntry.getKey());
-//                        //set value
-//                        Context context = vaEntry.getValue();
-//                        ObjectNode valueNode = mapper.createObjectNode();
-//                        valueNode.put("ctx_id", context.getCtx_id());
-//                        ObjectNode fieldsNode = mapper.createObjectNode();
-//                        //context fields foreach
-//                        for(String fieldName : context.getCtx_fields().keySet()){
-//                            fieldsNode.put(fieldName, context.getCtx_fields().get(fieldName));
-//                        }
-//                        valueNode.set("fields", fieldsNode);
-//                        vaNode.set("value", valueNode);
-//                        //store vaNode
-//                        linkNode.add(vaNode);
-//                    }
-//                    //store linkNode
-//                    linksNode.add(linkNode);
-//                }
-//                //store linksNode
-//                ruleNode.set("links", linksNode);
-//                //store ruleNode
-//                root.set(rule_id, ruleNode);
-//            }
-            //to file
             ObjectWriter objectWriter = mapper.writer(new DefaultPrettyPrinter());
             objectWriter.writeValue(new File(outputFile), root);
         }

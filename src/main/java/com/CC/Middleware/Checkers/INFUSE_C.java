@@ -163,7 +163,7 @@ public class INFUSE_C extends Checker{
     public void checkInit() {
         for(Rule rule : this.ruleHandler.getRuleList()){
             rule.BuildCCT_CPCC_NB(this);
-            rule.TruthEvaluation_CPCC_NB(this);
+            rule.TruthEvaluation_CPCC_NB(this, true);
             rule.LinksGeneration_CPCC_NB(this);
         }
     }
@@ -186,7 +186,7 @@ public class INFUSE_C extends Checker{
 
          */
         rule.ModifyCCT_CPCC_NB(this);
-        rule.TruthEvaluation_CPCC_NB(this);
+        rule.TruthEvaluation_CPCC_NB(this, false);
         Set<Link> links2 = rule.LinksGeneration_CPCC_NB(this);
         if(links2 != null){
             rule.addCriticalSet(links2);
@@ -218,7 +218,7 @@ public class INFUSE_C extends Checker{
 
                  */
                 rule.ModifyCCT_CPCC_NB(this);
-                rule.TruthEvaluation_CPCC_NB(this);
+                rule.TruthEvaluation_CPCC_NB(this,false);
                 Set<Link> links2 = rule.LinksGeneration_CPCC_NB(this);
                 if (links2 != null) {
                     rule.addCriticalSet(links2);
