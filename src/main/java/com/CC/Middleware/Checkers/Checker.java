@@ -3,7 +3,6 @@ package com.CC.Middleware.Checkers;
 import com.CC.Constraints.Rule;
 import com.CC.Constraints.RuleHandler;
 import com.CC.Constraints.Runtime.Link;
-import com.CC.Contexts.Context;
 import com.CC.Contexts.ContextChange;
 import com.CC.Contexts.ContextPool;
 import com.CC.Middleware.NotSupportedException;
@@ -14,27 +13,34 @@ public abstract class Checker {
     protected RuleHandler ruleHandler;
     protected ContextPool contextPool;
     protected String technique;
-    protected Object bfunctions;
+    protected Object bfuncInstance;
 
-    protected Set<Map.Entry<String, Map.Entry<String, Map<String, String>>>> Answers;
+    // rule_id -> [(truthValue1, linkSet1), (truthValue2,linkSet2)]
+    protected Map<String, List<Map.Entry<Boolean, Set<Link>>>> ruleLinksMap;
 
-    public Checker(RuleHandler ruleHandler, ContextPool contextPool, Object bfunctions) {
+    public Checker(RuleHandler ruleHandler, ContextPool contextPool, Object bfuncInstance) {
         this.ruleHandler = ruleHandler;
         this.contextPool = contextPool;
-        this.bfunctions = bfunctions;
-        this.Answers = new LinkedHashSet<>();
+        this.bfuncInstance = bfuncInstance;
+        this.ruleLinksMap = new HashMap<>();
     }
 
-    protected void FormatLinks(String rule_id, Link.Link_Type linkType, Set<Map.Entry<String, Context>> vaSet){
-        Map<String, String> vaMap = new HashMap<>();
-        for(Map.Entry<String, Context> entry : vaSet){
-            vaMap.put(entry.getKey(), entry.getValue().getCtx_id());
+    protected void storeLink(String rule_id, boolean truth, Set<Link> linkSet){
+        this.ruleLinksMap.computeIfAbsent(rule_id, k -> new ArrayList<>());
+        Objects.requireNonNull(this.ruleLinksMap.computeIfPresent(rule_id, (k, v) -> v)).add(
+                new AbstractMap.SimpleEntry<>(truth, linkSet)
+        );
+    }
+
+    public void checkInit(){
+        for(Rule rule : ruleHandler.getRuleList()){
+            rule.BuildCCT_ECCPCC(this);
+            rule.TruthEvaluation_ECC(this);
+            rule.LinksGeneration_ECC(this);
         }
-        Answers.add(new AbstractMap.SimpleEntry<>(rule_id, new AbstractMap.SimpleEntry<>(linkType == Link.Link_Type.VIOLATED ? "VIOLATED" : "SATISFIED", vaMap)));
     }
-
-    public abstract void CtxChangeCheckIMD(ContextChange contextChange);
-    public abstract void CtxChangeCheckBatch(Rule rule, List<ContextChange> batch) throws NotSupportedException;
+    public abstract void ctxChangeCheckIMD(ContextChange contextChange);
+    public abstract void ctxChangeCheckBatch(Rule rule, List<ContextChange> batch) throws NotSupportedException;
 
 
     //getter
@@ -49,11 +55,11 @@ public abstract class Checker {
         return technique;
     }
 
-    public Object getBfunctions() {
-        return bfunctions;
+    public Object getBfuncInstance() {
+        return bfuncInstance;
     }
 
-    public Set<Map.Entry<String, Map.Entry<String, Map<String, String>>>> getAnswers() {
-        return Answers;
+    public Map<String, List<Map.Entry<Boolean, Set<Link>>>> getRuleLinksMap() {
+        return ruleLinksMap;
     }
 }

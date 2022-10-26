@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<rules>
+    <rule>
+        <id>rule_3_732</id>
+        <formula>
+            <and>
+                <implies>
+                    <exists var="v1" in="pat_1">
+                        <bfunc name="random_2337">
+                            <param pos="1" var="v1" field="subject"/>
+                        </bfunc>
+                    </exists>
+                    <exists var="v2" in="pat_2">
+                        <bfunc name="random_2338">
+                            <param pos="1" var="v2" field="subject"/>
+                        </bfunc>
+                    </exists>
+                </implies>
+                <forall var="v3" in="pat_3">
+                    <exists var="v4" in="pat_4">
+                        <bfunc name="random_2339">
+                            <param pos="1" var="v3" field="subject"/>
+                            <param pos="2" var="v4" field="subject"/>
+                        </bfunc>
+                    </exists>
+                </forall>
+            </and>
+        </formula>
+    </rule>
+</rules>

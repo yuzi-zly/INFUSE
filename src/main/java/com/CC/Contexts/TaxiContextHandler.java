@@ -2,12 +2,21 @@ package com.CC.Contexts;
 
 import com.CC.Patterns.Pattern;
 import com.CC.Patterns.PatternHandler;
-import com.CC.Patterns.TaxiPattern;
+import com.CC.Patterns.TaxiPatternHandler;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class TaxiContextHandler extends ContextHandler{
+
+    public static final String categoryStr = "category";
+    public static final String subjectStr = "subject";
+    public static final String predicateStr = "predicate";
+    public static final String longitudeStr = "longitude";
+    public static final String latitudeStr = "latitude";
+    public static final String speedStr = "speed";
+    public static final String siteStr = "site";
+    public static final String timestampStr = "timestamp";
 
     /*  存储现有的待过期的context, 按到期时间升序排列
       <OverDueTime: Date, <Pattern_id: String, context: Context>>
@@ -43,9 +52,9 @@ public class TaxiContextHandler extends ContextHandler{
             this.cleanOverdueContext(latestDate, changeList);
         }
         else{
-            TaxiContext taxiContext = buildContext(line, counter++);
+            Context taxiContext = buildContext(line, counter++);
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSS");
-            Date ctxDate = simpleDateFormat.parse(taxiContext.getCtx_timestamp());
+            Date ctxDate = simpleDateFormat.parse(taxiContext.getCtx_fields().get(timestampStr));
             this.cleanOverdueContext(ctxDate, changeList);
             this.createAdditionChangesRegular(taxiContext, changeList);
             this.createAdditionChangesHotArea(taxiContext, changeList);
@@ -53,8 +62,8 @@ public class TaxiContextHandler extends ContextHandler{
         }
     }
 
-    public TaxiContext buildContext(String line, int counter){
-        TaxiContext retctx = null;
+    public Context buildContext(String line, int counter){
+        Context retctx = null;
         if (line != null && !line.equals("")) {
             // Get taxi information
             StringTokenizer st = new StringTokenizer(line, ",");
@@ -68,22 +77,22 @@ public class TaxiContextHandler extends ContextHandler{
             // Skip tag
 
             // Generate one context
-            retctx = new TaxiContext();
+            retctx = new Context();
             retctx.setCtx_id("ctx_" + counter);
-            retctx.setCtx_category("location");
-            retctx.setCtx_subject(taxiId);
+            retctx.getCtx_fields().put(categoryStr, "location");
+            retctx.getCtx_fields().put(subjectStr, taxiId);
             if (status == 0) {
-                retctx.setCtx_predicate("run_without_service");
+                retctx.getCtx_fields().put(predicateStr, "run_without_service");
             } else {
-                retctx.setCtx_predicate("run_with_service");
+                retctx.getCtx_fields().put(predicateStr, "run_with_service");
             }
             // retctx.setCtx_object(longitude + "_" + latitude + "_" + speed);
-            retctx.setCtx_longitude(longitude);
-            retctx.setCtx_latitude(latitude);
-            retctx.setCtx_speed(speed);
+            retctx.getCtx_fields().put(longitudeStr, longitude);
+            retctx.getCtx_fields().put(latitudeStr, latitude);
+            retctx.getCtx_fields().put(speedStr, speed);
             //倒数第二位
-            retctx.setCtx_site("sutpc_" + taxiId.substring(taxiId.length() - 2, taxiId.length() - 1).toUpperCase());
-            retctx.setCtx_timestamp(time);
+            retctx.getCtx_fields().put(siteStr, "sutpc_" + taxiId.substring(taxiId.length() - 2, taxiId.length() - 1).toUpperCase());
+            retctx.getCtx_fields().put(timestampStr, time);
         }
         return retctx;
     }
@@ -115,19 +124,18 @@ public class TaxiContextHandler extends ContextHandler{
     }
 
     //RegularPattern: 根据读入数据创建若干个新的addition change(每对应一个pattern就有一个新change)
-    public void createAdditionChangesRegular(TaxiContext context, List<ContextChange> changeList) throws Exception{
+    public void createAdditionChangesRegular(Context context, List<ContextChange> changeList) throws Exception{
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSS");
         for(Pattern pattern : this.getPatternHandler().getPatternMap().values()){
-            assert pattern instanceof TaxiPattern;
             if(this.getPatternHandler().ctxPatternMatched(context, pattern)){
                 ContextChange contextChange = new ContextChange();
                 contextChange.setChange_type(ContextChange.Change_Type.ADDITION);
                 contextChange.setPattern_id(pattern.getPattern_id());
                 contextChange.setContext(context);
-                contextChange.setTimeStamp(simpleDateFormat.parse(context.getCtx_timestamp()).getTime());
+                contextChange.setTimeStamp(simpleDateFormat.parse(context.getCtx_fields().get(timestampStr)).getTime());
                 changeList.add(contextChange);
-                Date overdue = simpleDateFormat.parse(context.getCtx_timestamp());
-                long period = Long.parseLong(((TaxiPattern) pattern).getFreshness());
+                Date overdue = simpleDateFormat.parse(context.getCtx_fields().get(timestampStr));
+                long period = Long.parseLong(pattern.getPattern_fields().get(TaxiPatternHandler.freshnessStr));
                 overdue.setTime(overdue.getTime() + period);
                 activateCtxQue.add(new AbstractMap.SimpleEntry<>(overdue, contextChange));
             }
@@ -304,21 +312,21 @@ public class TaxiContextHandler extends ContextHandler{
     }
 
     // hotAreaPattern with freshness 48000
-    public void createAdditionChangesHotArea(TaxiContext context, List<ContextChange> changeList) throws Exception{
-        if(context.getCtx_predicate().equals("run_without_service"))
+    public void createAdditionChangesHotArea(Context context, List<ContextChange> changeList) throws Exception{
+        if(context.getCtx_fields().get(predicateStr).equals("run_without_service"))
             return;
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSS");
         //StringTokenizer st = new StringTokenizer(context.getCtx_object(), "_");
-        String longitude = context.getCtx_longitude();
-        String latitude = context.getCtx_latitude();
+        String longitude = context.getCtx_fields().get(longitudeStr);
+        String latitude = context.getCtx_fields().get(latitudeStr);
         if(InHotArea_A(longitude, latitude)){
             ContextChange contextChange = new ContextChange();
             contextChange.setChange_type(ContextChange.Change_Type.ADDITION);
             contextChange.setPattern_id("pat_A");
             contextChange.setContext(context);
-            contextChange.setTimeStamp(simpleDateFormat.parse(context.getCtx_timestamp()).getTime());
+            contextChange.setTimeStamp(simpleDateFormat.parse(context.getCtx_fields().get(timestampStr)).getTime());
             changeList.add(contextChange);
-            Date overdue = simpleDateFormat.parse(context.getCtx_timestamp());
+            Date overdue = simpleDateFormat.parse(context.getCtx_fields().get(timestampStr));
             overdue.setTime(overdue.getTime() + 48000);
             activateCtxQue.add(new AbstractMap.SimpleEntry<>(overdue, contextChange));
         }
@@ -327,9 +335,9 @@ public class TaxiContextHandler extends ContextHandler{
             contextChange.setChange_type(ContextChange.Change_Type.ADDITION);
             contextChange.setPattern_id("pat_B");
             contextChange.setContext(context);
-            contextChange.setTimeStamp(simpleDateFormat.parse(context.getCtx_timestamp()).getTime());
+            contextChange.setTimeStamp(simpleDateFormat.parse(context.getCtx_fields().get(timestampStr)).getTime());
             changeList.add(contextChange);
-            Date overdue = simpleDateFormat.parse(context.getCtx_timestamp());
+            Date overdue = simpleDateFormat.parse(context.getCtx_fields().get(timestampStr));
             overdue.setTime(overdue.getTime() + 48000);
             activateCtxQue.add(new AbstractMap.SimpleEntry<>(overdue, contextChange));
         }
@@ -338,9 +346,9 @@ public class TaxiContextHandler extends ContextHandler{
             contextChange.setChange_type(ContextChange.Change_Type.ADDITION);
             contextChange.setPattern_id("pat_C");
             contextChange.setContext(context);
-            contextChange.setTimeStamp(simpleDateFormat.parse(context.getCtx_timestamp()).getTime());
+            contextChange.setTimeStamp(simpleDateFormat.parse(context.getCtx_fields().get(timestampStr)).getTime());
             changeList.add(contextChange);
-            Date overdue = simpleDateFormat.parse(context.getCtx_timestamp());
+            Date overdue = simpleDateFormat.parse(context.getCtx_fields().get(timestampStr));
             overdue.setTime(overdue.getTime() + 48000);
             activateCtxQue.add(new AbstractMap.SimpleEntry<>(overdue, contextChange));
         }
@@ -349,9 +357,9 @@ public class TaxiContextHandler extends ContextHandler{
             contextChange.setChange_type(ContextChange.Change_Type.ADDITION);
             contextChange.setPattern_id("pat_D");
             contextChange.setContext(context);
-            contextChange.setTimeStamp(simpleDateFormat.parse(context.getCtx_timestamp()).getTime());
+            contextChange.setTimeStamp(simpleDateFormat.parse(context.getCtx_fields().get(timestampStr)).getTime());
             changeList.add(contextChange);
-            Date overdue = simpleDateFormat.parse(context.getCtx_timestamp());
+            Date overdue = simpleDateFormat.parse(context.getCtx_fields().get(timestampStr));
             overdue.setTime(overdue.getTime() + 48000);
             activateCtxQue.add(new AbstractMap.SimpleEntry<>(overdue, contextChange));
         }
@@ -360,9 +368,9 @@ public class TaxiContextHandler extends ContextHandler{
             contextChange.setChange_type(ContextChange.Change_Type.ADDITION);
             contextChange.setPattern_id("pat_E");
             contextChange.setContext(context);
-            contextChange.setTimeStamp(simpleDateFormat.parse(context.getCtx_timestamp()).getTime());
+            contextChange.setTimeStamp(simpleDateFormat.parse(context.getCtx_fields().get(timestampStr)).getTime());
             changeList.add(contextChange);
-            Date overdue = simpleDateFormat.parse(context.getCtx_timestamp());
+            Date overdue = simpleDateFormat.parse(context.getCtx_fields().get(timestampStr));
             overdue.setTime(overdue.getTime() + 48000);
             activateCtxQue.add(new AbstractMap.SimpleEntry<>(overdue, contextChange));
         }
@@ -371,9 +379,9 @@ public class TaxiContextHandler extends ContextHandler{
             contextChange.setChange_type(ContextChange.Change_Type.ADDITION);
             contextChange.setPattern_id("pat_F");
             contextChange.setContext(context);
-            contextChange.setTimeStamp(simpleDateFormat.parse(context.getCtx_timestamp()).getTime());
+            contextChange.setTimeStamp(simpleDateFormat.parse(context.getCtx_fields().get(timestampStr)).getTime());
             changeList.add(contextChange);
-            Date overdue = simpleDateFormat.parse(context.getCtx_timestamp());
+            Date overdue = simpleDateFormat.parse(context.getCtx_fields().get(timestampStr));
             overdue.setTime(overdue.getTime() + 48000);
             activateCtxQue.add(new AbstractMap.SimpleEntry<>(overdue, contextChange));
         }
@@ -382,9 +390,9 @@ public class TaxiContextHandler extends ContextHandler{
             contextChange.setChange_type(ContextChange.Change_Type.ADDITION);
             contextChange.setPattern_id("pat_G");
             contextChange.setContext(context);
-            contextChange.setTimeStamp(simpleDateFormat.parse(context.getCtx_timestamp()).getTime());
+            contextChange.setTimeStamp(simpleDateFormat.parse(context.getCtx_fields().get(timestampStr)).getTime());
             changeList.add(contextChange);
-            Date overdue = simpleDateFormat.parse(context.getCtx_timestamp());
+            Date overdue = simpleDateFormat.parse(context.getCtx_fields().get(timestampStr));
             overdue.setTime(overdue.getTime() + 48000);
             activateCtxQue.add(new AbstractMap.SimpleEntry<>(overdue, contextChange));
         }
@@ -393,9 +401,9 @@ public class TaxiContextHandler extends ContextHandler{
             contextChange.setChange_type(ContextChange.Change_Type.ADDITION);
             contextChange.setPattern_id("pat_H");
             contextChange.setContext(context);
-            contextChange.setTimeStamp(simpleDateFormat.parse(context.getCtx_timestamp()).getTime());
+            contextChange.setTimeStamp(simpleDateFormat.parse(context.getCtx_fields().get(timestampStr)).getTime());
             changeList.add(contextChange);
-            Date overdue = simpleDateFormat.parse(context.getCtx_timestamp());
+            Date overdue = simpleDateFormat.parse(context.getCtx_fields().get(timestampStr));
             overdue.setTime(overdue.getTime() + 48000);
             activateCtxQue.add(new AbstractMap.SimpleEntry<>(overdue, contextChange));
         }
@@ -404,9 +412,9 @@ public class TaxiContextHandler extends ContextHandler{
             contextChange.setChange_type(ContextChange.Change_Type.ADDITION);
             contextChange.setPattern_id("pat_I");
             contextChange.setContext(context);
-            contextChange.setTimeStamp(simpleDateFormat.parse(context.getCtx_timestamp()).getTime());
+            contextChange.setTimeStamp(simpleDateFormat.parse(context.getCtx_fields().get(timestampStr)).getTime());
             changeList.add(contextChange);
-            Date overdue = simpleDateFormat.parse(context.getCtx_timestamp());
+            Date overdue = simpleDateFormat.parse(context.getCtx_fields().get(timestampStr));
             overdue.setTime(overdue.getTime() + 48000);
             activateCtxQue.add(new AbstractMap.SimpleEntry<>(overdue, contextChange));
         }

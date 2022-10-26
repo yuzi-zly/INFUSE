@@ -1,0 +1,14 @@
+{
+  "rule_3_732" : {
+    "truth" : true,
+    "links" : [ [ {
+      "var" : "v2",
+      "value" : {
+        "ctx_id" : "4",
+        "fields" : {
+          "data" : "4"
+        }
+      }
+    } ] ]
+  }
+}

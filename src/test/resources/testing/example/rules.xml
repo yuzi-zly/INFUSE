@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<rules>
+    <rule>
+        <id>rule_1</id>
+        <formula>
+            <forall var="v1" in="pat_1">
+                <forall var="v2" in="pat_2">
+                    <bfunc name="bfunc_1">
+                        <param pos="1" var="v1" field="subject" />
+                        <param pos="2" var="v2" field="subject" />
+                    </bfunc>
+                </forall>
+            </forall>
+        </formula>
+    </rule>
+
+    <rule>
+        <id>rule_2</id>
+        <formula>
+            <exists var="v3" in="pat_3">
+                <bfunc name="bfunc_2">
+                    <param pos="1" var="v3" field="subject" />
+                </bfunc>
+            </exists>
+        </formula>
+    </rule>
+</rules>

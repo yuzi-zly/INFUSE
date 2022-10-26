@@ -8,7 +8,6 @@ import com.CC.Contexts.ContextPool;
 import com.CC.Middleware.Checkers.Checker;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -25,7 +24,7 @@ public class GEAS_opt_s extends GEAS_ori{
         Batch_FormAndRefine_Serial(contextChange);
         for(Rule rule : ruleHandler.getRuleList()){
             if(rule.getNewBatch() != null){
-                this.checker.CtxChangeCheckBatch(rule, rule.getBatch());
+                this.checker.ctxChangeCheckBatch(rule, rule.getBatch());
                 rule.setBatch(rule.getNewBatch());
                 rule.setNewBatch(null);
             }

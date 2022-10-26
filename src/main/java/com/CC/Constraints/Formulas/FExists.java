@@ -199,7 +199,7 @@ public class FExists extends Formula{
             int meet_cnt = 0;
             for(RuntimeNode child : curNode.getChildren()){
                 HashMap<String, Context> varEnv = child.getVarEnv();
-                if(varEnv.get(this.var).equals(addChange.getContext())) {//找到了对应分支
+                if(varEnv.get(this.var).equals(addChange.getContext())) {
                     meet_cnt++;
                     child.getFormula().sideEffectResolution(child, ((FExists)originFormula).getSubformula(), this.var, delChange, addChange, false, scheduler);
                 }
@@ -634,7 +634,7 @@ public class FExists extends Formula{
                 } catch (Exception e) {
                     System.out.println("get links error");
                     System.exit(1);
-                };
+                }
                 Set<Link> initialSet = new HashSet<>();
                 Link initialLink = new Link(Link.Link_Type.SATISFIED);
                 initialLink.AddVA(this.var, child.getVarEnv().get(this.var));

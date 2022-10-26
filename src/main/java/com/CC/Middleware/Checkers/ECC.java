@@ -17,7 +17,7 @@ public class ECC extends Checker{
     }
 
     @Override
-    public void CtxChangeCheckIMD(ContextChange contextChange) {
+    public void ctxChangeCheckIMD(ContextChange contextChange) {
         //consistency checking
         for(Rule rule : this.ruleHandler.getRuleList()){
             if (rule.getRelatedPatterns().contains(contextChange.getPattern_id())){
@@ -30,16 +30,14 @@ public class ECC extends Checker{
                 //links generation
                 Set<Link> links = rule.LinksGeneration_ECC(this);
                 if(links != null){
-                    for(Link link : links){
-                        FormatLinks(rule.getRule_id(), link.getLinkType(),  link.getVaSet());
-                    }
+                    storeLink(rule.getRule_id(), rule.getCCTRoot().isTruth(), links);
                 }
             }
         }
     }
 
     @Override
-    public void CtxChangeCheckBatch(Rule rule, List<ContextChange> batch){
+    public void ctxChangeCheckBatch(Rule rule, List<ContextChange> batch){
         //apply change
         for(ContextChange contextChange : batch){
             contextPool.ApplyChange(rule.getRule_id(), contextChange);
@@ -54,9 +52,7 @@ public class ECC extends Checker{
             rule.addCriticalSet(links);
         }
         if(links != null){
-            for(Link link : links){
-                FormatLinks(rule.getRule_id(), link.getLinkType(),  link.getVaSet());
-            }
+            storeLink(rule.getRule_id(), rule.getCCTRoot().isTruth(), links);
         }
     }
 }

@@ -334,8 +334,14 @@ public class Rule {
     }
 
     //CPCC_NB check
-    public boolean TruthEvaluation_CPCC_NB(Checker checker){
-        boolean result = this.CCTRoot.getFormula().TruthEvaluationPar_CPCC_NB(this.CCTRoot, this.formula, checker);
+    public boolean TruthEvaluation_CPCC_NB(Checker checker, boolean initial){
+        boolean result = false;
+        if(initial){
+            result = this.CCTRoot.getFormula().TruthEvaluationCom_CPCC_NB(this.CCTRoot, this.formula, checker);
+        }
+        else{
+            result = this.CCTRoot.getFormula().TruthEvaluationPar_CPCC_NB(this.CCTRoot, this.formula, checker);
+        }
         this.CCTRoot.setTruth(result);
         return result;
     }

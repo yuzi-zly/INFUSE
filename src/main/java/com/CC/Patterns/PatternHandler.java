@@ -1,14 +1,8 @@
 package com.CC.Patterns;
 
 import com.CC.Contexts.Context;
-import org.dom4j.Document;
-import org.dom4j.Element;
-import org.dom4j.io.SAXReader;
 
-import java.io.File;
 import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.logging.Logger;
 
 public abstract class PatternHandler {
     private final LinkedHashMap<String, Pattern> patternMap;
@@ -23,6 +17,6 @@ public abstract class PatternHandler {
 
 
     public abstract void buildPatterns(String patternFile) throws Exception;
-    public abstract void OutputPatterns();
+    public abstract void outputPatterns();
     public abstract boolean ctxPatternMatched(Context context, Pattern pattern);
 }
