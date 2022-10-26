@@ -126,7 +126,7 @@ public class FExists extends Formula{
             int meet_cnt = 0;
             for(RuntimeNode child : curNode.getChildren()){
                 HashMap<String, Context> varEnv = child.getVarEnv();
-                if(varEnv.get(this.var).equals(delChange.getContext())){//找到了对应分支
+                if(varEnv.get(this.var).equals(delChange.getContext())){//找到了对应分
                     meet_cnt++;
                     boolean tv1 = child.isTruth();
                     boolean chk_flag = child.getFormula().EvaluationAndEqualSideEffect(child, ((FExists)originFormula).getSubformula(), this.var, delChange, addChange, false, scheduler);

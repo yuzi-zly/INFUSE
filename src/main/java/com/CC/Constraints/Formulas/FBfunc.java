@@ -360,8 +360,8 @@ public class FBfunc extends Formula {
             HashMap<String, String> ctxInfos = new HashMap<>();
             Context context = varEnv.get(params.get(pos).var);
 
-            for(Class<?> clazz = context.getClass(); clazz != Object.class ; clazz = clazz.getSuperclass()) {//获取本身和父级对象
-                Field[] fields = clazz.getDeclaredFields();//获取所有私有字段
+            for(Class<?> clazz = context.getClass(); clazz != Object.class ; clazz = clazz.getSuperclass()) {
+                Field[] fields = clazz.getDeclaredFields();
                 for (Field field : fields) {
                     field.setAccessible(true);
                     try {
