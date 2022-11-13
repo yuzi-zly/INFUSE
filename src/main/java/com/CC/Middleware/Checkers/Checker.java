@@ -1,11 +1,11 @@
 package com.CC.Middleware.Checkers;
 
-import com.CC.Constraints.Rule;
-import com.CC.Constraints.RuleHandler;
+import com.CC.Constraints.Rules.Rule;
+import com.CC.Constraints.Rules.RuleHandler;
 import com.CC.Constraints.Runtime.Link;
 import com.CC.Contexts.ContextChange;
 import com.CC.Contexts.ContextPool;
-import com.CC.Middleware.NotSupportedException;
+import com.CC.Util.NotSupportedException;
 
 import java.util.*;
 
@@ -33,7 +33,7 @@ public abstract class Checker {
     }
 
     public void checkInit(){
-        for(Rule rule : ruleHandler.getRuleList()){
+        for(Rule rule : ruleHandler.getRuleMap().values()){
             rule.BuildCCT_ECCPCC(this);
             rule.TruthEvaluation_ECC(this);
             rule.LinksGeneration_ECC(this);

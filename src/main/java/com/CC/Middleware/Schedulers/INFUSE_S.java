@@ -3,8 +3,8 @@ package com.CC.Middleware.Schedulers;
 import com.CC.Constraints.Formulas.FExists;
 import com.CC.Constraints.Formulas.FForall;
 import com.CC.Constraints.Formulas.Formula;
-import com.CC.Constraints.Rule;
-import com.CC.Constraints.RuleHandler;
+import com.CC.Constraints.Rules.Rule;
+import com.CC.Constraints.Rules.RuleHandler;
 import com.CC.Constraints.Runtime.RuntimeNode;
 import com.CC.Contexts.Context;
 import com.CC.Contexts.ContextChange;
@@ -12,7 +12,7 @@ import com.CC.Contexts.ContextPool;
 import com.CC.Middleware.Checkers.Checker;
 import com.CC.Middleware.Checkers.INFUSE_C;
 import com.CC.Middleware.Checkers.ConC;
-import com.CC.Middleware.NotSupportedException;
+import com.CC.Util.NotSupportedException;
 
 import java.util.*;
 
@@ -27,7 +27,7 @@ public class INFUSE_S extends Scheduler{
     @Override
     public void doSchedule(ContextChange contextChange) throws Exception {
         Batch_Form_DIS(contextChange);
-        for(Rule rule : ruleHandler.getRuleList()){
+        for(Rule rule : ruleHandler.getRuleMap().values()){
             if(rule.getNewBatch() != null){
                 this.checker.ctxChangeCheckBatch(rule, rule.getBatch());
                 rule.setBatch(rule.getNewBatch());
@@ -38,8 +38,8 @@ public class INFUSE_S extends Scheduler{
     }
 
     private void Batch_Form_DIS(ContextChange newChange){
-        for(Rule rule : ruleHandler.getRuleList()){
-            if(!rule.getRelatedPatterns().contains(newChange.getPattern_id()))
+        for(Rule rule : ruleHandler.getRuleMap().values()){
+            if(!rule.getVarPatternMap().containsValue(newChange.getPattern_id()))
                 continue;
 
             if(riskMatch(rule, newChange)){
@@ -187,7 +187,7 @@ public class INFUSE_S extends Scheduler{
 
     protected void CleanUp() throws NotSupportedException {
         //最后一次检测
-        for(Rule rule : ruleHandler.getRuleList()){
+        for(Rule rule : ruleHandler.getRuleMap().values()){
             if(rule.getBatch() != null){
                 this.checker.ctxChangeCheckBatch(rule, rule.getBatch());
                 rule.setBatch(null);

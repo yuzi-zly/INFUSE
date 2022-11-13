@@ -1,8 +1,11 @@
 package com.CC;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.CC.Util.Loggable;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.cli.*;
+import org.apache.commons.io.FileUtils;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -12,14 +15,13 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 
 
-public class CLIParser {
+public class CLIParser implements Loggable {
 
-    public static List<String> legalApproaches = new ArrayList<String>(){{
+    public static List<String> legalApproaches = new ArrayList<>(){{
         add("ECC+IMD");
         add("ECC+GEAS_ori");
         add("PCC+IMD");
@@ -55,7 +57,7 @@ public class CLIParser {
         opt_bf.setRequired(false);
         Option opt_cp = new Option("cp", "contextPool", true, "To specify the contextPool file [e.g. src/main/resources/example/cp.json]");
         opt_cp.setRequired(false);
-        Option option_out = new Option("o", "out", true, "To specify the output file [e.g. src/main/resources/example/cceResult.json]");
+        Option option_out = new Option("out", "out", true, "To specify the output file [e.g. src/main/resources/example/cceResult.json]");
         option_out.setRequired(false);
 
         Options options = new Options();
@@ -131,18 +133,18 @@ public class CLIParser {
                 bfuncFile = cli.getOptionValue("bf");
             }
 
-            String parentPathStr = adapt(contextPool);
+            String parentPathStr = testModeDataConvertor(contextPool);
             String patternFile = parentPathStr + "/patterns.xml";
             String dataFile = parentPathStr + "/data.txt";
 
             // output file
             String outputFile = null;
-            if(!cli.hasOption("o")){
+            if(!cli.hasOption("out")){
                 outputFile = parentPathStr + "/" + testDefaultOutput;
                 System.out.println("\033[92m" + "The default output is \"" + outputFile + "\"\033[0m");
             }
             else{
-                outputFile = cli.getOptionValue("o");
+                outputFile = cli.getOptionValue("out");
             }
 
             //default offline checking
@@ -226,12 +228,12 @@ public class CLIParser {
             }
             // output file
             String outputFile = null;
-            if(!cli.hasOption("o")){
+            if(!cli.hasOption("out")){
                 outputFile = taxiDefaultOutput;
                 System.out.println("\033[92m" + "The default approach is \"" + outputFile + "\"\033[0m");
             }
             else{
-                outputFile = cli.getOptionValue("o");
+                outputFile = cli.getOptionValue("out");
             }
 
             // start
@@ -250,7 +252,7 @@ public class CLIParser {
     }
 
 
-    private static String adapt(String contextPool) throws Exception {
+    private static String testModeDataConvertor(String contextPool) throws Exception {
         Path cpPath = Paths.get(contextPool).toAbsolutePath();
         String parent = cpPath.getParent().toString();
 
@@ -261,29 +263,26 @@ public class CLIParser {
         OutputStreamWriter dataWriter = new OutputStreamWriter(new FileOutputStream(parent + "/data.txt"), StandardCharsets.UTF_8);
         BufferedWriter dataBufferWriter = new BufferedWriter(dataWriter);
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode root = objectMapper.readTree(new File(contextPool));
-        assert root.isArray();
-        for(int i = 0; i < root.size(); ++i){
-            JsonNode patNode = root.get(i);
-            String pattern_id = patNode.get("pat_id").asText();
-            patternBufferWriter.write("<pattern>\n<id>" + pattern_id + "</id>\n</pattern>\n\n");
-            JsonNode contexts = patNode.get("contexts");
-            assert contexts.isArray();
-            for(int j = 0; j < contexts.size(); ++j){
-                JsonNode ctxNode = contexts.get(j);
-                String ctx_id = ctxNode.get("ctx_id").asText();
-                String lineData = "+," + pattern_id + "," + ctx_id + "{";
-                List<String> fields = new ArrayList<>();
-                Iterator<String> iterator = ctxNode.get("fields").fieldNames();
-                iterator.forEachRemaining(e -> fields.add(e));
-                for(String field : fields){
-                    lineData = lineData + field + ":" + ctxNode.get("fields").get(field).asText() + ";";
+        String cpStr = FileUtils.readFileToString(new File(contextPool), StandardCharsets.UTF_8);
+        JSONArray cpArray = (JSONArray) JSON.parse(cpStr);
+        for(Object patObj : cpArray){
+            JSONObject patJsonObj = (JSONObject) patObj;
+            String patternId = patJsonObj.getString("pat_id");
+            patternBufferWriter.write("<pattern>\n<id>" + patternId + "</id>\n</pattern>\n\n");
+            JSONArray ctxJsonArray = patJsonObj.getJSONArray("contexts");
+            for(Object ctxObj : ctxJsonArray){
+                JSONObject ctxJsonObj = (JSONObject) ctxObj;
+                String ctxId = ctxJsonObj.getString("ctx_id");
+                StringBuilder lineData = new StringBuilder("+," + patternId + "," + ctxId + "{");
+                JSONObject fieldsJsonObj = ctxJsonObj.getJSONObject("fields");
+                for(String fieldName : fieldsJsonObj.keySet()){
+                    lineData.append(fieldName).append(":").append(fieldsJsonObj.getString(fieldName)).append(";");
                 }
-                lineData = lineData.substring(0, lineData.length() - 1) + "}\n";
-                dataBufferWriter.write(lineData);
+                lineData = new StringBuilder(lineData.substring(0, lineData.length() - 1) + "}\n");
+                dataBufferWriter.write(lineData.toString());
             }
         }
+
         dataBufferWriter.flush();
         patternBufferWriter.write("</patterns>\n");
         patternBufferWriter.flush();

@@ -1,17 +1,8 @@
 package com.CC.Middleware.Schedulers;
 
-import com.CC.Constraints.RuleHandler;
+import com.CC.Constraints.Rules.RuleHandler;
 import com.CC.Contexts.*;
 import com.CC.Middleware.Checkers.*;
-import com.CC.Middleware.NotSupportedException;
-import com.CC.Patterns.PatternHandler;
-import com.CC.Patterns.PatternHandlerFactory;
-import org.dom4j.rule.Rule;
-
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.text.DecimalFormat;
-import java.util.*;
 
 public abstract class Scheduler {
     protected String strategy;

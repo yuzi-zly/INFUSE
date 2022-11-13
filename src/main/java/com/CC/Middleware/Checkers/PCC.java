@@ -1,7 +1,7 @@
 package com.CC.Middleware.Checkers;
 
-import com.CC.Constraints.Rule;
-import com.CC.Constraints.RuleHandler;
+import com.CC.Constraints.Rules.Rule;
+import com.CC.Constraints.Rules.RuleHandler;
 import com.CC.Constraints.Runtime.Link;
 import com.CC.Contexts.ContextChange;
 import com.CC.Contexts.ContextPool;
@@ -19,8 +19,8 @@ public class PCC extends Checker{
     @Override
     public void ctxChangeCheckIMD(ContextChange contextChange) {
         //consistency checking
-        for(Rule rule : ruleHandler.getRuleList()){
-            if(rule.getRelatedPatterns().contains(contextChange.getPattern_id())){
+        for(Rule rule : ruleHandler.getRuleMap().values()){
+            if(rule.getVarPatternMap().values().contains(contextChange.getPattern_id())){
                 //apply changes
                 contextPool.ApplyChange(rule.getRule_id(), contextChange);
                 rule.UpdateAffectedWithOneChange(contextChange, this);
@@ -81,7 +81,7 @@ public class PCC extends Checker{
     public void ctxChangeCheckBatch(Rule rule, List<ContextChange> batch) {
         //rule.intoFile(batch);
         //clean
-        for(String pattern_id : rule.getRelatedPatterns()){
+        for(String pattern_id : rule.getVarPatternMap().values()){
             contextPool.GetAddSet(pattern_id).clear();
             contextPool.GetDelSet(pattern_id).clear();
             contextPool.GetUpdSet(pattern_id).clear();

@@ -3,14 +3,14 @@ package com.CC.Middleware.Checkers;
 import com.CC.Constraints.Formulas.FExists;
 import com.CC.Constraints.Formulas.FForall;
 import com.CC.Constraints.Formulas.Formula;
-import com.CC.Constraints.Rule;
-import com.CC.Constraints.RuleHandler;
+import com.CC.Constraints.Rules.Rule;
+import com.CC.Constraints.Rules.RuleHandler;
 import com.CC.Constraints.Runtime.Link;
 import com.CC.Constraints.Runtime.RuntimeNode;
 import com.CC.Contexts.Context;
 import com.CC.Contexts.ContextChange;
 import com.CC.Contexts.ContextPool;
-import com.CC.Middleware.NotSupportedException;
+import com.CC.Util.NotSupportedException;
 
 import java.util.HashMap;
 import java.util.List;
@@ -106,8 +106,8 @@ public class ConC extends Checker {
     @Override
     public void ctxChangeCheckIMD(ContextChange contextChange) {
         //consistency checking
-        for(Rule rule : ruleHandler.getRuleList()){
-            if(rule.getRelatedPatterns().contains(contextChange.getPattern_id())){
+        for(Rule rule : ruleHandler.getRuleMap().values()){
+            if(rule.getVarPatternMap().values().contains(contextChange.getPattern_id())){
                 //apply changes
                 contextPool.ApplyChange(rule.getRule_id(), contextChange);
                 //build CCT

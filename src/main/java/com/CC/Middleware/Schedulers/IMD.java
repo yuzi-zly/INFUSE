@@ -1,7 +1,7 @@
 package com.CC.Middleware.Schedulers;
 
 
-import com.CC.Constraints.RuleHandler;
+import com.CC.Constraints.Rules.RuleHandler;
 import com.CC.Contexts.ContextChange;
 import com.CC.Contexts.ContextPool;
 import com.CC.Middleware.Checkers.Checker;

@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+
+<patterns>
+
+    <!-- 一个pattern对应一个sensor -->
+    <pattern>
+        <id>pat_template1</id>
+        <freshness>
+            <type>number</type>
+            <value>10</value>
+        </freshness>
+        <matcher> <!-- 可选项, 缺省了的话，所有的数据都会自动匹配 -->
+            <type>function</type>
+            <functionName>filter</functionName>
+            <extraArgumentList> <!-- 可选项 --><!-- 由用户自定义的匹配函数除context之外的额外参数 -->
+                <argument>argOne</argument>
+                <argument>argTwo</argument>
+            </extraArgumentList>
+        </matcher>
+    </pattern>
+
+    <!-- 一个pattern对应多个sensor, 应该保证多个sensor的field是相同的 -->
+    <pattern>
+        <id>pat_template2</id>
+        <freshness>
+            <type>time</type> <!--可选项有time(ms)和number(#)-->
+            <value>2000</value> <!--2000ms-->
+        </freshness>
+        <matcher> <!-- 可选项 -->
+            <type>primaryKey</type>
+            <primaryKey>id</primaryKey>
+            <optionalValueList>
+                <value>orange_car</value>
+                <value>black_car</value>
+            </optionalValueList>
+        </matcher>
+    </pattern>
+
+</patterns>

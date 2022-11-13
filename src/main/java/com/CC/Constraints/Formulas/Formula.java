@@ -1,6 +1,6 @@
 package com.CC.Constraints.Formulas;
 
-import com.CC.Constraints.Rule;
+import com.CC.Constraints.Rules.Rule;
 import com.CC.Constraints.Runtime.Link;
 import com.CC.Constraints.Runtime.RuntimeNode;
 import com.CC.Contexts.ContextChange;

@@ -1,6 +1,6 @@
 package com.CC.Constraints.Formulas;
 
-import com.CC.Constraints.Rule;
+import com.CC.Constraints.Rules.Rule;
 import com.CC.Constraints.Runtime.LGUtils;
 import com.CC.Constraints.Runtime.Link;
 import com.CC.Constraints.Runtime.RuntimeNode;
@@ -15,18 +15,8 @@ import java.util.*;
 
 public class FBfunc extends Formula {
 
-    public static class Param {
-
-        public String var = null, field = null;
-
-        public Param(String _var, String _field) {
-            this.var = _var;
-            this.field = _field;
-        }
-    }
-
     private String func = null;  // Function name
-    private HashMap<String, Param> params = new HashMap<>();
+    private HashMap<String, String> params = new HashMap<>();
 
     //constructor
     public FBfunc(String _func) {
@@ -35,14 +25,9 @@ public class FBfunc extends Formula {
         this.setAffected(false);
     }
 
-    public void addParam(String pos, String var, String field) {
-
-        if (params.get(pos) == null) {  // pos should be unique
-            params.put(pos, new Param(var, field));
-        } else {
-            System.out.println("[CCE] not unique position: " + pos);
-            System.exit(1);
-        }
+    public void addParam(String pos, String var) {
+        assert params.get(pos) == null;
+        params.put(pos, var);
     }
 
     // getter and setter
@@ -51,7 +36,7 @@ public class FBfunc extends Formula {
         return super.getFormula_type();
     }
 
-    public HashMap<String, Param> getParams() {
+    public HashMap<String, String> getParams() {
         return params;
     }
 
@@ -68,7 +53,7 @@ public class FBfunc extends Formula {
         this.func = func;
     }
 
-    public void setParams(HashMap<String, Param> params) {
+    public void setParams(HashMap<String, String> params) {
         this.params = params;
     }
 
@@ -87,15 +72,15 @@ public class FBfunc extends Formula {
         this.params.forEach((k,v) -> {
             for(int i = 0; i < offset+2; ++i)
                 System.out.print(" ");
-            System.out.println("pos: " + k + " var: " + v.var + " field: " + v.field);
+            System.out.println("pos: " + k + " var: " + v);
         });
     }
 
     @Override
     public Formula FormulaClone() {
         FBfunc fBfunc = new FBfunc(this.func);
-        HashMap<String, Param> tmpparams = new HashMap<>(this.params);
-        fBfunc.setParams(tmpparams);
+        HashMap<String, String> tmpParams = new HashMap<>(this.params);
+        fBfunc.setParams(tmpParams);
         return fBfunc;
     }
 
@@ -347,18 +332,16 @@ public class FBfunc extends Formula {
     }
 
 
-
-
     public boolean bfuncCaller(HashMap<String, Context> varEnv, Checker checker){
         Map<String, Map<String, String>> vcMap = new HashMap<>();
         for(String pos : params.keySet()){
             HashMap<String, String> ctxInfos = new HashMap<>();
-            Context context = varEnv.get(params.get(pos).var);
+            Context context = varEnv.get(params.get(pos));
             ctxInfos.put("ctx_id", context.getCtx_id());
             for(String attriName : context.getCtx_fields().keySet()){
                 ctxInfos.put(attriName, context.getCtx_fields().get(attriName));
             }
-            vcMap.put(params.get(pos).var, ctxInfos);
+            vcMap.put(params.get(pos), ctxInfos);
         }
 
         boolean result = false;

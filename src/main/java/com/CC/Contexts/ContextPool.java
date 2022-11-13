@@ -1,6 +1,6 @@
 package com.CC.Contexts;
 
-import com.CC.Constraints.Rule;
+import com.CC.Constraints.Rules.Rule;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -26,7 +26,7 @@ public class ContextPool {
 
     public void PoolInit(Rule rule){
             HashMap<String, Set<Context>> map = new HashMap<>();
-            for(String pattern_id : rule.getRelatedPatterns()){
+            for(String pattern_id : rule.getVarPatternMap().values()){
                 map.put(pattern_id, new HashSet<>());
             }
             Pool.put(rule.getRule_id(), map);
@@ -83,7 +83,7 @@ public class ContextPool {
     //CPCC method 2
     public void ApplyChanges(Rule rule, List<ContextChange> batch) {
         //init DelSet, AddSet, and ModSet
-        for(String pattern_id : rule.getRelatedPatterns()){
+        for(String pattern_id : rule.getVarPatternMap().values()){
             DelSets.get(pattern_id).clear();
             AddSets.get(pattern_id).clear();
             UpdSets.get(pattern_id).clear();
@@ -92,7 +92,7 @@ public class ContextPool {
         //update DelSets, AddSets, and ModSets
         for(ContextChange contextChange : batch){
             String pattern_id = contextChange.getPattern_id();
-            if(!rule.getRelatedPatterns().contains(pattern_id))
+            if(!rule.getVarPatternMap().containsValue(pattern_id))
                 continue;
             Set<Context> DelSet = DelSets.get(pattern_id);
             Set<Context> AddSet = AddSets.get(pattern_id);

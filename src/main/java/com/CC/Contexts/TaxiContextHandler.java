@@ -2,7 +2,6 @@ package com.CC.Contexts;
 
 import com.CC.Patterns.Pattern;
 import com.CC.Patterns.PatternHandler;
-import com.CC.Patterns.TaxiPatternHandler;
 
 import java.text.SimpleDateFormat;
 import java.util.*;

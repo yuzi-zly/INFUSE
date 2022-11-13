@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+
+<rules>
+
+    <rule>
+        <id>rule_02</id>
+        <formula>
+            <forall var = "v1" in = "pat_001">
+                <forall var="v2" in="pat_002">
+                    <bfunction name="two-layer">
+                        <param pos="1" var="v1"/>
+                        <param pos="2" var="v2"/>
+                    </bfunction>
+                </forall>
+            </forall>
+        </formula>
+        <resovler> <!--可选项，缺省即为不修复-->
+            <type>fix</type> <!-- drop / fix -->
+            <variable>v1</variable>
+            <fixingPairList> <!-- 可选项 -->
+                <fixingPair>
+                    <field>taxiId</field>
+                    <value>B154Z1</value>
+                </fixingPair>
+                <fixingPair>
+                    <field>status</field>
+                    <value>0</value>
+                </fixingPair>
+            </fixingPairList>
+        </resovler>
+    </rule>
+
+
+
+</rules>

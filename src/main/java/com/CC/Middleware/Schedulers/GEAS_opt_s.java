@@ -1,7 +1,7 @@
 package com.CC.Middleware.Schedulers;
 
-import com.CC.Constraints.Rule;
-import com.CC.Constraints.RuleHandler;
+import com.CC.Constraints.Rules.Rule;
+import com.CC.Constraints.Rules.RuleHandler;
 import com.CC.Contexts.Context;
 import com.CC.Contexts.ContextChange;
 import com.CC.Contexts.ContextPool;
@@ -22,7 +22,7 @@ public class GEAS_opt_s extends GEAS_ori{
     @Override
     public void doSchedule(ContextChange contextChange) throws Exception {
         Batch_FormAndRefine_Serial(contextChange);
-        for(Rule rule : ruleHandler.getRuleList()){
+        for(Rule rule : ruleHandler.getRuleMap().values()){
             if(rule.getNewBatch() != null){
                 this.checker.ctxChangeCheckBatch(rule, rule.getBatch());
                 rule.setBatch(rule.getNewBatch());
@@ -32,8 +32,8 @@ public class GEAS_opt_s extends GEAS_ori{
     }
 
     private void Batch_FormAndRefine_Serial(ContextChange newChange){
-        for(Rule rule : ruleHandler.getRuleList()){
-            if(!rule.getRelatedPatterns().contains(newChange.getPattern_id()))
+        for(Rule rule : ruleHandler.getRuleMap().values()){
+            if(!rule.getVarPatternMap().containsValue(newChange.getPattern_id()))
                 continue;
 
             if(S_Condition_Match(rule, newChange)){

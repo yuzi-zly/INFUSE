@@ -1,18 +1,19 @@
 package com.CC;
 
-import com.CC.Constraints.Rule;
-import com.CC.Constraints.RuleHandler;
+import com.CC.Constraints.Rules.Rule;
+import com.CC.Constraints.Rules.RuleHandler;
 import com.CC.Constraints.Runtime.Link;
-import com.CC.Contexts.*;
+import com.CC.Contexts.Context;
+import com.CC.Contexts.ContextChange;
+import com.CC.Contexts.ContextHandler;
+import com.CC.Contexts.ContextPool;
 import com.CC.Middleware.Checkers.*;
 import com.CC.Middleware.Schedulers.*;
 import com.CC.Patterns.PatternHandler;
-import com.CC.Patterns.PatternHandlerFactory;
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.CC.Util.Loggable;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.JSONWriter;
 
 import java.io.*;
 import java.lang.reflect.Constructor;
@@ -24,7 +25,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
-public class OfflineStarter {
+public class OfflineStarter implements Loggable {
     private RuleHandler ruleHandler;
     private PatternHandler patternHandler;
     private ContextHandler contextHandler;
@@ -32,9 +33,9 @@ public class OfflineStarter {
 
     private String dataFile;
     private String ruleFile;
-    private String patternFile;
     private String bfuncFile;
-
+    private String patternFile;
+    private String mfuncFile;
     private String outputFile;
 
     private Scheduler scheduler;
@@ -54,12 +55,13 @@ public class OfflineStarter {
         this.outputFile = outputFile;
 
         this.ruleHandler = new RuleHandler();
-        this.patternHandler = new PatternHandlerFactory().getPatternHandler(type);
-        this.contextHandler = new ContextHandlerFactory().getContextHandler(type, patternHandler);
+        this.patternHandler = new PatternHandler();
+        this.contextHandler = new ContextHandler(patternHandler);
         this.contextPool = new ContextPool();
 
         try {
             buildRulesAndPatterns();
+            logger.info("Build rules and patterns successfully.");
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -67,6 +69,7 @@ public class OfflineStarter {
         Object bfuncInstance = null;
         try {
             bfuncInstance = loadBfuncFile();
+            logger.info("Load bfunc file successfully.");
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -128,9 +131,11 @@ public class OfflineStarter {
 
         //check init
         this.checker.checkInit();
+        logger.info("Init checking.");
 
         //run
         try {
+            logger.info("Start running......");
             run();
             if(type.equals("test")){
                 testRunEnd(bfuncInstance);
@@ -144,9 +149,9 @@ public class OfflineStarter {
 
     private void buildRulesAndPatterns() throws Exception {
         this.ruleHandler.buildRules(ruleFile);
-        this.patternHandler.buildPatterns(patternFile);
+        this.patternHandler.buildPatterns(patternFile, null);
 
-        for(Rule rule : ruleHandler.getRuleList()){
+        for(Rule rule : ruleHandler.getRuleMap().values()){
             contextPool.PoolInit(rule);
             //S-condition
             rule.DeriveSConditions();
@@ -172,6 +177,9 @@ public class OfflineStarter {
         List<ContextChange> changeList = new ArrayList<>();
         InputStreamReader inputStreamReader = new InputStreamReader(new FileInputStream(dataFile), StandardCharsets.UTF_8);
         BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+        String dataType =  bufferedReader.readLine().trim();
+        this.contextHandler.setDataType(dataType);
+
         while((line = bufferedReader.readLine()) != null){
             this.contextHandler.generateChanges(line, changeList);
             while(!changeList.isEmpty()){
@@ -244,57 +252,56 @@ public class OfflineStarter {
             }
         }
         else if (type.equalsIgnoreCase("test")){
-            ObjectMapper mapper = new ObjectMapper();
-            ObjectNode root = mapper.createObjectNode();
-
+            JSONObject root = new JSONObject();
             Map<String, List<Map.Entry<Boolean, Set<Link>>>> ruleLinksMap = this.checker.getRuleLinksMap();
-            for(Rule rule : this.ruleHandler.getRuleList()){
+            for(Rule rule : this.ruleHandler.getRuleMap().values()){
                 String rule_id = rule.getRule_id();
                 if(ruleLinksMap.containsKey(rule_id)){
-                    ObjectNode ruleNode = mapper.createObjectNode();
+                    JSONObject ruleJsonObj = new JSONObject();
                     Map.Entry<Boolean, Set<Link>> latestResult = ruleLinksMap.get(rule_id).get(ruleLinksMap.get(rule_id).size() - 1);
-                    ruleNode.put("truth", latestResult.getKey());
-                    ArrayNode linksNode = mapper.createArrayNode();
+                    ruleJsonObj.put("truth", latestResult.getKey());
+                    JSONArray linksJsonArray = new JSONArray();
                     //links foreach
                     for(Link link : latestResult.getValue()){
-                        ArrayNode linkNode = mapper.createArrayNode();
+                        JSONArray linkJsonArray = new JSONArray();
                         //vaSet foreach
                         for(Map.Entry<String, Context> vaEntry : link.getVaSet()){
-                            ObjectNode vaNode = mapper.createObjectNode();
+                            JSONObject vaJsonObj = new JSONObject();
                             //set var
-                            vaNode.put("var", vaEntry.getKey());
+                            vaJsonObj.put("var", vaEntry.getKey());
                             //set value
                             Context context = vaEntry.getValue();
-                            ObjectNode valueNode = mapper.createObjectNode();
-                            valueNode.put("ctx_id", context.getCtx_id());
-                            ObjectNode fieldsNode = mapper.createObjectNode();
+                            JSONObject valueJsonObj = new JSONObject();
+                            valueJsonObj.put("ctx_id", context.getCtx_id());
+                            JSONObject fieldsJsonObj = new JSONObject();
                             //context fields foreach
                             for(String fieldName : context.getCtx_fields().keySet()){
-                                fieldsNode.put(fieldName, context.getCtx_fields().get(fieldName));
+                                fieldsJsonObj.put(fieldName, context.getCtx_fields().get(fieldName));
                             }
-                            valueNode.set("fields", fieldsNode);
-                            vaNode.set("value", valueNode);
+                            valueJsonObj.put("fields", fieldsJsonObj);
+                            vaJsonObj.put("value", valueJsonObj);
                             //store vaNode
-                            linkNode.add(vaNode);
+                            linkJsonArray.add(vaJsonObj);
                         }
                         //store linkNode
-                        linksNode.add(linkNode);
+                        linksJsonArray.add(linkJsonArray);
                     }
                     //store linksNode
-                    ruleNode.set("links", linksNode);
+                    ruleJsonObj.put("links", linksJsonArray);
                     //store ruleNode
-                    root.set(rule_id, ruleNode);
+                    root.put(rule_id, ruleJsonObj);
                 }
                 else{
-                    ObjectNode ruleNode = mapper.createObjectNode();
-                    ruleNode.put("truth", rule.getCCTRoot().isTruth());
-                    ArrayNode linksNode = mapper.createArrayNode();
-                    ruleNode.set("links", linksNode);
-                    root.set(rule_id, ruleNode);
+                    JSONObject ruleJsonObj = new JSONObject();
+                    ruleJsonObj.put("truth", rule.getCCTRoot().isTruth());
+                    ruleJsonObj.put("links", new JSONArray());
+                    root.put(rule_id, ruleJsonObj);
                 }
             }
-            ObjectWriter objectWriter = mapper.writer(new DefaultPrettyPrinter());
-            objectWriter.writeValue(new File(outputFile), root);
+
+            JSONWriter jsonWriter = new JSONWriter(new FileWriter(outputFile));
+            jsonWriter.writeObject(root);
+            jsonWriter.close();
         }
         else{
             assert false;

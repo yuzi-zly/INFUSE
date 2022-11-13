@@ -1,4 +1,4 @@
-package com.CC.Middleware;
+package com.CC.Util;
 
 public class NotSupportedException extends Exception{
     public NotSupportedException() {

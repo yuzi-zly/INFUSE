@@ -1,11 +1,11 @@
 package com.CC.Middleware.Checkers;
 
-import com.CC.Constraints.Rule;
-import com.CC.Constraints.RuleHandler;
+import com.CC.Constraints.Rules.Rule;
+import com.CC.Constraints.Rules.RuleHandler;
 import com.CC.Constraints.Runtime.Link;
 import com.CC.Contexts.ContextChange;
 import com.CC.Contexts.ContextPool;
-import com.CC.Middleware.NotSupportedException;
+import com.CC.Util.NotSupportedException;
 
 import java.util.List;
 import java.util.Set;
@@ -19,8 +19,8 @@ public class BASE extends ConC{
 
     @Override
     public void ctxChangeCheckIMD(ContextChange contextChange) {
-        for(Rule rule : ruleHandler.getRuleList()){
-            if(rule.getRelatedPatterns().contains(contextChange.getPattern_id())){
+        for(Rule rule : ruleHandler.getRuleMap().values()){
+            if(rule.getVarPatternMap().values().contains(contextChange.getPattern_id())){
                 //apply changes
                 contextPool.ApplyChange(rule.getRule_id(), contextChange);
                 rule.UpdateAffectedWithOneChange(contextChange, this);
