@@ -21,38 +21,44 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
 public class OfflineStarter implements Loggable {
+
+    private Scheduler scheduler;
+    private Checker checker;
+    private String ruleFile;
+    private String bfuncFile;
+    private String patternFile;
+    private String mfuncFile;
+
+    private String dataFile;
+    private String incOutFile;
+    private String dataOutFile;
+
+    private String type;
+
+
     private RuleHandler ruleHandler;
     private PatternHandler patternHandler;
     private ContextHandler contextHandler;
     private ContextPool contextPool;
 
-    private String dataFile;
-    private String ruleFile;
-    private String bfuncFile;
-    private String patternFile;
-    private String mfuncFile;
-    private String outputFile;
-
-    private Scheduler scheduler;
-    private Checker checker;
-
-    private String type;
 
     public OfflineStarter() {}
 
-    public void start(String approach, String ruleFile, String patternFile, String dataFile, String bfuncFile, String outputFile, String type){
-        this.type = type;
-
-        this.dataFile = dataFile;
+    public void start(String approach, String ruleFile, String bfuncFile, String patternFile, String mfuncFile, String dataFile, String incOutFile, String dataOutFile, String type){
         this.ruleFile = ruleFile;
-        this.patternFile = patternFile;
         this.bfuncFile = bfuncFile;
-        this.outputFile = outputFile;
+        this.patternFile = patternFile;
+        this.mfuncFile = mfuncFile;
+        this.dataFile = dataFile;
+        this.incOutFile = incOutFile;
+        this.dataOutFile =dataOutFile;
+        this.type = type;
 
         this.ruleHandler = new RuleHandler();
         this.patternHandler = new PatternHandler();
@@ -90,6 +96,7 @@ public class OfflineStarter implements Loggable {
                 schedule = "INFUSE_S";
             }
         }
+        logger.info("Checking technique is " + technique + ", scheduling strategy is " + schedule);
 
         assert technique != null;
 
@@ -131,7 +138,7 @@ public class OfflineStarter implements Loggable {
 
         //check init
         this.checker.checkInit();
-        logger.info("Init checking.");
+        logger.info("Init checking successfully.");
 
         //run
         try {
@@ -149,7 +156,7 @@ public class OfflineStarter implements Loggable {
 
     private void buildRulesAndPatterns() throws Exception {
         this.ruleHandler.buildRules(ruleFile);
-        this.patternHandler.buildPatterns(patternFile, null);
+        this.patternHandler.buildPatterns(patternFile, mfuncFile);
 
         for(Rule rule : ruleHandler.getRuleMap().values()){
             contextPool.PoolInit(rule);
@@ -175,7 +182,7 @@ public class OfflineStarter implements Loggable {
     private void run() throws Exception{
         String line;
         List<ContextChange> changeList = new ArrayList<>();
-        InputStreamReader inputStreamReader = new InputStreamReader(new FileInputStream(dataFile), StandardCharsets.UTF_8);
+        InputStreamReader inputStreamReader = new InputStreamReader(Files.newInputStream(Paths.get(dataFile)), StandardCharsets.UTF_8);
         BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
         String dataType =  bufferedReader.readLine().trim();
         this.contextHandler.setDataType(dataType);

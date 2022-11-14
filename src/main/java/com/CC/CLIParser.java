@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -33,8 +34,12 @@ public class CLIParser implements Loggable {
     }};
     public static String defaultCheckingMode = "offline";
     public static String defaultApproach = "INFUSE";
-    public static String testDefaultOutput = "cceResult.json";
-    public static String taxiDefaultOutput = "src/test/resources/taxi/cceResult.txt";
+
+    public static String incOut = "inconsistencies.txt";
+
+    public static String dataOut = "fixedData.txt";
+
+    public static String testIncOut = "cceResult.json";
 
     public static void main(String[] args) throws Exception {
         Option opt_h = new Option("h", "help", false, "To print the usage");
@@ -49,16 +54,18 @@ public class CLIParser implements Loggable {
         opt_ap.setRequired(false);
         Option opt_rf = new Option("rf",  "ruleFile", true, "To specify the ruleFile [e.g. src/main/resources/example/rules.xml]");
         opt_rf.setRequired(false);
+        Option opt_bf = new Option("bf",  "bfuncFile", true, "To specify the bfuncFile [e.g. src/main/resources/example/Bfunctions.class]");
+        opt_bf.setRequired(false);
         Option opt_pf = new Option("pf", "patternFile", true, "To specify the patternFile [e.g. src/main/resources/example/patterns.xml]");
         opt_pf.setRequired(false);
-        Option opt_df = new Option("df", "dataFile", true, "To specify the dataFile [e.g. src/main/resources/example/data_5_0-1.txt]");
+        Option opt_mf = new Option("mf", "mfuncFile", true, "To specify the mfuncFile [e.g. src/main/resources/example/Mfunctions.class]");
+        opt_mf.setRequired(false);
+
+        Option opt_df = new Option("df", "dataFile", true, "To specify the dataFile [e.g. src/main/resources/example/data.txt]");
         opt_df.setRequired(false);
-        Option opt_bf = new Option("bf",  "bfuncFile", true, "To specify the bfuncFile [e.g src/main/resources/example/Bfunctions.class]");
-        opt_bf.setRequired(false);
         Option opt_cp = new Option("cp", "contextPool", true, "To specify the contextPool file [e.g. src/main/resources/example/cp.json]");
         opt_cp.setRequired(false);
-        Option option_out = new Option("out", "out", true, "To specify the output file [e.g. src/main/resources/example/cceResult.json]");
-        option_out.setRequired(false);
+
 
         Options options = new Options();
         options.addOption(opt_h);
@@ -70,7 +77,6 @@ public class CLIParser implements Loggable {
         options.addOption(opt_md);
         options.addOption(opt_bf);
         options.addOption(opt_cp);
-        options.addOption(option_out);
 
         CommandLine cli = null;
         CommandLineParser cliParser = new DefaultParser();
@@ -92,12 +98,12 @@ public class CLIParser implements Loggable {
             String approach = null;
             if(!cli.hasOption("ap")){
                 approach = defaultApproach;
-                System.out.println("\033[92m" + "The default approach is \"" + defaultApproach + "\"\033[0m");
+                logger.info("\033[92m" + "The default approach is \"" + defaultApproach + "\"\033[0m");
             }
             else{
                 approach = cli.getOptionValue("ap");
                 if(!legalApproaches.contains(approach)){
-                    System.out.println("\033[91m" + "The approach is illegal" + "\033[0m");
+                    logger.error("\033[91m" + "The approach is illegal" + "\033[0m");
                     helpFormatter.printHelp("cmdLine Syntax", options);
                     System.exit(1);
                 }
@@ -105,69 +111,60 @@ public class CLIParser implements Loggable {
             // rule file
             String ruleFile = null;
             if(!cli.hasOption("rf")){
-                System.out.println("\033[91m" + "The ruleFile cannot be empty" + "\033[0m");
+                logger.error("\033[91m" + "The ruleFile cannot be empty" + "\033[0m");
                 helpFormatter.printHelp("cmdLine Syntax", options);
                 System.exit(1);
             }
             else{
                 ruleFile = cli.getOptionValue("rf");
             }
-            // context pool file
-            String contextPool = null;
-            if(!cli.hasOption("cp")){
-                System.out.println("\033[91m" + "The contextPool cannot be empty" + "\033[0m");
-                helpFormatter.printHelp("cmdLine Syntax", options);
-                System.exit(1);
-            }
-            else{
-                contextPool = cli.getOptionValue("cp");
-            }
             // bfunc file
             String bfuncFile = null;
             if(!cli.hasOption("bf")){
-                System.out.println("\033[91m" + "The bfuncFile cannot be empty" + "\033[0m");
+                logger.error("\033[91m" + "The bfuncFile cannot be empty" + "\033[0m");
                 helpFormatter.printHelp("cmdLine Syntax", options);
                 System.exit(1);
             }
             else{
                 bfuncFile = cli.getOptionValue("bf");
             }
-
-            String parentPathStr = testModeDataConvertor(contextPool);
-            String patternFile = parentPathStr + "/patterns.xml";
-            String dataFile = parentPathStr + "/data.txt";
-
-            // output file
-            String outputFile = null;
-            if(!cli.hasOption("out")){
-                outputFile = parentPathStr + "/" + testDefaultOutput;
-                System.out.println("\033[92m" + "The default output is \"" + outputFile + "\"\033[0m");
+            // context pool file
+            String contextPool = null;
+            if(!cli.hasOption("cp")){
+                logger.error("\033[91m" + "The contextPool cannot be empty" + "\033[0m");
+                helpFormatter.printHelp("cmdLine Syntax", options);
+                System.exit(1);
             }
             else{
-                outputFile = cli.getOptionValue("out");
+                contextPool = cli.getOptionValue("cp");
             }
+
+            String parentPathStr = testModeDataConvertor(contextPool);
+            String patternFile = parentPathStr + "/tmpPatterns.xml";
+            String dataFile = parentPathStr + "/tmpData.txt";
 
             //default offline checking
             long startTime = System.nanoTime();
             OfflineStarter offlineStarter = new OfflineStarter();
-            offlineStarter.start(approach, ruleFile, patternFile, dataFile, bfuncFile, outputFile, "test");
+            offlineStarter.start(approach, ruleFile, patternFile, dataFile, bfuncFile, testIncOut, null, "test");
             long totalTime = System.nanoTime() - startTime;
-            assert new File(patternFile).delete();
-            assert new File(dataFile).delete();
-            System.out.println("[CCE] The output is at \"" + outputFile + "\"");
-            System.out.println("[CCE] Checking Approach: " + approach +  "\tData: " + dataFile +  "\t" + totalTime / 1000000L + " ms");
+
+            Files.delete(Paths.get(patternFile));
+            Files.delete(Paths.get(dataFile));
+            logger.info("The output is at \"" + testIncOut + "\"");
+            logger.info("Checking Approach: " + approach +  "\tData: " + dataFile +  "\t" + totalTime / 1000000L + " ms");
         }
         else {
             // checking mode
             String checkingMode = null;
             if(!cli.hasOption("md")){
                 checkingMode = defaultCheckingMode;
-                System.out.println("\033[92m" + "The default checkingMode is \"" + defaultCheckingMode + "\"\033[0m");
+                logger.info("\033[92m" + "The default checkingMode is \"" + defaultCheckingMode + "\"\033[0m");
             }
             else{
                 checkingMode = cli.getOptionValue("md");
                 if(!checkingMode.equalsIgnoreCase("offline") && !checkingMode.equalsIgnoreCase("online")){
-                    System.out.println("\033[91m" + "The checkingMode is illegal" + "\033[0m");
+                    logger.error("\033[91m" + "The checkingMode is illegal" + "\033[0m");
                     helpFormatter.printHelp("cmdLine Syntax", options);
                     System.exit(1);
                 }
@@ -176,12 +173,12 @@ public class CLIParser implements Loggable {
             String approach = null;
             if(!cli.hasOption("ap")){
                 approach = defaultApproach;
-                System.out.println("\033[92m" + "The default approach is \"" + defaultApproach + "\"\033[0m");
+                logger.info("\033[92m" + "The default approach is \"" + defaultApproach + "\"\033[0m");
             }
             else{
                 approach = cli.getOptionValue("ap");
                 if(!legalApproaches.contains(approach)){
-                    System.out.println("\033[91m" + "The approach is illegal" + "\033[0m");
+                    logger.error("\033[91m" + "The approach is illegal" + "\033[0m");
                     helpFormatter.printHelp("cmdLine Syntax", options);
                     System.exit(1);
                 }
@@ -189,64 +186,65 @@ public class CLIParser implements Loggable {
             // rule file
             String ruleFile = null;
             if(!cli.hasOption("rf")){
-                System.out.println("\033[91m" + "The ruleFile cannot be empty" + "\033[0m");
+                logger.error("\033[91m" + "The ruleFile cannot be empty" + "\033[0m");
                 helpFormatter.printHelp("cmdLine Syntax", options);
                 System.exit(1);
             }
             else{
                 ruleFile = cli.getOptionValue("rf");
             }
-            // pattern file
-            String patternFile = null;
-            if(!cli.hasOption("pf")){
-                System.out.println("\033[91m" + "The patternFile cannot be empty" + "\033[0m");
-                helpFormatter.printHelp("cmdLine Syntax", options);
-                System.exit(1);
-            }
-            else{
-                patternFile = cli.getOptionValue("pf");
-            }
-            // data file
-            String dataFile = null;
-            if(!cli.hasOption("df")){
-                System.out.println("\033[91m" + "The dataFile cannot be empty" + "\033[0m");
-                helpFormatter.printHelp("cmdLine Syntax", options);
-                System.exit(1);
-            }
-            else{
-                dataFile = cli.getOptionValue("df");
-            }
             // bfunc file
             String bfuncFile = null;
             if(!cli.hasOption("bf")){
-                System.out.println("\033[91m" + "The bfuncFile cannot be empty" + "\033[0m");
+                logger.error("\033[91m" + "The bfuncFile cannot be empty" + "\033[0m");
                 helpFormatter.printHelp("cmdLine Syntax", options);
                 System.exit(1);
             }
             else{
                 bfuncFile = cli.getOptionValue("bf");
             }
-            // output file
-            String outputFile = null;
-            if(!cli.hasOption("out")){
-                outputFile = taxiDefaultOutput;
-                System.out.println("\033[92m" + "The default approach is \"" + outputFile + "\"\033[0m");
+            // pattern file
+            String patternFile = null;
+            if(!cli.hasOption("pf")){
+                logger.error("\033[91m" + "The patternFile cannot be empty" + "\033[0m");
+                helpFormatter.printHelp("cmdLine Syntax", options);
+                System.exit(1);
             }
             else{
-                outputFile = cli.getOptionValue("out");
+                patternFile = cli.getOptionValue("pf");
+            }
+            // mfunc file
+            String mfuncFile = null;
+            if(!cli.hasOption("mf")){
+                logger.warn("No specified mfuncFile.");
+            }
+            else{
+                mfuncFile = cli.getOptionValue("mf");
+            }
+            // data file [offline]
+            String dataFile = null;
+            if(checkingMode.equalsIgnoreCase("offline")){
+                if(!cli.hasOption("df")){
+                    logger.error("\033[91m" + "The dataFile cannot be empty in offline mode" + "\033[0m");
+                    helpFormatter.printHelp("cmdLine Syntax", options);
+                    System.exit(1);
+                }
+                else{
+                    dataFile = cli.getOptionValue("df");
+                }
             }
 
             // start
             if(checkingMode.equalsIgnoreCase("offline")){
                 long startTime = System.nanoTime();
                 OfflineStarter offlineStarter = new OfflineStarter();
-                offlineStarter.start(approach, ruleFile, patternFile, dataFile, bfuncFile, outputFile,"taxi");
+                offlineStarter.start(approach, ruleFile, patternFile, dataFile, bfuncFile, incOut, dataOut, "run");
                 long totalTime = System.nanoTime() - startTime;
                 System.out.println("Checking Approach: " + approach +  "\tData: " + dataFile +  "\t" + totalTime / 1000000L + " ms");
             }
             else if(checkingMode.equalsIgnoreCase("online")){
                 OnlineStarter onlineStarter = new OnlineStarter();
-                onlineStarter.start(approach, ruleFile, patternFile, dataFile, bfuncFile, outputFile,"taxi");
+                onlineStarter.start(approach, ruleFile, patternFile, bfuncFile, incOut, dataOut,"run");
             }
         }
     }
@@ -256,11 +254,11 @@ public class CLIParser implements Loggable {
         Path cpPath = Paths.get(contextPool).toAbsolutePath();
         String parent = cpPath.getParent().toString();
 
-        OutputStreamWriter patternWriter = new OutputStreamWriter(new FileOutputStream(parent + "/patterns.xml"), StandardCharsets.UTF_8);
+        OutputStreamWriter patternWriter = new OutputStreamWriter(new FileOutputStream(parent + "/tmpPatterns.xml"), StandardCharsets.UTF_8);
         BufferedWriter patternBufferWriter = new BufferedWriter(patternWriter);
         patternBufferWriter.write("<?xml version=\"1.0\"?>\n\n<patterns>\n\n");
 
-        OutputStreamWriter dataWriter = new OutputStreamWriter(new FileOutputStream(parent + "/data.txt"), StandardCharsets.UTF_8);
+        OutputStreamWriter dataWriter = new OutputStreamWriter(new FileOutputStream(parent + "/tmpData.txt"), StandardCharsets.UTF_8);
         BufferedWriter dataBufferWriter = new BufferedWriter(dataWriter);
 
         String cpStr = FileUtils.readFileToString(new File(contextPool), StandardCharsets.UTF_8);

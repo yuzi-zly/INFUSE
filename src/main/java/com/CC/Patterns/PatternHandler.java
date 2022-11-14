@@ -33,7 +33,9 @@ public class PatternHandler implements Loggable {
 
     public void buildPatterns(String patternFile, String mfuncFile){
         Object mfuncInstance = loadMfuncFile(mfuncFile);
-        logger.info("Load mfunc file successfully");
+        if(mfuncInstance != null){
+            logger.info("Load mfunc file successfully");
+        }
         try {
             SAXReader saxReader = new SAXReader();
             Document document = saxReader.read(new File(patternFile));
