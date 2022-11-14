@@ -6,6 +6,12 @@ javadoc {
     options.encoding = 'UTF-8'
 }
 
+java{
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(11))
+    }
+}
+
 group 'org.INFUSE'
 version 'jdk-11'
 
