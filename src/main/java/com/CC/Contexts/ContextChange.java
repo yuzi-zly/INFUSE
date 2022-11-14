@@ -8,7 +8,6 @@ public class ContextChange {
     private String pattern_id;
     private Context context;
 
-    private long timeStamp;
 
     //setter and getter
     public void setChange_type(Change_Type change_type) {
@@ -21,14 +20,6 @@ public class ContextChange {
 
     public void setPattern_id(String pattern_id) {
         this.pattern_id = pattern_id;
-    }
-
-    public void setTimeStamp(long timeStamp) {
-        this.timeStamp = timeStamp;
-    }
-
-    public long getTimeStamp() {
-        return timeStamp;
     }
 
     public Context getContext() {

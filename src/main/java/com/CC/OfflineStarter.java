@@ -36,6 +36,7 @@ public class OfflineStarter implements Loggable {
     private String mfuncFile;
 
     private String dataFile;
+    private String dataType;
     private String incOutFile;
     private String dataOutFile;
 
@@ -50,19 +51,20 @@ public class OfflineStarter implements Loggable {
 
     public OfflineStarter() {}
 
-    public void start(String approach, String ruleFile, String bfuncFile, String patternFile, String mfuncFile, String dataFile, String incOutFile, String dataOutFile, String type){
+    public void start(String approach, String ruleFile, String bfuncFile, String patternFile, String mfuncFile, String dataFile, String dataType, String incOutFile, String dataOutFile, String type){
         this.ruleFile = ruleFile;
         this.bfuncFile = bfuncFile;
         this.patternFile = patternFile;
         this.mfuncFile = mfuncFile;
         this.dataFile = dataFile;
+        this.dataType = dataType;
         this.incOutFile = incOutFile;
-        this.dataOutFile =dataOutFile;
+        this.dataOutFile = dataOutFile;
         this.type = type;
 
         this.ruleHandler = new RuleHandler();
         this.patternHandler = new PatternHandler();
-        this.contextHandler = new ContextHandler(patternHandler);
+        this.contextHandler = new ContextHandler(patternHandler, dataType);
         this.contextPool = new ContextPool();
 
         try {
@@ -181,14 +183,10 @@ public class OfflineStarter implements Loggable {
 
     private void run() throws Exception{
         String line;
-        List<ContextChange> changeList = new ArrayList<>();
         InputStreamReader inputStreamReader = new InputStreamReader(Files.newInputStream(Paths.get(dataFile)), StandardCharsets.UTF_8);
         BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-        String dataType =  bufferedReader.readLine().trim();
-        this.contextHandler.setDataType(dataType);
-
         while((line = bufferedReader.readLine()) != null){
-            this.contextHandler.generateChanges(line, changeList);
+            List<ContextChange> changeList = this.contextHandler.generateChanges(line);
             while(!changeList.isEmpty()){
                 ContextChange chg = changeList.get(0);
                 changeList.remove(0);
@@ -198,7 +196,7 @@ public class OfflineStarter implements Loggable {
         bufferedReader.close();
         inputStreamReader.close();
 
-        this.contextHandler.generateChanges(null, changeList);
+        List<ContextChange> changeList = this.contextHandler.generateChanges(null);
         while(!changeList.isEmpty()){
             ContextChange chg = changeList.get(0);
             changeList.remove(0);
@@ -212,8 +210,8 @@ public class OfflineStarter implements Loggable {
     }
 
     private void IncOutput() throws Exception {
-        if(type.equalsIgnoreCase("taxi")){
-            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(new FileOutputStream(outputFile), StandardCharsets.UTF_8);
+        if(type.equalsIgnoreCase("run")){
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(new FileOutputStream(incOutFile), StandardCharsets.UTF_8);
             BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
             //对每个rule遍历
             for(Map.Entry<String, List<Map.Entry<Boolean, Set<Link>>>> entry : this.checker.getRuleLinksMap().entrySet()){
@@ -306,7 +304,7 @@ public class OfflineStarter implements Loggable {
                 }
             }
 
-            JSONWriter jsonWriter = new JSONWriter(new FileWriter(outputFile));
+            JSONWriter jsonWriter = new JSONWriter(new FileWriter(incOutFile));
             jsonWriter.writeObject(root);
             jsonWriter.close();
         }

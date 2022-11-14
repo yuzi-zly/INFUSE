@@ -58,7 +58,7 @@ public class PatternHandler implements Loggable {
                 //matcher (optional)
                 if(labelElements.size() == 3){
                     assert labelElements.get(2).getName().equals("matcher");
-                    List<Element> matcherElements = labelElements.get(3).elements();
+                    List<Element> matcherElements = labelElements.get(2).elements();
                     assert matcherElements.get(0).getName().equals("type");
                     String matcherType = matcherElements.get(0).getText();
                     if(matcherType.equals("primaryKey")){

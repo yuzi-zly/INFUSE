@@ -19,8 +19,8 @@ public class Bfunction {
 
     // Compares two field values and a constant string if any (should be identical)
     private boolean funcSame(Map<String, Map<String, String>> vcMap)  {
-        String subject1 = vcMap.get("v1").get("subject");
-        String subject2 = vcMap.get("v2").get("subject");
+        String subject1 = vcMap.get("v1").get("taxiId");
+        String subject2 = vcMap.get("v2").get("taxiId");
         return subject1.equals(subject2);
     }
 

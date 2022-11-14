@@ -10,8 +10,12 @@
 - bfuncFile
 - patternFile
 - mfuncFile
-
+- 
 ### offlineStarter
+
+#### dataFile 
+
+- 每一行数据为json格式
 
 1. buildRulesAndPatterns
     - 
@@ -25,3 +29,18 @@
 - ruleFile
 - bfuncFile
 - contextPool
+
+
+## offline
+
+### dataType == change
+
+以null结束，contextHandler返回空list
+
+### dataType == rawData
+
+以null结束，contextHandler生成过时的context对应的deletion changes，然后返回
+
+## online
+
+### 

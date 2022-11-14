@@ -1,20 +1,20 @@
 <?xml version="1.0"?>
 <rules>
-<rule>
-<id>rule_2_24</id>
-<formula>
-<and>
-<exists var = "v1" in = "pat_1">
-<bfunc name = "random_41">
-<param pos = "1" var = "v1" field = "subject" />
-</bfunc>
-</exists>
-<forall var = "v2" in = "pat_2">
-<bfunc name = "random_42">
-<param pos = "1" var = "v2" field = "subject" />
-</bfunc>
-</forall>
-</and>
-</formula>
-</rule>
+    <rule>
+        <id>rule_2_24</id>
+        <formula>
+            <and>
+                <exists var="v1" in="pat_1">
+                    <bfunction name="random_41">
+                        <param pos="1" var="v1"/>
+                    </bfunction>
+                </exists>
+                <forall var="v2" in="pat_2">
+                    <bfunction name="random_42">
+                        <param pos="1" var="v2"/>
+                    </bfunc>
+                </forall>
+            </and>
+        </formula>
+    </rule>
 </rules>

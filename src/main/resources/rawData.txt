@@ -1,0 +1,1 @@
+{"timestamp": "2011-04-08 04:00:00:000", "fields" : {"taxiId": "B019B0", "longitude": 114.10638, "latitude": 22.541292, "speed": 16, "direction": 45, "status": 96}}

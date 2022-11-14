@@ -35,6 +35,8 @@ public class CLIParser implements Loggable {
     public static String defaultCheckingMode = "offline";
     public static String defaultApproach = "INFUSE";
 
+    public static String defaultDataType = "rawData";
+
     public static String incOut = "inconsistencies.txt";
 
     public static String dataOut = "fixedData.txt";
@@ -63,6 +65,9 @@ public class CLIParser implements Loggable {
 
         Option opt_df = new Option("df", "dataFile", true, "To specify the dataFile [e.g. src/main/resources/example/data.txt]");
         opt_df.setRequired(false);
+        Option opt_dt = new Option("dt", "dataType", true, "To specify the type of dataFile [rawData/change]");
+        opt_dt.setRequired(false);
+
         Option opt_cp = new Option("cp", "contextPool", true, "To specify the contextPool file [e.g. src/main/resources/example/cp.json]");
         opt_cp.setRequired(false);
 
@@ -75,7 +80,9 @@ public class CLIParser implements Loggable {
         options.addOption(opt_df);
         options.addOption(opt_ap);
         options.addOption(opt_md);
+        options.addOption(opt_mf);
         options.addOption(opt_bf);
+        options.addOption(opt_dt);
         options.addOption(opt_cp);
 
         CommandLine cli = null;
@@ -146,7 +153,7 @@ public class CLIParser implements Loggable {
             //default offline checking
             long startTime = System.nanoTime();
             OfflineStarter offlineStarter = new OfflineStarter();
-            offlineStarter.start(approach, ruleFile, patternFile, dataFile, bfuncFile, testIncOut, null, "test");
+            offlineStarter.start(approach, ruleFile, bfuncFile, patternFile, null, dataFile, "change", testIncOut, null, "test");
             long totalTime = System.nanoTime() - startTime;
 
             Files.delete(Paths.get(patternFile));
@@ -221,9 +228,11 @@ public class CLIParser implements Loggable {
             else{
                 mfuncFile = cli.getOptionValue("mf");
             }
-            // data file [offline]
+            // data file and data type [offline]
             String dataFile = null;
+            String dataType = null;
             if(checkingMode.equalsIgnoreCase("offline")){
+                //data file
                 if(!cli.hasOption("df")){
                     logger.error("\033[91m" + "The dataFile cannot be empty in offline mode" + "\033[0m");
                     helpFormatter.printHelp("cmdLine Syntax", options);
@@ -232,19 +241,28 @@ public class CLIParser implements Loggable {
                 else{
                     dataFile = cli.getOptionValue("df");
                 }
+                //data type
+                if(!cli.hasOption("dt")){
+                    dataType = defaultDataType;
+                    logger.info("\033[92m" + "The default data type is \"" + defaultDataType + "\"\033[0m");
+                }
+                else{
+                    dataType = cli.getOptionValue("dt");
+                }
             }
 
             // start
             if(checkingMode.equalsIgnoreCase("offline")){
                 long startTime = System.nanoTime();
                 OfflineStarter offlineStarter = new OfflineStarter();
-                offlineStarter.start(approach, ruleFile, patternFile, dataFile, bfuncFile, incOut, dataOut, "run");
+                offlineStarter.start(approach, ruleFile, bfuncFile, patternFile, mfuncFile, dataFile, dataType, incOut, dataOut, "run");
                 long totalTime = System.nanoTime() - startTime;
                 System.out.println("Checking Approach: " + approach +  "\tData: " + dataFile +  "\t" + totalTime / 1000000L + " ms");
             }
             else if(checkingMode.equalsIgnoreCase("online")){
-                OnlineStarter onlineStarter = new OnlineStarter();
-                onlineStarter.start(approach, ruleFile, patternFile, bfuncFile, incOut, dataOut,"run");
+                //TODO()
+//                OnlineStarter onlineStarter = new OnlineStarter();
+//                onlineStarter.start(approach, ruleFile, patternFile, bfuncFile, incOut, dataOut,"run");
             }
         }
     }
@@ -266,18 +284,25 @@ public class CLIParser implements Loggable {
         for(Object patObj : cpArray){
             JSONObject patJsonObj = (JSONObject) patObj;
             String patternId = patJsonObj.getString("pat_id");
-            patternBufferWriter.write("<pattern>\n<id>" + patternId + "</id>\n</pattern>\n\n");
+            String patternStrBuilder = "<pattern>\n<id>" + patternId +
+                    "</id>\n" + "<freshness>\n" + "<type>number</type>\n" +
+                    "<value>1</value>\n" + "</freshness>" + "</pattern>\n\n";
+            patternBufferWriter.write(patternStrBuilder);
+
             JSONArray ctxJsonArray = patJsonObj.getJSONArray("contexts");
             for(Object ctxObj : ctxJsonArray){
                 JSONObject ctxJsonObj = (JSONObject) ctxObj;
                 String ctxId = ctxJsonObj.getString("ctx_id");
-                StringBuilder lineData = new StringBuilder("+," + patternId + "," + ctxId + "{");
-                JSONObject fieldsJsonObj = ctxJsonObj.getJSONObject("fields");
-                for(String fieldName : fieldsJsonObj.keySet()){
-                    lineData.append(fieldName).append(":").append(fieldsJsonObj.getString(fieldName)).append(";");
-                }
-                lineData = new StringBuilder(lineData.substring(0, lineData.length() - 1) + "}\n");
-                dataBufferWriter.write(lineData.toString());
+
+                JSONObject lineDataJsonObj = new JSONObject();
+                lineDataJsonObj.put("changeType", "+");
+                lineDataJsonObj.put("patternId", patternId);
+                JSONObject newCtxJsonObj = new JSONObject();
+                newCtxJsonObj.put("contextId", ctxId);
+                newCtxJsonObj.put("fields", ctxJsonObj.getJSONObject("fields"));
+                lineDataJsonObj.put("context", newCtxJsonObj);
+
+                dataBufferWriter.write(lineDataJsonObj.toJSONString() + "\n");
             }
         }
 

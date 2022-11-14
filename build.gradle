@@ -10,20 +10,17 @@ group 'org.INFUSE'
 version 'jdk-11'
 
 jar {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
     manifest {
         attributes('Main-Class': 'com.CC.CLIParser')
+        attributes("Multi-Release": true)
     }
     from{
         (configurations.runtimeClasspath).collect {
-            exclude '.classpath'
-            exclude '.project'
-            exclude 'META-INF/LICENSE*'
-            exclude 'META-INF/NOTICE*'
-            exclude 'META-INF/versions/**'
             it.isDirectory() ? it : zipTree(it)
         }
     }
-    processResources.exclude('*')
+    //processResources.exclude('*')
 }
 
 repositories {
