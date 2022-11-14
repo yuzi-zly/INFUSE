@@ -1,8 +1,10 @@
 package com.CC;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.cli.*;
+import org.apache.commons.io.FileUtils;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -32,7 +34,7 @@ public class CLIParser {
     public static String defaultCheckingMode = "offline";
     public static String defaultApproach = "INFUSE";
     public static String testDefaultOutput = "cceResult.json";
-    public static String taxiDefaultOutput = "src/test/resources/taxi/cceResult.txt";
+    public static String taxiDefaultOutput = "cceResult.txt";
 
     public static void main(String[] args) throws Exception {
         Option opt_h = new Option("h", "help", false, "To print the usage");
@@ -261,29 +263,28 @@ public class CLIParser {
         OutputStreamWriter dataWriter = new OutputStreamWriter(new FileOutputStream(parent + "/data.txt"), StandardCharsets.UTF_8);
         BufferedWriter dataBufferWriter = new BufferedWriter(dataWriter);
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode root = objectMapper.readTree(new File(contextPool));
-        assert root.isArray();
-        for(int i = 0; i < root.size(); ++i){
-            JsonNode patNode = root.get(i);
-            String pattern_id = patNode.get("pat_id").asText();
+        JSONArray rootArray = JSON.parseArray(FileUtils.readFileToString(new File(contextPool), StandardCharsets.UTF_8));
+        for(Object patObj : rootArray){
+            JSONObject patJsonObj = (JSONObject) patObj;
+            String pattern_id = patJsonObj.getString("pat_id");
             patternBufferWriter.write("<pattern>\n<id>" + pattern_id + "</id>\n</pattern>\n\n");
-            JsonNode contexts = patNode.get("contexts");
-            assert contexts.isArray();
-            for(int j = 0; j < contexts.size(); ++j){
-                JsonNode ctxNode = contexts.get(j);
-                String ctx_id = ctxNode.get("ctx_id").asText();
-                String lineData = "+," + pattern_id + "," + ctx_id + "{";
-                List<String> fields = new ArrayList<>();
-                Iterator<String> iterator = ctxNode.get("fields").fieldNames();
-                iterator.forEachRemaining(e -> fields.add(e));
-                for(String field : fields){
-                    lineData = lineData + field + ":" + ctxNode.get("fields").get(field).asText() + ";";
-                }
-                lineData = lineData.substring(0, lineData.length() - 1) + "}\n";
-                dataBufferWriter.write(lineData);
+            JSONArray ctxJsonArray = patJsonObj.getJSONArray("contexts");
+            for(Object ctxObj : ctxJsonArray){
+                JSONObject ctxJsonObj = (JSONObject) ctxObj;
+                String ctxId = ctxJsonObj.getString("ctx_id");
+
+                JSONObject lineDataJsonObj = new JSONObject();
+                lineDataJsonObj.put("changeType", "+");
+                lineDataJsonObj.put("patternId", pattern_id);
+                JSONObject newCtxJsonObj = new JSONObject();
+                newCtxJsonObj.put("contextId", ctxId);
+                newCtxJsonObj.put("fields", ctxJsonObj.getJSONObject("fields"));
+                lineDataJsonObj.put("context", newCtxJsonObj);
+
+                dataBufferWriter.write(lineDataJsonObj.toJSONString() + "\n");
             }
         }
+
         dataBufferWriter.flush();
         patternBufferWriter.write("</patterns>\n");
         patternBufferWriter.flush();
