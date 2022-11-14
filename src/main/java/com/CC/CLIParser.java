@@ -257,7 +257,7 @@ public class CLIParser implements Loggable {
                 OfflineStarter offlineStarter = new OfflineStarter();
                 offlineStarter.start(approach, ruleFile, bfuncFile, patternFile, mfuncFile, dataFile, dataType, incOut, dataOut, "run");
                 long totalTime = System.nanoTime() - startTime;
-                System.out.println("Checking Approach: " + approach +  "\tData: " + dataFile +  "\t" + totalTime / 1000000L + " ms");
+                logger.info("Checking Approach: " + approach +  "\tData: " + dataFile +  "\t\033[92m" + totalTime / 1000000L + " ms\033[0m");
             }
             else if(checkingMode.equalsIgnoreCase("online")){
                 //TODO()

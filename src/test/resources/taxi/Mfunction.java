@@ -25,10 +25,16 @@ public class Mfunction {
     }
 
     private boolean run_with_service_ending(final Map<String, String> ctxFields, final List<String> extraArgumentList){
+        if(ctxFields.get("status").equals("0")){
+            return false;
+        }
         return extraArgumentList.get(0).equals(ctxFields.get("taxiId").substring(ctxFields.get("taxiId").length() - 1));
     }
 
     private boolean run_with_service_hotArea(final Map<String, String> ctxFields, final List<String> extraArgumentList){
+        if(ctxFields.get("status").equals("0")){
+            return false;
+        }
         switch (extraArgumentList.get(0)){
             case "A":
                 return InHotArea_A(ctxFields.get("longitude"), ctxFields.get("latitude"));
