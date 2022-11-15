@@ -16,8 +16,10 @@ import com.alibaba.fastjson.JSONObject;
 
 import java.io.*;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.ParseException;
@@ -159,12 +161,18 @@ public class OnlineStarter implements Loggable {
             }
         }
 
-        private Object loadBfuncFile() throws Exception {
+        private Object loadBfuncFile() {
             Path bfuncPath = Paths.get(bfuncFile).toAbsolutePath();
-            URLClassLoader classLoader = new URLClassLoader(new URL[]{ bfuncPath.getParent().toFile().toURI().toURL()});
-            Class<?> c = classLoader.loadClass(bfuncPath.getFileName().toString().substring(0, bfuncPath.getFileName().toString().length() - 6));
-            Constructor<?> constructor = c.getConstructor();
-            return constructor.newInstance();
+            Object bfuncInstance = null;
+            try(URLClassLoader classLoader = new URLClassLoader(new URL[]{ bfuncPath.getParent().toFile().toURI().toURL()})){
+                Class<?> c = classLoader.loadClass(bfuncPath.getFileName().toString().substring(0, bfuncPath.getFileName().toString().length() - 6));
+                Constructor<?> constructor = c.getConstructor();
+                bfuncInstance = constructor.newInstance();
+            } catch (ClassNotFoundException | InvocationTargetException | NoSuchMethodException | InstantiationException |
+                     IllegalAccessException | IOException e) {
+                throw new RuntimeException(e);
+            }
+            return bfuncInstance;
         }
 
         @Override
@@ -249,7 +257,8 @@ public class OnlineStarter implements Loggable {
         }
 
         private void IncOutput() throws Exception {
-            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(new FileOutputStream(incOutFile), StandardCharsets.UTF_8);
+            OutputStream outputStream = Files.newOutputStream(Paths.get(incOutFile));
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
             BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
             //对每个rule遍历
             for(Map.Entry<String, List<Map.Entry<Boolean, Set<Link>>>> entry : this.checker.getRuleLinksMap().entrySet()){
@@ -293,6 +302,10 @@ public class OnlineStarter implements Loggable {
                     bufferedWriter.flush();
                 }
             }
+
+            bufferedWriter.close();
+            outputStreamWriter.close();
+            outputStream.close();
         }
     }
 
@@ -306,7 +319,8 @@ public class OnlineStarter implements Loggable {
         @Override
         public Void call() throws Exception {
             //打开数据文件
-            InputStreamReader inputStreamReader = new InputStreamReader(new FileInputStream(this.dataFile), StandardCharsets.UTF_8);
+            InputStream inputStream = Files.newInputStream(Paths.get(this.dataFile));
+            InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
             BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
 
             DatagramSocket datagramSocket = new DatagramSocket();
@@ -320,9 +334,7 @@ public class OnlineStarter implements Loggable {
             int cnt = 0;
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSS");
 
-            synchronized (System.out){
-                System.out.println("[CCEClient]: begin at: " + new Date(System.currentTimeMillis()));
-            }
+            logger.info("[CCEClient]: begin at: " + new Date(System.currentTimeMillis()));
             do {
                 line = bufferedReader.readLine();
                 if(line == null || line.equals("")){
@@ -351,11 +363,12 @@ public class OnlineStarter implements Loggable {
                 cnt++;
                 //System.out.println(System.currentTimeMillis() + " " + cnt);
                 //if(cnt == 10000) break;
-            }while (true);
+            }while(true);
             datagramSocket.close();
-            synchronized (System.out){
-                System.out.println("[CCEClient]: " + new Date(System.currentTimeMillis()) + ": write over " + this.dataFile + " with " + cnt + "\n");
-            }
+            bufferedReader.close();
+            inputStreamReader.close();
+            inputStream.close();
+            logger.info("[CCEClient]: " + new Date(System.currentTimeMillis()) + ": write over " + this.dataFile + " with " + cnt);
             return null;
         }
     }

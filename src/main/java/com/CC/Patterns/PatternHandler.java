@@ -11,10 +11,12 @@ import org.dom4j.io.SAXReader;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedHashMap;
@@ -31,14 +33,14 @@ public class PatternHandler implements Loggable {
         return patternMap;
     }
 
-    public void buildPatterns(String patternFile, String mfuncFile){
+    public void buildPatterns(String patternFile, String mfuncFile) {
         Object mfuncInstance = loadMfuncFile(mfuncFile);
         if(mfuncInstance != null){
             logger.info("Load mfunc file successfully");
         }
-        try {
+        try(InputStream inputStream = Files.newInputStream(Paths.get(patternFile))){
             SAXReader saxReader = new SAXReader();
-            Document document = saxReader.read(new File(patternFile));
+            Document document = saxReader.read(inputStream);
             List<Element> patternElements = document.getRootElement().elements();
             for(Element patternElement :  patternElements){
                 List<Element> labelElements = patternElement.elements();
@@ -92,7 +94,8 @@ public class PatternHandler implements Loggable {
                 }
                 patternMap.put(pattern.getPatternId(), pattern);
             }
-        } catch (DocumentException e) {
+        }
+        catch (DocumentException | IOException e) {
             throw new RuntimeException(e);
         }
     }

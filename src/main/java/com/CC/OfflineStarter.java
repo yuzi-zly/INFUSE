@@ -18,6 +18,7 @@ import com.alibaba.fastjson.JSONWriter;
 import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
@@ -173,36 +174,44 @@ public class OfflineStarter implements Loggable {
         }
     }
 
-    private Object loadBfuncFile() throws Exception {
+    private Object loadBfuncFile() {
         Path bfuncPath = Paths.get(bfuncFile).toAbsolutePath();
-        URLClassLoader classLoader = new URLClassLoader(new URL[]{ bfuncPath.getParent().toFile().toURI().toURL()});
-        Class<?> c = classLoader.loadClass(bfuncPath.getFileName().toString().substring(0, bfuncPath.getFileName().toString().length() - 6));
-        Constructor<?> constructor = c.getConstructor();
-        return constructor.newInstance();
+        Object bfuncInstance = null;
+        try(URLClassLoader classLoader = new URLClassLoader(new URL[]{ bfuncPath.getParent().toFile().toURI().toURL()})){
+            Class<?> c = classLoader.loadClass(bfuncPath.getFileName().toString().substring(0, bfuncPath.getFileName().toString().length() - 6));
+            Constructor<?> constructor = c.getConstructor();
+            bfuncInstance = constructor.newInstance();
+        } catch (ClassNotFoundException | InvocationTargetException | NoSuchMethodException | InstantiationException |
+                 IllegalAccessException | IOException e) {
+            throw new RuntimeException(e);
+        }
+        return bfuncInstance;
     }
 
     private void run() throws Exception{
         String line;
-        InputStreamReader inputStreamReader = new InputStreamReader(Files.newInputStream(Paths.get(dataFile)), StandardCharsets.UTF_8);
-        BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-        while((line = bufferedReader.readLine()) != null){
-            List<ContextChange> changeList = this.contextHandler.generateChanges(line);
+        try(InputStream inputStream = Files.newInputStream(Paths.get(dataFile))){
+            InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+            while((line = bufferedReader.readLine()) != null){
+                List<ContextChange> changeList = this.contextHandler.generateChanges(line);
+                while(!changeList.isEmpty()){
+                    ContextChange chg = changeList.get(0);
+                    changeList.remove(0);
+                    this.scheduler.doSchedule(chg);
+                }
+            }
+            bufferedReader.close();
+            inputStreamReader.close();
+
+            List<ContextChange> changeList = this.contextHandler.generateChanges(null);
             while(!changeList.isEmpty()){
                 ContextChange chg = changeList.get(0);
                 changeList.remove(0);
                 this.scheduler.doSchedule(chg);
             }
+            this.scheduler.checkEnds();
         }
-        bufferedReader.close();
-        inputStreamReader.close();
-
-        List<ContextChange> changeList = this.contextHandler.generateChanges(null);
-        while(!changeList.isEmpty()){
-            ContextChange chg = changeList.get(0);
-            changeList.remove(0);
-            this.scheduler.doSchedule(chg);
-        }
-        this.scheduler.checkEnds();
     }
 
     private void testRunEnd(Object bfuncInstance) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
@@ -211,7 +220,8 @@ public class OfflineStarter implements Loggable {
 
     private void IncOutput() throws Exception {
         if(type.equalsIgnoreCase("run")){
-            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(new FileOutputStream(incOutFile), StandardCharsets.UTF_8);
+            OutputStream outputStream = Files.newOutputStream(Paths.get(incOutFile));
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
             BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
             //对每个rule遍历
             for(Map.Entry<String, List<Map.Entry<Boolean, Set<Link>>>> entry : this.checker.getRuleLinksMap().entrySet()){
@@ -255,6 +265,10 @@ public class OfflineStarter implements Loggable {
                     bufferedWriter.flush();
                 }
             }
+
+            bufferedWriter.close();
+            outputStreamWriter.close();
+            outputStream.close();
         }
         else if (type.equalsIgnoreCase("test")){
             JSONObject root = new JSONObject();

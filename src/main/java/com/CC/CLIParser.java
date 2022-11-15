@@ -7,10 +7,7 @@ import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.cli.*;
 import org.apache.commons.io.FileUtils;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -158,6 +155,7 @@ public class CLIParser implements Loggable {
 
             Files.delete(Paths.get(patternFile));
             Files.delete(Paths.get(dataFile));
+
             logger.info("The output is at \"" + testIncOut + "\"");
             logger.info("Checking Approach: " + approach +  "\tData: " + dataFile +  "\t" + totalTime / 1000000L + " ms");
         }
@@ -271,11 +269,13 @@ public class CLIParser implements Loggable {
         Path cpPath = Paths.get(contextPool).toAbsolutePath();
         String parent = cpPath.getParent().toString();
 
-        OutputStreamWriter patternWriter = new OutputStreamWriter(Files.newOutputStream(Paths.get(parent+ "/tmpPatterns.xml")), StandardCharsets.UTF_8);
+        OutputStream patternOutputStream = Files.newOutputStream(Paths.get(parent+ "/tmpPatterns.xml"));
+        OutputStreamWriter patternWriter = new OutputStreamWriter(patternOutputStream, StandardCharsets.UTF_8);
         BufferedWriter patternBufferWriter = new BufferedWriter(patternWriter);
         patternBufferWriter.write("<?xml version=\"1.0\"?>\n\n<patterns>\n\n");
 
-        OutputStreamWriter dataWriter = new OutputStreamWriter(Files.newOutputStream(Paths.get(parent + "/tmpData.txt")), StandardCharsets.UTF_8);
+        OutputStream dataOutputStream = Files.newOutputStream(Paths.get(parent + "/tmpData.txt"));
+        OutputStreamWriter dataWriter = new OutputStreamWriter(dataOutputStream, StandardCharsets.UTF_8);
         BufferedWriter dataBufferWriter = new BufferedWriter(dataWriter);
 
         String cpStr = FileUtils.readFileToString(new File(contextPool), StandardCharsets.UTF_8);
@@ -308,8 +308,12 @@ public class CLIParser implements Loggable {
         dataBufferWriter.flush();
         patternBufferWriter.write("</patterns>\n");
         patternBufferWriter.flush();
+
+        dataOutputStream.close();
         dataBufferWriter.close();
         dataWriter.close();
+
+        patternOutputStream.close();
         patternBufferWriter.close();
         patternWriter.close();
 

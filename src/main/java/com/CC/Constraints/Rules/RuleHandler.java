@@ -8,6 +8,9 @@ import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 
 import java.io.File;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 
 public class RuleHandler implements Loggable {
@@ -21,25 +24,26 @@ public class RuleHandler implements Loggable {
     }
 
     public void buildRules(String filename) throws Exception {
-        SAXReader saxReader = new SAXReader();
-        Document document = null;
-        document = saxReader.read(new File(filename));
-        List<Element> eRuleList = document.getRootElement().elements();
-        for(Element eRule: eRuleList){
-            List<Element> eLabelList = eRule.elements();
-            assert eLabelList.size() == 2 || eLabelList.size() == 3;
-            //id
-            assert eLabelList.get(0).getName().equals("id");
-            Rule newRule = new Rule(eLabelList.get(0).getText());
-            // formula
-            assert eLabelList.get(1).getName().equals("formula");
-            Element eFormula =  eLabelList.get(1).elements().get(0);
-            newRule.setFormula(resolveFormula(eFormula, newRule.getVarPatternMap(), newRule.getPatToFormula(), newRule.getPatToRuntimeNode(), 0));
-            setPatWithDepth(newRule.getFormula(), newRule.getPatToDepth(), newRule.getDepthToPat());
-            ruleMap.put(newRule.getRule_id(), newRule);
-            // resolver
-            if(eLabelList.size() == 3){
-                resolverMap.put(newRule.getRule_id(), buildResolver(eLabelList.get(2).elements()));
+        try(InputStream inputStream = Files.newInputStream(Paths.get(filename))) {
+            SAXReader saxReader = new SAXReader();
+            Document document = saxReader.read(inputStream);
+            List<Element> eRuleList = document.getRootElement().elements();
+            for(Element eRule: eRuleList){
+                List<Element> eLabelList = eRule.elements();
+                assert eLabelList.size() == 2 || eLabelList.size() == 3;
+                //id
+                assert eLabelList.get(0).getName().equals("id");
+                Rule newRule = new Rule(eLabelList.get(0).getText());
+                // formula
+                assert eLabelList.get(1).getName().equals("formula");
+                Element eFormula =  eLabelList.get(1).elements().get(0);
+                newRule.setFormula(resolveFormula(eFormula, newRule.getVarPatternMap(), newRule.getPatToFormula(), newRule.getPatToRuntimeNode(), 0));
+                setPatWithDepth(newRule.getFormula(), newRule.getPatToDepth(), newRule.getDepthToPat());
+                ruleMap.put(newRule.getRule_id(), newRule);
+                // resolver
+                if(eLabelList.size() == 3){
+                    resolverMap.put(newRule.getRule_id(), buildResolver(eLabelList.get(2).elements()));
+                }
             }
         }
     }

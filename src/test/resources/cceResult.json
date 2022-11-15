@@ -1,0 +1,69 @@
+{
+  "rule_2": {
+    "truth": true,
+    "links": [
+      [
+        {
+          "var": "v3",
+          "value": {
+            "ctx_id": "ctx_6",
+            "fields": {
+              "key6": "A"
+            }
+          }
+        }
+      ]
+    ]
+  },
+  "rule_1": {
+    "truth": false,
+    "links": [
+      [
+        {
+          "var": "v2",
+          "value": {
+            "ctx_id": "ctx_4",
+            "fields": {
+              "key5": "555",
+              "key4": "444"
+            }
+          }
+        },
+        {
+          "var": "v1",
+          "value": {
+            "ctx_id": "ctx_1",
+            "fields": {
+              "key1": "string_value",
+              "key2": "3.14",
+              "key3": "2"
+            }
+          }
+        }
+      ],
+      [
+        {
+          "var": "v2",
+          "value": {
+            "ctx_id": "ctx_5",
+            "fields": {
+              "key5": "777",
+              "key4": "666"
+            }
+          }
+        },
+        {
+          "var": "v1",
+          "value": {
+            "ctx_id": "ctx_1",
+            "fields": {
+              "key1": "string_value",
+              "key2": "3.14",
+              "key3": "2"
+            }
+          }
+        }
+      ]
+    ]
+  }
+}
