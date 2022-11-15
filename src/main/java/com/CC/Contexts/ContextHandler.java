@@ -31,15 +31,16 @@ public class ContextHandler implements Loggable{
         this.patternHandler = patternHandler;
         this.dataType = dataType;
         this.ctxCounter = new AtomicLong();
-        //this.activateContextsTimeQue = new PriorityQueue<>(50, (o1, o2) -> (int) (o1.getKey() - o2.getKey()));
-        this.activateContextsTimeQue = new PriorityQueue<>(50, ((o1, o2) -> {
-            if(o1.getKey() - o2.getKey() == 0){
-                return o1.getValue().getKey().substring(4).compareTo(o2.getValue().getKey().substring(4));
-            }
-            else{
-                return (int) (o1.getKey() - o2.getKey());
-            }
-        }));
+        this.activateContextsTimeQue = new PriorityQueue<>(50, (o1, o2) -> (int) (o1.getKey() - o2.getKey()));
+        // for taxi
+//        this.activateContextsTimeQue = new PriorityQueue<>(50, ((o1, o2) -> {
+//            if(o1.getKey() - o2.getKey() == 0){
+//                return o1.getValue().getKey().substring(4).compareTo(o2.getValue().getKey().substring(4));
+//            }
+//            else{
+//                return (int) (o1.getKey() - o2.getKey());
+//            }
+//        }));
         this.activateContextsNumberMap = new HashMap<>();
         initActivateContextsNumberMap(patternHandler.getPatternMap());
         this.latestDate = new Date();

@@ -228,9 +228,8 @@ public class CLIParser implements Loggable {
             else{
                 mfuncFile = cli.getOptionValue("mf");
             }
-            // data file and data type [offline]
+            // data file [offline]
             String dataFile = null;
-            String dataType = null;
             if(checkingMode.equalsIgnoreCase("offline")){
                 //data file
                 if(!cli.hasOption("df")){
@@ -241,14 +240,15 @@ public class CLIParser implements Loggable {
                 else{
                     dataFile = cli.getOptionValue("df");
                 }
-                //data type
-                if(!cli.hasOption("dt")){
-                    dataType = defaultDataType;
-                    logger.info("\033[92m" + "The default data type is \"" + defaultDataType + "\"\033[0m");
-                }
-                else{
-                    dataType = cli.getOptionValue("dt");
-                }
+            }
+            //data type
+            String dataType = null;
+            if(!cli.hasOption("dt")){
+                dataType = defaultDataType;
+                logger.info("\033[92m" + "The default data type is \"" + defaultDataType + "\"\033[0m");
+            }
+            else{
+                dataType = cli.getOptionValue("dt");
             }
 
             // start
@@ -260,9 +260,8 @@ public class CLIParser implements Loggable {
                 logger.info("Checking Approach: " + approach +  "\tData: " + dataFile +  "\t\033[92m" + totalTime / 1000000L + " ms\033[0m");
             }
             else if(checkingMode.equalsIgnoreCase("online")){
-                //TODO()
-//                OnlineStarter onlineStarter = new OnlineStarter();
-//                onlineStarter.start(approach, ruleFile, patternFile, bfuncFile, incOut, dataOut,"run");
+                OnlineStarter onlineStarter = new OnlineStarter();
+                onlineStarter.start(approach, ruleFile, bfuncFile, patternFile, mfuncFile, dataType, incOut, dataOut);
             }
         }
     }
