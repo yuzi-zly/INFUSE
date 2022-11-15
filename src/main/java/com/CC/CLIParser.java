@@ -271,11 +271,11 @@ public class CLIParser implements Loggable {
         Path cpPath = Paths.get(contextPool).toAbsolutePath();
         String parent = cpPath.getParent().toString();
 
-        OutputStreamWriter patternWriter = new OutputStreamWriter(new FileOutputStream(parent + "/tmpPatterns.xml"), StandardCharsets.UTF_8);
+        OutputStreamWriter patternWriter = new OutputStreamWriter(Files.newOutputStream(Paths.get(parent+ "/tmpPatterns.xml")), StandardCharsets.UTF_8);
         BufferedWriter patternBufferWriter = new BufferedWriter(patternWriter);
         patternBufferWriter.write("<?xml version=\"1.0\"?>\n\n<patterns>\n\n");
 
-        OutputStreamWriter dataWriter = new OutputStreamWriter(new FileOutputStream(parent + "/tmpData.txt"), StandardCharsets.UTF_8);
+        OutputStreamWriter dataWriter = new OutputStreamWriter(Files.newOutputStream(Paths.get(parent + "/tmpData.txt")), StandardCharsets.UTF_8);
         BufferedWriter dataBufferWriter = new BufferedWriter(dataWriter);
 
         String cpStr = FileUtils.readFileToString(new File(contextPool), StandardCharsets.UTF_8);
@@ -308,6 +308,11 @@ public class CLIParser implements Loggable {
         dataBufferWriter.flush();
         patternBufferWriter.write("</patterns>\n");
         patternBufferWriter.flush();
+        dataBufferWriter.close();
+        dataWriter.close();
+        patternBufferWriter.close();
+        patternWriter.close();
+
         return parent;
     }
 

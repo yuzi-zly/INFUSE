@@ -11,6 +11,8 @@ import com.CC.Middleware.Checkers.*;
 import com.CC.Middleware.Schedulers.*;
 import com.CC.Patterns.PatternHandler;
 import com.CC.Util.Loggable;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 
 import java.io.*;
 import java.lang.reflect.Constructor;
@@ -215,7 +217,7 @@ public class OnlineStarter implements Loggable {
                 datagramSocket.receive(datagramPacket);
                 oldTime_gen = System.currentTimeMillis();
                 String line = new String(datagramPacket.getData(), datagramPacket.getOffset(), datagramPacket.getLength(), StandardCharsets.UTF_8);
-                logger.info("Receive data \"" + line + "\"");
+                logger.info("Receive data \"" + line.trim() + "\"");
 
                 List<ContextChange> changeList = this.contextHandler.generateChanges(line.trim());
                 changeQueue.addAll(changeList);
@@ -327,12 +329,11 @@ public class OnlineStarter implements Loggable {
                     break;
                 }
 
-                StringTokenizer st = new StringTokenizer(line, ",");
-                String time = st.nextToken();
-                long curTime_fake = simpleDateFormat.parse(time).getTime();
+                JSONObject recordJsonObj = JSON.parseObject(line.trim());
+                long curTime_fake = simpleDateFormat.parse(recordJsonObj.getString("timestamp")).getTime();
                 long curTime_real = System.currentTimeMillis();
 
-                byte[] data = String.format("%-100s", line).getBytes(StandardCharsets.UTF_8);
+                byte[] data = String.format("%-1024s", line).getBytes(StandardCharsets.UTF_8);
                 DatagramPacket datagramPacket = new DatagramPacket(data, data.length);
                 if(startTime_fake == -1 && startTime_real == -1){
                     startTime_fake = curTime_fake;
