@@ -214,7 +214,7 @@ public class FAnd extends Formula {
                 if(runtimeNode2.isTruth()){
                     Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_ECC(runtimeNode1, ((FAnd)originFormula).getSubformulas()[0],checker);
                     Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_ECC(runtimeNode2, ((FAnd) originFormula).getSubformulas()[1],checker);
-                    result.addAll(lgUtils.CartesianSet(ret1, ret2));
+                    result.addAll(lgUtils.cartesianSet(ret1, ret2));
                 }
                 else{
                     runtimeNode1.getFormula().LinksGeneration_ECC(runtimeNode1, ((FAnd) originFormula).getSubformulas()[0], checker);
@@ -319,7 +319,7 @@ public class FAnd extends Formula {
                 Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_PCC(runtimeNode1, ((FAnd)originFormula).getSubformulas()[0], contextChange, checker);
                 if(runtimeNode1.isTruth()){
                     if(runtimeNode2.isTruth()){
-                        result.addAll(lgUtils.CartesianSet(ret1, runtimeNode2.getLinks()));
+                        result.addAll(lgUtils.cartesianSet(ret1, runtimeNode2.getLinks()));
                     }
                     else{
                         result.addAll(runtimeNode2.getLinks());
@@ -339,7 +339,7 @@ public class FAnd extends Formula {
                 Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_PCC(runtimeNode2, ((FAnd)originFormula).getSubformulas()[1], contextChange, checker);
                 if(runtimeNode1.isTruth()){
                     if(runtimeNode2.isTruth()){
-                        result.addAll(lgUtils.CartesianSet(runtimeNode1.getLinks(), ret2));
+                        result.addAll(lgUtils.cartesianSet(runtimeNode1.getLinks(), ret2));
                     }
                     else{
                         result.addAll(ret2);
@@ -371,7 +371,7 @@ public class FAnd extends Formula {
                 else{
                     Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_PCC(runtimeNode1, ((FAnd)originFormula).getSubformulas()[0], contextChange, checker);
                     Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_PCC(runtimeNode2, ((FAnd)originFormula).getSubformulas()[1], contextChange, checker);
-                    result.addAll(lgUtils.CartesianSet(ret1, ret2));
+                    result.addAll(lgUtils.cartesianSet(ret1, ret2));
                 }
             }
             else if(((FAnd)originFormula).getSubformulas()[0].isAffected()){
@@ -384,7 +384,7 @@ public class FAnd extends Formula {
                 else{
                     ret2 = runtimeNode2.getFormula().LinksGeneration_PCC(runtimeNode2, ((FAnd) originFormula).getSubformulas()[1], contextChange, checker);
                 }
-                result.addAll(lgUtils.CartesianSet(ret1, ret2));
+                result.addAll(lgUtils.cartesianSet(ret1, ret2));
             }
             else{
                 Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_PCC(runtimeNode2, ((FAnd)originFormula).getSubformulas()[1], contextChange, checker);
@@ -396,7 +396,7 @@ public class FAnd extends Formula {
                 else{
                     ret1 = runtimeNode1.getFormula().LinksGeneration_PCC(runtimeNode1, ((FAnd) originFormula).getSubformulas()[0], contextChange, checker);
                 }
-                result.addAll(lgUtils.CartesianSet(ret1, ret2));
+                result.addAll(lgUtils.cartesianSet(ret1, ret2));
             }
         }
         else{
@@ -548,7 +548,7 @@ public class FAnd extends Formula {
                 if(runtimeNode2.isTruth()){
                     Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_ConC(runtimeNode1, ((FAnd)originFormula).getSubformulas()[0], canConcurrent, checker);
                     Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_ConC(runtimeNode2, ((FAnd) originFormula).getSubformulas()[1], canConcurrent, checker);
-                    result.addAll(lgUtils.CartesianSet(ret1, ret2));
+                    result.addAll(lgUtils.cartesianSet(ret1, ret2));
                 }
                 else{
                     runtimeNode1.getFormula().LinksGeneration_ConC(runtimeNode1, ((FAnd)originFormula).getSubformulas()[0], canConcurrent, checker);
@@ -643,91 +643,89 @@ public class FAnd extends Formula {
 
     @Override
     public Set<Link> LinksGeneration_PCCM(RuntimeNode curNode, Formula originFormula, Checker checker) {
+        Set<Link> result = new HashSet<>();
         RuntimeNode runtimeNode1 = curNode.getChildren().get(0);
         RuntimeNode runtimeNode2 = curNode.getChildren().get(1);
         LGUtils lgUtils = new LGUtils();
-        if (!originFormula.isAffected()){
-            return curNode.getLinks();
-        }
-        else if(((FAnd)originFormula).getSubformulas()[0].isAffected() && !((FAnd)originFormula).getSubformulas()[1].isAffected()){
-            Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_PCCM(runtimeNode1, ((FAnd)originFormula).getSubformulas()[0], checker);
-            if(runtimeNode1.isTruth()){
-                if(runtimeNode2.isTruth()){
-                    Set<Link> result = lgUtils.CartesianSet(ret1, runtimeNode2.getLinks());
-                    curNode.setLinks(result);
-                    return curNode.getLinks();
+
+        if(!checker.isMG()){
+            // case 1: !MG --> all
+            // not taint substantial nodes
+            // generate links
+            if (!originFormula.isAffected()){
+                return curNode.getLinks();
+            }
+            else if(((FAnd)originFormula).getSubformulas()[0].isAffected() && !((FAnd)originFormula).getSubformulas()[1].isAffected()){
+                Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_PCCM(runtimeNode1, ((FAnd)originFormula).getSubformulas()[0], checker);
+                if(runtimeNode1.isTruth()){
+                    if(runtimeNode2.isTruth()){
+                        result.addAll(lgUtils.cartesianSet(ret1, runtimeNode2.getLinks()));
+                    }
+                    else{
+                        result.addAll(runtimeNode2.getLinks());
+                    }
                 }
                 else{
-                    curNode.setLinks(runtimeNode2.getLinks());
-                    return curNode.getLinks();
+                    if(runtimeNode2.isTruth()){
+                        result.addAll(ret1);
+                    }
+                    else{
+                        result.addAll(ret1);
+                        result.addAll(runtimeNode2.getLinks());
+                    }
+                }
+            }
+            else if(!((FAnd)originFormula).getSubformulas()[0].isAffected() && ((FAnd)originFormula).getSubformulas()[1].isAffected()){
+                Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_PCCM(runtimeNode2, ((FAnd)originFormula).getSubformulas()[1], checker);
+                if(runtimeNode1.isTruth()){
+                    if(runtimeNode2.isTruth()){
+                        result.addAll(lgUtils.cartesianSet(runtimeNode1.getLinks(), ret2));
+                    }
+                    else{
+                        result.addAll(ret2);
+                    }
+                }
+                else{
+                    if(runtimeNode2.isTruth()){
+                        result.addAll(runtimeNode1.getLinks());
+                    }
+                    else{
+                        result.addAll(ret2);
+                        result.addAll(runtimeNode1.getLinks());
+                    }
                 }
             }
             else{
-                if(runtimeNode2.isTruth()){
-                    curNode.setLinks(ret1);
-                    return curNode.getLinks();
+                Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_PCCM(runtimeNode1, ((FAnd)originFormula).getSubformulas()[0], checker);
+                Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_PCCM(runtimeNode2, ((FAnd)originFormula).getSubformulas()[1], checker);
+                if(runtimeNode1.isTruth()){
+                    if(runtimeNode2.isTruth()){
+                        result.addAll(lgUtils.cartesianSet(ret1, ret2));
+                    }
+                    else {
+                        result.addAll(ret2);
+                    }
                 }
                 else{
-                    Set<Link> result = new HashSet<>(ret1);
-                    result.addAll(runtimeNode2.getLinks());
-                    curNode.setLinks(result);
-                    return curNode.getLinks();
+                    if(runtimeNode2.isTruth()){
+                        result.addAll(ret1);
+                    }
+                    else{
+                        result.addAll(ret1);
+                        result.addAll(ret2);
+                    }
                 }
             }
         }
-        else if(!((FAnd)originFormula).getSubformulas()[0].isAffected() && ((FAnd)originFormula).getSubformulas()[1].isAffected()){
-            Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_PCCM(runtimeNode2, ((FAnd)originFormula).getSubformulas()[1], checker);
-            if(runtimeNode1.isTruth()){
-                if(runtimeNode2.isTruth()){
-                    Set<Link> result = lgUtils.CartesianSet(runtimeNode1.getLinks(), ret2);
-                    curNode.setLinks(result);
-                    return curNode.getLinks();
-                }
-                else{
-                    curNode.setLinks(ret2);
-                    return curNode.getLinks();
-                }
-            }
-            else{
-                if(runtimeNode2.isTruth()){
-                    curNode.setLinks(runtimeNode1.getLinks());
-                    return curNode.getLinks();
-                }
-                else{
-                    Set<Link> result = new HashSet<>(ret2);
-                    result.addAll(runtimeNode1.getLinks());
-                    curNode.setLinks(result);
-                    return curNode.getLinks();
-                }
-            }
+        else if(curNode.isTruth()){
+
         }
         else{
-            Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_PCCM(runtimeNode1, ((FAnd)originFormula).getSubformulas()[0], checker);
-            Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_PCCM(runtimeNode2, ((FAnd)originFormula).getSubformulas()[1], checker);
-            if(runtimeNode1.isTruth()){
-                if(runtimeNode2.isTruth()){
-                    Set<Link> result = lgUtils.CartesianSet(ret1, ret2);
-                    curNode.setLinks(result);
-                    return curNode.getLinks();
-                }
-                else{
-                    curNode.setLinks(ret2);
-                    return curNode.getLinks();
-                }
-            }
-            else{
-                if(runtimeNode2.isTruth()){
-                    curNode.setLinks(ret1);
-                    return curNode.getLinks();
-                }
-                else{
-                    Set<Link> result = new HashSet<>(ret1);
-                    result.addAll(ret2);
-                    curNode.setLinks(result);
-                    return curNode.getLinks();
-                }
-            }
+
         }
+
+        curNode.setLinks(result);
+        return curNode.getLinks();
     }
 
     /*
@@ -820,7 +818,7 @@ public class FAnd extends Formula {
             Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_CPCC_NB(runtimeNode1, ((FAnd)originFormula).getSubformulas()[0], checker);
             if(runtimeNode1.isTruth()){
                 if(runtimeNode2.isTruth()){
-                    Set<Link> result = lgUtils.CartesianSet(ret1, runtimeNode2.getLinks());
+                    Set<Link> result = lgUtils.cartesianSet(ret1, runtimeNode2.getLinks());
                     curNode.setLinks(result);
                     return curNode.getLinks();
                 }
@@ -846,7 +844,7 @@ public class FAnd extends Formula {
             Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_CPCC_NB(runtimeNode2, ((FAnd)originFormula).getSubformulas()[1], checker);
             if(runtimeNode1.isTruth()){
                 if(runtimeNode2.isTruth()){
-                    Set<Link> result = lgUtils.CartesianSet(runtimeNode1.getLinks(), ret2);
+                    Set<Link> result = lgUtils.cartesianSet(runtimeNode1.getLinks(), ret2);
                     curNode.setLinks(result);
                     return curNode.getLinks();
                 }
@@ -873,7 +871,7 @@ public class FAnd extends Formula {
             Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_CPCC_NB(runtimeNode2, ((FAnd)originFormula).getSubformulas()[1], checker);
             if(runtimeNode1.isTruth()){
                 if(runtimeNode2.isTruth()){
-                    Set<Link> result = lgUtils.CartesianSet(ret1, ret2);
+                    Set<Link> result = lgUtils.cartesianSet(ret1, ret2);
                     curNode.setLinks(result);
                     return curNode.getLinks();
                 }
@@ -943,7 +941,7 @@ public class FAnd extends Formula {
             Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_BASE(runtimeNode1, ((FAnd)originFormula).getSubformulas()[0], contextChange, checker);
             if(runtimeNode1.isTruth()){
                 if(runtimeNode2.isTruth()){
-                    Set<Link> result = lgUtils.CartesianSet(ret1, runtimeNode2.getLinks());
+                    Set<Link> result = lgUtils.cartesianSet(ret1, runtimeNode2.getLinks());
                     curNode.setLinks(result);
                     return curNode.getLinks();
                 }
@@ -969,7 +967,7 @@ public class FAnd extends Formula {
             Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_BASE(runtimeNode2, ((FAnd)originFormula).getSubformulas()[1], contextChange, checker);
             if(runtimeNode1.isTruth()){
                 if(runtimeNode2.isTruth()){
-                    Set<Link> result = lgUtils.CartesianSet(runtimeNode1.getLinks(), ret2);
+                    Set<Link> result = lgUtils.cartesianSet(runtimeNode1.getLinks(), ret2);
                     curNode.setLinks(result);
                     return curNode.getLinks();
                 }

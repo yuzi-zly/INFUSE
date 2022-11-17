@@ -173,7 +173,7 @@ public class FNot extends Formula{
         }
         // generate links
         Set<Link> ret = runtimeNode.getFormula().LinksGeneration_ECC(runtimeNode, ((FNot)originFormula).getSubformula(), checker);
-        Set<Link> result = lgUtils.FlipSet(ret);
+        Set<Link> result = lgUtils.flipSet(ret);
         curNode.setLinks(result);
         return curNode.getLinks();
     }
@@ -214,7 +214,7 @@ public class FNot extends Formula{
         // generate links
         if(originFormula.isAffected()){
             Set<Link> ret = runtimeNode.getFormula().LinksGeneration_PCC(runtimeNode, ((FNot)originFormula).getSubformula(), contextChange, checker);
-            result.addAll(lgUtils.FlipSet(ret));
+            result.addAll(lgUtils.flipSet(ret));
         }
         else{
             if(checker.isMG()){
@@ -224,7 +224,7 @@ public class FNot extends Formula{
                 }
                 else{
                     Set<Link> ret = runtimeNode.getFormula().LinksGeneration_PCC(runtimeNode, ((FNot)originFormula).getSubformula(), contextChange, checker);
-                    result.addAll(lgUtils.FlipSet(ret));
+                    result.addAll(lgUtils.flipSet(ret));
                 }
             }
             else{
@@ -269,7 +269,7 @@ public class FNot extends Formula{
         }
         // generate links
         Set<Link> ret = runtimeNode.getFormula().LinksGeneration_ConC(runtimeNode, ((FNot)originFormula).getSubformula(), canConcurrent, checker);
-        Set<Link> result = lgUtils.FlipSet(ret);;
+        Set<Link> result = lgUtils.flipSet(ret);;
         curNode.setLinks(result);
         return curNode.getLinks();
     }
@@ -304,7 +304,7 @@ public class FNot extends Formula{
         if(originFormula.isAffected()){
             RuntimeNode runtimeNode = curNode.getChildren().get(0);
             Set<Link> ret = runtimeNode.getFormula().LinksGeneration_PCCM(runtimeNode, ((FNot)originFormula).getSubformula(), checker);
-            Set<Link> result = lgUtils.FlipSet(ret);
+            Set<Link> result = lgUtils.flipSet(ret);
             curNode.setLinks(result);
             return curNode.getLinks();
         }
@@ -365,7 +365,7 @@ public class FNot extends Formula{
         if(originFormula.isAffected()){
             RuntimeNode runtimeNode = curNode.getChildren().get(0);
             Set<Link> ret = runtimeNode.getFormula().LinksGeneration_CPCC_NB(runtimeNode, ((FNot)originFormula).getSubformula(), checker);
-            Set<Link> result = lgUtils.FlipSet(ret);
+            Set<Link> result = lgUtils.flipSet(ret);
             curNode.setLinks(result);
             return curNode.getLinks();
         }
@@ -403,7 +403,7 @@ public class FNot extends Formula{
         if(originFormula.isAffected()){
             RuntimeNode runtimeNode = curNode.getChildren().get(0);
             Set<Link> ret = runtimeNode.getFormula().LinksGeneration_BASE(runtimeNode, ((FNot)originFormula).getSubformula(), contextChange, checker);
-            Set<Link> result = lgUtils.FlipSet(ret);
+            Set<Link> result = lgUtils.flipSet(ret);
             curNode.setLinks(result);
             return curNode.getLinks();
         }

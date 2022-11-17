@@ -28,7 +28,7 @@ public class Mfunction {
         if(ctxFields.get("status").equals("0")){
             return false;
         }
-        return extraArgumentList.get(0).equals(ctxFields.get("taxiId").substring(ctxFields.get("taxiId").length() - 1));
+        return extraArgumentList.get(0).equals(ctxFields.get("taxiId").substring(ctxFields.get("taxiId").length() - 2, ctxFields.get("taxiId").length() - 1));
     }
 
     private boolean run_with_service_hotArea(final Map<String, String> ctxFields, final List<String> extraArgumentList){

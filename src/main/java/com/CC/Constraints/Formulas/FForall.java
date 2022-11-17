@@ -396,7 +396,7 @@ public class FForall extends Formula{
                 initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
                 initialSet.add(initialLink);
                 if(child.isTruth()) continue;
-                Set<Link> res = lgUtils.CartesianSet(initialSet, childLink);
+                Set<Link> res = lgUtils.cartesianSet(initialSet, childLink);
                 result.addAll(res);
             }
         }
@@ -416,7 +416,7 @@ public class FForall extends Formula{
                 Link initialLink = new Link(Link.Link_Type.VIOLATED);
                 initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
                 initialSet.add(initialLink);
-                Set<Link> res = lgUtils.CartesianSet(initialSet, childLink);
+                Set<Link> res = lgUtils.cartesianSet(initialSet, childLink);
                 result.addAll(res);
             }
         }
@@ -532,7 +532,7 @@ public class FForall extends Formula{
                         initialLink.AddVA(((FForall)originFormula).getVar(), addchild.getVarEnv().get(((FForall)originFormula).getVar()));
                         initialSet.add(initialLink);
                         if(!addchild.isTruth()){
-                            result.addAll(lgUtils.CartesianSet(initialSet, childLink));
+                            result.addAll(lgUtils.cartesianSet(initialSet, childLink));
                         }
                     }
                     else{
@@ -542,7 +542,7 @@ public class FForall extends Formula{
                             initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
                             initialSet.add(initialLink);
                             if(child.isTruth()) continue;
-                            Set<Link> res = lgUtils.CartesianSet(initialSet, child.getLinks());
+                            Set<Link> res = lgUtils.cartesianSet(initialSet, child.getLinks());
                             result.addAll(res);
                         }
                     }
@@ -555,7 +555,7 @@ public class FForall extends Formula{
                         initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
                         initialSet.add(initialLink);
                         if(child.isTruth()) continue;
-                        Set<Link> res = lgUtils.CartesianSet(initialSet, childLink);
+                        Set<Link> res = lgUtils.cartesianSet(initialSet, childLink);
                         result.addAll(res);
                     }
                 }
@@ -586,7 +586,7 @@ public class FForall extends Formula{
                         Link initialLink = new Link(Link.Link_Type.VIOLATED);
                         initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
                         initialSet.add(initialLink);
-                        Set<Link> res = lgUtils.CartesianSet(initialSet, childLink);
+                        Set<Link> res = lgUtils.cartesianSet(initialSet, childLink);
                         result.addAll(res);
                     }
                 }
@@ -609,7 +609,7 @@ public class FForall extends Formula{
                                     Link initialLink = new Link(Link.Link_Type.VIOLATED);
                                     initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
                                     initialSet.add(initialLink);
-                                    Set<Link> res = lgUtils.CartesianSet(initialSet, childLink);
+                                    Set<Link> res = lgUtils.cartesianSet(initialSet, childLink);
                                     result.addAll(res);
                                 }
                             }
@@ -621,7 +621,7 @@ public class FForall extends Formula{
                             Link initialLink = new Link(Link.Link_Type.VIOLATED);
                             initialLink.AddVA(((FForall)originFormula).getVar(), addchild.getVarEnv().get(((FForall)originFormula).getVar()));
                             initialSet.add(initialLink);
-                            result.addAll(lgUtils.CartesianSet(initialSet, childLink));
+                            result.addAll(lgUtils.cartesianSet(initialSet, childLink));
                         }
                     }
                     else{
@@ -633,11 +633,11 @@ public class FForall extends Formula{
                             initialSet.add(initialLink);
                             // check whether child.links reusable
                             if(checker.getPrevSubstantialNodes().contains(child)){
-                                result.addAll(lgUtils.CartesianSet(initialSet, child.getLinks()));
+                                result.addAll(lgUtils.cartesianSet(initialSet, child.getLinks()));
                             }
                             else{
                                 Set<Link> childLink = child.getFormula().LinksGeneration_PCC(child, ((FForall)originFormula).getSubformula(), contextChange, checker);
-                                result.addAll(lgUtils.CartesianSet(initialSet, childLink));
+                                result.addAll(lgUtils.cartesianSet(initialSet, childLink));
                             }
                         }
                     }
@@ -650,7 +650,7 @@ public class FForall extends Formula{
                         Link initialLink = new Link(Link.Link_Type.VIOLATED);
                         initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
                         initialSet.add(initialLink);
-                        Set<Link> res = lgUtils.CartesianSet(initialSet, childLink);
+                        Set<Link> res = lgUtils.cartesianSet(initialSet, childLink);
                         result.addAll(res);
                     }
                 }
@@ -792,7 +792,7 @@ public class FForall extends Formula{
                 initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
                 initialSet.add(initialLink);
                 if(child.isTruth()) continue;
-                Set<Link> res = lgUtils.CartesianSet(initialSet, childLink);
+                Set<Link> res = lgUtils.cartesianSet(initialSet, childLink);
                 result.addAll(res);
             }
             curNode.setLinks(result);
@@ -811,7 +811,7 @@ public class FForall extends Formula{
                     initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
                     initialSet.add(initialLink);
                     if(child.isTruth()) continue;
-                    Set<Link> res = lgUtils.CartesianSet(initialSet, childLink);
+                    Set<Link> res = lgUtils.cartesianSet(initialSet, childLink);
                     result.addAll(res);
                 }
             }
@@ -831,7 +831,7 @@ public class FForall extends Formula{
                     Link initialLink = new Link(Link.Link_Type.VIOLATED);
                     initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
                     initialSet.add(initialLink);
-                    Set<Link> res = lgUtils.CartesianSet(initialSet, childLink);
+                    Set<Link> res = lgUtils.cartesianSet(initialSet, childLink);
                     result.addAll(res);
                 }
             }
@@ -961,7 +961,7 @@ public class FForall extends Formula{
                     initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
                     initialSet.add(initialLink);
                     if(child.isTruth()) continue;
-                    Set<Link> res = lgUtils.CartesianSet(initialSet, childLink);
+                    Set<Link> res = lgUtils.cartesianSet(initialSet, childLink);
                     result.addAll(res);
                 }
                 for(int i = curNode.getChildren().size() - AddSetSize - UpdSetSize; i < curNode.getChildren().size(); ++i){
@@ -972,7 +972,7 @@ public class FForall extends Formula{
                     initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
                     initialSet.add(initialLink);
                     if(child.isTruth()) continue;
-                    Set<Link> res = lgUtils.CartesianSet(initialSet, childLink);
+                    Set<Link> res = lgUtils.cartesianSet(initialSet, childLink);
                     result.addAll(res);
                 }
                 curNode.setLinks(result);
@@ -994,7 +994,7 @@ public class FForall extends Formula{
                         initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
                         initialSet.add(initialLink);
                         if(child.isTruth()) continue;
-                        Set<Link> res = lgUtils.CartesianSet(initialSet, childLink);
+                        Set<Link> res = lgUtils.cartesianSet(initialSet, childLink);
                         result.addAll(res);
                     }
                     curNode.setLinks(result);
@@ -1009,7 +1009,7 @@ public class FForall extends Formula{
                         initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
                         initialSet.add(initialLink);
                         if(child.isTruth()) continue;
-                        Set<Link> res = lgUtils.CartesianSet(initialSet, child.getLinks());
+                        Set<Link> res = lgUtils.cartesianSet(initialSet, child.getLinks());
                         result.addAll(res);
                     }
                     for(int i = curNode.getChildren().size() - AddSetSize - UpdSetSize; i < curNode.getChildren().size(); ++i){
@@ -1020,7 +1020,7 @@ public class FForall extends Formula{
                         initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
                         initialSet.add(initialLink);
                         if(child.isTruth()) continue;
-                        Set<Link> res = lgUtils.CartesianSet(initialSet, childLink);
+                        Set<Link> res = lgUtils.cartesianSet(initialSet, childLink);
                         result.addAll(res);
                     }
                     curNode.setLinks(result);
@@ -1428,7 +1428,7 @@ public class FForall extends Formula{
                         initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
                         initialSet.add(initialLink);
                         if(child.isTruth()) continue;
-                        Set<Link> res = lgUtils.CartesianSet(initialSet, childLink);
+                        Set<Link> res = lgUtils.cartesianSet(initialSet, childLink);
                         result.addAll(res);
                     }
                     curNode.setLinks(result);
@@ -1444,7 +1444,7 @@ public class FForall extends Formula{
                         initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
                         initialSet.add(initialLink);
                         if(child.isTruth()) continue;
-                        Set<Link> res = lgUtils.CartesianSet(initialSet, childLink);
+                        Set<Link> res = lgUtils.cartesianSet(initialSet, childLink);
                         result.addAll(res);
                     }
                     for(int i = curNode.getChildren().size() - AddSetSize - ModSetSize; i < curNode.getChildren().size(); ++i){
@@ -1455,7 +1455,7 @@ public class FForall extends Formula{
                         initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
                         initialSet.add(initialLink);
                         if(child.isTruth()) continue;
-                        Set<Link> res = lgUtils.CartesianSet(initialSet, childLink);
+                        Set<Link> res = lgUtils.cartesianSet(initialSet, childLink);
                         result.addAll(res);
                     }
                     curNode.setLinks(result);
@@ -1498,7 +1498,7 @@ public class FForall extends Formula{
                             initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
                             initialSet.add(initialLink);
                             if(child.isTruth()) continue;
-                            Set<Link> res = lgUtils.CartesianSet(initialSet, childLink);
+                            Set<Link> res = lgUtils.cartesianSet(initialSet, childLink);
                             result.addAll(res);
                         }
                         curNode.setLinks(result);
@@ -1517,7 +1517,7 @@ public class FForall extends Formula{
                             initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
                             initialSet.add(initialLink);
                             if(child.isTruth()) continue;
-                            Set<Link> res = lgUtils.CartesianSet(initialSet, childLink);
+                            Set<Link> res = lgUtils.cartesianSet(initialSet, childLink);
                             result.addAll(res);
                         }
                         curNode.setLinks(result);
@@ -1536,7 +1536,7 @@ public class FForall extends Formula{
                             initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
                             initialSet.add(initialLink);
                             if(child.isTruth()) continue;
-                            Set<Link> res = lgUtils.CartesianSet(initialSet, child.getLinks());
+                            Set<Link> res = lgUtils.cartesianSet(initialSet, child.getLinks());
                             result.addAll(res);
                         }
                         for(int i = curNode.getChildren().size() - AddSetSize - ModSetSize; i < curNode.getChildren().size(); ++i){
@@ -1563,7 +1563,7 @@ public class FForall extends Formula{
                             initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
                             initialSet.add(initialLink);
                             if(child.isTruth()) continue;
-                            Set<Link> res = lgUtils.CartesianSet(initialSet, childLink);
+                            Set<Link> res = lgUtils.cartesianSet(initialSet, childLink);
                             result.addAll(res);
                         }
                         curNode.setLinks(result);
@@ -1578,7 +1578,7 @@ public class FForall extends Formula{
                             initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
                             initialSet.add(initialLink);
                             if(child.isTruth()) continue;
-                            Set<Link> res = lgUtils.CartesianSet(initialSet, child.getLinks());
+                            Set<Link> res = lgUtils.cartesianSet(initialSet, child.getLinks());
                             result.addAll(res);
                         }
                         for(int i = curNode.getChildren().size() - AddSetSize - ModSetSize; i < curNode.getChildren().size(); ++i){
@@ -1589,7 +1589,7 @@ public class FForall extends Formula{
                             initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
                             initialSet.add(initialLink);
                             if(child.isTruth()) continue;
-                            Set<Link> res = lgUtils.CartesianSet(initialSet, childLink);
+                            Set<Link> res = lgUtils.cartesianSet(initialSet, childLink);
                             result.addAll(res);
                         }
                         curNode.setLinks(result);
@@ -1691,7 +1691,7 @@ public class FForall extends Formula{
                         return curNode.getLinks();
                     }
                     else{
-                        Set<Link> res = lgUtils.CartesianSet(initialSet, childLink);
+                        Set<Link> res = lgUtils.cartesianSet(initialSet, childLink);
                         result.addAll(res);
                         curNode.setLinks(result);
                         return curNode.getLinks();
@@ -1705,7 +1705,7 @@ public class FForall extends Formula{
                         initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
                         initialSet.add(initialLink);
                         if(child.isTruth()) continue;
-                        Set<Link> res = lgUtils.CartesianSet(initialSet, child.getLinks());
+                        Set<Link> res = lgUtils.cartesianSet(initialSet, child.getLinks());
                         result.addAll(res);
                     }
                     curNode.setLinks(result);
@@ -1721,7 +1721,7 @@ public class FForall extends Formula{
                     initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
                     initialSet.add(initialLink);
                     if(child.isTruth()) continue;
-                    Set<Link> res = lgUtils.CartesianSet(initialSet, childLink);
+                    Set<Link> res = lgUtils.cartesianSet(initialSet, childLink);
                     result.addAll(res);
                 }
                 curNode.setLinks(result);

@@ -5,12 +5,12 @@ import java.util.Set;
 
 public class LGUtils {
 
-    public void Flip(Link link){
+    public void flip(Link link){
         link.setLinkType(link.getLinkType() == Link.Link_Type.SATISFIED ?
                 Link.Link_Type.VIOLATED : Link.Link_Type.SATISFIED);
     }
 
-    public Set<Link> FlipSet(Set<Link> linkSet){
+    public Set<Link> flipSet(Set<Link> linkSet){
         Set<Link> result = new HashSet<>();
         for(Link link : linkSet){
             Link newLink = new Link(link.getLinkType() == Link.Link_Type.SATISFIED ? Link.Link_Type.VIOLATED : Link.Link_Type.SATISFIED);
@@ -20,7 +20,7 @@ public class LGUtils {
         return result;
     }
 
-    public Link Cartesian(Link link1, Link link2) {
+    public Link cartesian(Link link1, Link link2) {
         if (link1.getLinkType() != link2.getLinkType()){
             System.out.println("LGUtils: [Cartesian] The link type of two links are different.");
             System.out.println(link1);
@@ -36,7 +36,7 @@ public class LGUtils {
         }
     }
 
-    public Set<Link> CartesianSet(Set<Link> linkSet1, Set<Link> linkSet2) {
+    public Set<Link> cartesianSet(Set<Link> linkSet1, Set<Link> linkSet2) {
         Set<Link> result = new HashSet<>();
         if(linkSet1.isEmpty()){
             result.addAll(linkSet2);
@@ -49,14 +49,14 @@ public class LGUtils {
         else{
             for(Link link1 : linkSet1){
                 for(Link link2 : linkSet2){
-                    result.add(Cartesian(link1, link2));
+                    result.add(cartesian(link1, link2));
                 }
             }
             return result;
         }
     }
 
-    public Set<Link> CloneSet(Set<Link> linkSet){
+    public Set<Link> cloneSet(Set<Link> linkSet){
         Set<Link> result = new HashSet<>();
         for(Link link : linkSet){
             try {
