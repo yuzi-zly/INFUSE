@@ -256,11 +256,14 @@ public class CLIParser implements Loggable {
             // isMG or not
             boolean isMG = cli.hasOption("mg");
 
+            //temp
+            String incsOut = approach + "+" + (isMG ? "MG-" : "-") + incOut;
+
             // start
             if(checkingMode.equalsIgnoreCase("offline")){
                 long startTime = System.nanoTime();
                 OfflineStarter offlineStarter = new OfflineStarter();
-                offlineStarter.start(approach, ruleFile, bfuncFile, patternFile, mfuncFile, dataFile, dataType, isMG, approach + incOut, dataOut, "run");
+                offlineStarter.start(approach, ruleFile, bfuncFile, patternFile, mfuncFile, dataFile, dataType, isMG, incsOut, dataOut, "run");
                 long totalTime = System.nanoTime() - startTime;
                 logger.info("Checking Approach: " + approach +  "\tData: " + dataFile +  "\t\033[92m" + totalTime / 1000000L + " ms\033[0m");
             }

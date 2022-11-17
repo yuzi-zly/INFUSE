@@ -18,14 +18,16 @@ import com.alibaba.fastjson.JSONWriter;
 import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class OfflineStarter implements Loggable {
 
@@ -68,7 +70,6 @@ public class OfflineStarter implements Loggable {
 
         try {
             buildRulesAndPatterns();
-            logger.info("Build rules and patterns successfully.");
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -97,7 +98,7 @@ public class OfflineStarter implements Loggable {
                 schedule = "INFUSE_S";
             }
         }
-        logger.info("Checking technique is " + technique + ", scheduling strategy is " + schedule);
+        logger.info("Checking technique is " + technique + ", scheduling strategy is " + schedule + (isMG ? ", with MG" : ""));
 
         assert technique != null;
 
@@ -157,7 +158,9 @@ public class OfflineStarter implements Loggable {
 
     private void buildRulesAndPatterns() throws Exception {
         this.ruleHandler.buildRules(ruleFile);
+        logger.info("Build rules successfully.");
         this.patternHandler.buildPatterns(patternFile, mfuncFile);
+        logger.info("Build patterns successfully.");
 
         for(Rule rule : ruleHandler.getRuleMap().values()){
             contextPool.PoolInit(rule);

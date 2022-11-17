@@ -7,10 +7,6 @@ import com.CC.Contexts.Context;
 import com.CC.Contexts.ContextChange;
 import com.CC.Middleware.Checkers.Checker;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.*;
 
 public class Rule {
@@ -247,6 +243,12 @@ public class Rule {
     public Set<Link> LinksGeneration_PCCM(Checker checker){
         Set<Link> result = this.CCTRoot.getFormula().LinksGeneration_PCCM(this.CCTRoot, this.formula, checker);
         this.CCTRoot.setLinks(result);
+        if(checker.isMG()){
+            // store substantial nodes
+            checker.getPrevSubstantialNodes().clear();
+            checker.getPrevSubstantialNodes().addAll(checker.getCurSubstantialNodes());
+            checker.getCurSubstantialNodes().clear();
+        }
         return result;
     }
 
@@ -266,6 +268,12 @@ public class Rule {
     public Set<Link> LinksGeneration_CPCC_NB(Checker checker){
         Set<Link> result = this.CCTRoot.getFormula().LinksGeneration_CPCC_NB(this.CCTRoot, this.formula, checker);
         this.CCTRoot.setLinks(result);
+        if(checker.isMG()){
+            // store substantial nodes
+            checker.getPrevSubstantialNodes().clear();
+            checker.getPrevSubstantialNodes().addAll(checker.getCurSubstantialNodes());
+            checker.getCurSubstantialNodes().clear();
+        }
         return result;
     }
 
@@ -280,6 +288,12 @@ public class Rule {
     public Set<Link> LinksGeneration_BASE(ContextChange contextChange, Checker checker){
         Set<Link> result = this.CCTRoot.getFormula().LinksGeneration_BASE(this.CCTRoot, this.formula, contextChange, checker);
         this.CCTRoot.setLinks(result);
+        if(checker.isMG()){
+            // store substantial nodes
+            checker.getPrevSubstantialNodes().clear();
+            checker.getPrevSubstantialNodes().addAll(checker.getCurSubstantialNodes());
+            checker.getCurSubstantialNodes().clear();
+        }
         return result;
     }
 
