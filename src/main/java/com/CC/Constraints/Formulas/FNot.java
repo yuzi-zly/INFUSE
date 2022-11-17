@@ -381,17 +381,37 @@ public class FNot extends Formula{
 
     @Override
     public Set<Link> LinksGeneration_CPCC_NB(RuntimeNode curNode, Formula originFormula, Checker checker) {
+        Set<Link> result = new HashSet<>();
+        RuntimeNode runtimeNode = curNode.getChildren().get(0);
         LGUtils lgUtils = new LGUtils();
+        // only one case
+        // taint substantial node
+        if(checker.isMG()){
+            checker.getCurSubstantialNodes().add(runtimeNode);
+        }
+        // generate links
         if(originFormula.isAffected()){
-            RuntimeNode runtimeNode = curNode.getChildren().get(0);
             Set<Link> ret = runtimeNode.getFormula().LinksGeneration_CPCC_NB(runtimeNode, ((FNot)originFormula).getSubformula(), checker);
-            Set<Link> result = lgUtils.flipSet(ret);
-            curNode.setLinks(result);
-            return curNode.getLinks();
+            result.addAll(lgUtils.flipSet(ret));
         }
         else{
-            return curNode.getLinks();
+            if(checker.isMG()){
+                // check whether curNode.links reusable
+                if(checker.getPrevSubstantialNodes().contains(curNode)){
+                    return curNode.getLinks();
+                }
+                else{
+                    Set<Link> ret = runtimeNode.getFormula().LinksGeneration_CPCC_NB(runtimeNode, ((FNot)originFormula).getSubformula(), checker);
+                    result.addAll(lgUtils.flipSet(ret));
+                }
+            }
+            else{
+                return curNode.getLinks();
+            }
         }
+
+        curNode.setLinks(result);
+        return curNode.getLinks();
     }
 
     /*
