@@ -8,6 +8,7 @@ import com.CC.Contexts.ContextChange;
 import com.CC.Middleware.Checkers.Checker;
 import com.CC.Middleware.Schedulers.Scheduler;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -202,17 +203,37 @@ public class FNot extends Formula{
 
     @Override
     public Set<Link> LinksGeneration_PCC(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
+        Set<Link> result = new HashSet<>();
+        RuntimeNode runtimeNode = curNode.getChildren().get(0);
         LGUtils lgUtils = new LGUtils();
+        // only one case
+        // taint substantial node
+        if(checker.isMG()){
+            checker.getCurSubstantialNodes().add(runtimeNode);
+        }
+        // generate links
         if(originFormula.isAffected()){
-            RuntimeNode runtimeNode = curNode.getChildren().get(0);
             Set<Link> ret = runtimeNode.getFormula().LinksGeneration_PCC(runtimeNode, ((FNot)originFormula).getSubformula(), contextChange, checker);
-            Set<Link> result = lgUtils.FlipSet(ret);
-            curNode.setLinks(result);
-            return curNode.getLinks();
+            result.addAll(lgUtils.FlipSet(ret));
         }
         else{
-            return curNode.getLinks();
+            if(checker.isMG()){
+                // check whether curNode.links reusable
+                if(checker.getPrevSubstantialNodes().contains(curNode)){
+                    return curNode.getLinks();
+                }
+                else{
+                    Set<Link> ret = runtimeNode.getFormula().LinksGeneration_PCC(runtimeNode, ((FNot)originFormula).getSubformula(), contextChange, checker);
+                    result.addAll(lgUtils.FlipSet(ret));
+                }
+            }
+            else{
+                return curNode.getLinks();
+            }
         }
+
+        curNode.setLinks(result);
+        return curNode.getLinks();
     }
 
     /*

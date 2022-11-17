@@ -212,11 +212,11 @@ public class FImplies extends Formula{
             if (runtimeNode1.isTruth()) {
                 if (runtimeNode2.isTruth()) {
                     runtimeNode1.getFormula().LinksGeneration_ECC(runtimeNode1, ((FImplies) originFormula).getSubformulas()[0], checker);
-                    result = runtimeNode2.getFormula().LinksGeneration_ECC(runtimeNode2, ((FImplies) originFormula).getSubformulas()[1], checker);
+                    result.addAll(runtimeNode2.getFormula().LinksGeneration_ECC(runtimeNode2, ((FImplies) originFormula).getSubformulas()[1], checker));
                 } else {
                     Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_ECC(runtimeNode1, ((FImplies) originFormula).getSubformulas()[0], checker);
                     Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_ECC(runtimeNode2, ((FImplies) originFormula).getSubformulas()[1], checker);
-                    result = lgUtils.CartesianSet(lgUtils.FlipSet(ret1), ret2);
+                    result.addAll(lgUtils.CartesianSet(lgUtils.FlipSet(ret1), ret2));
                 }
             } else {
                 if (runtimeNode2.isTruth()) {
@@ -227,7 +227,7 @@ public class FImplies extends Formula{
                 } else {
                     Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_ECC(runtimeNode1, ((FImplies) originFormula).getSubformulas()[0], checker);
                     runtimeNode2.getFormula().LinksGeneration_ECC(runtimeNode2, ((FImplies) originFormula).getSubformulas()[1], checker);
-                    result = lgUtils.FlipSet(ret1);
+                    result.addAll(lgUtils.FlipSet(ret1));
                 }
             }
         }
@@ -249,10 +249,10 @@ public class FImplies extends Formula{
             }
             else if(!runtimeNode1.isTruth() && !runtimeNode2.isTruth()){
                 Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_ECC(runtimeNode1, ((FImplies) originFormula).getSubformulas()[0], checker);
-                result = lgUtils.FlipSet(ret1);
+                result.addAll(lgUtils.FlipSet(ret1));
             }
             else{
-                result = runtimeNode2.getFormula().LinksGeneration_ECC(runtimeNode2, ((FImplies) originFormula).getSubformulas()[1], checker);
+                result.addAll(runtimeNode2.getFormula().LinksGeneration_ECC(runtimeNode2, ((FImplies) originFormula).getSubformulas()[1], checker));
             }
         }
         curNode.setLinks(result);
@@ -297,68 +297,199 @@ public class FImplies extends Formula{
 
     @Override
     public Set<Link> LinksGeneration_PCC(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
+        Set<Link> result = new HashSet<>();
         RuntimeNode runtimeNode1 = curNode.getChildren().get(0);
         RuntimeNode runtimeNode2 = curNode.getChildren().get(1);
         LGUtils lgUtils = new LGUtils();
-        if(!originFormula.isAffected()){
-            return curNode.getLinks();
-        }
-        else if(((FImplies)originFormula).getSubformulas()[0].isAffected()){
-            Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_PCC(runtimeNode1, ((FImplies)originFormula).getSubformulas()[0], contextChange, checker);
-            if(runtimeNode1.isTruth()){
-                if(runtimeNode2.isTruth()){
-                    curNode.setLinks(runtimeNode2.getLinks());
-                    return curNode.getLinks();
+
+        if(!checker.isMG()){
+            // case 1: !MG --> all
+            // not taint substantial node
+            // generate links
+            if(!originFormula.isAffected()){
+                return curNode.getLinks();
+            }
+            else if(((FImplies)originFormula).getSubformulas()[0].isAffected()){
+                Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_PCC(runtimeNode1, ((FImplies)originFormula).getSubformulas()[0], contextChange, checker);
+                if(runtimeNode1.isTruth()){
+                    if(runtimeNode2.isTruth()){
+                        result.addAll(runtimeNode2.getLinks());
+                    }
+                    else{
+                        result.addAll(lgUtils.CartesianSet(lgUtils.FlipSet(ret1), runtimeNode2.getLinks()));
+                    }
                 }
                 else{
-                    Set<Link> result = lgUtils.CartesianSet(lgUtils.FlipSet(ret1), runtimeNode2.getLinks());
-                    curNode.setLinks(result);
-                    return curNode.getLinks();
+                    if(runtimeNode2.isTruth()){
+                        result.addAll(lgUtils.FlipSet(ret1));
+                        result.addAll(runtimeNode2.getLinks());
+                    }
+                    else{
+                        result.addAll(lgUtils.FlipSet(ret1));
+                    }
                 }
             }
             else{
-                if(runtimeNode2.isTruth()){
-                    Set<Link> result = lgUtils.FlipSet(ret1);
-                    result.addAll(runtimeNode2.getLinks());
-                    curNode.setLinks(result);
+                Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_PCC(runtimeNode2, ((FImplies)originFormula).getSubformulas()[1], contextChange, checker);
+                if(runtimeNode1.isTruth()){
+                    if(runtimeNode2.isTruth()){
+                        result.addAll(ret2);
+                    }
+                    else{
+                        result.addAll(lgUtils.CartesianSet(ret2,lgUtils.FlipSet(runtimeNode1.getLinks())));
+                    }
+                }
+                else{
+                    if(runtimeNode2.isTruth()){
+                        result.addAll(lgUtils.FlipSet(runtimeNode1.getLinks()));
+                        result.addAll(ret2);
+                    }
+                    else{
+                        result.addAll(lgUtils.FlipSet(runtimeNode1.getLinks()));
+                    }
+                }
+            }
+        }
+        else if(curNode.isTruth()){
+            // case 2: MG &&  true --> left false, right true
+            // taint substantial nodes
+            if(!runtimeNode1.isTruth()){
+                checker.getCurSubstantialNodes().add(runtimeNode1);
+            }
+            if(runtimeNode2.isTruth()){
+                checker.getCurSubstantialNodes().add(runtimeNode2);
+            }
+            // generate links
+            if(!originFormula.isAffected()){
+                // check whether curNode.links reusable
+                if(checker.getPrevSubstantialNodes().contains(curNode)){
                     return curNode.getLinks();
                 }
                 else{
-                    Set<Link> result = lgUtils.FlipSet(ret1);
-                    curNode.setLinks(result);
-                    return curNode.getLinks();
+                    if(runtimeNode1.isTruth() && runtimeNode2.isTruth()){
+                        Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_PCC(runtimeNode2, ((FImplies)originFormula).getSubformulas()[1], contextChange, checker);
+                        result.addAll(ret2);
+                    }
+                    else if(!runtimeNode1.isTruth() && runtimeNode2.isTruth()){
+                        Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_PCC(runtimeNode1, ((FImplies) originFormula).getSubformulas()[0], contextChange, checker);
+                        Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_PCC(runtimeNode2, ((FImplies) originFormula).getSubformulas()[1], contextChange, checker);
+                        result.addAll(lgUtils.FlipSet(ret1));
+                        result.addAll(ret2);
+                    }
+                    else{
+                        Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_PCC(runtimeNode1, ((FImplies) originFormula).getSubformulas()[0], contextChange, checker);
+                        result.addAll(lgUtils.FlipSet(ret1));
+                    }
+                }
+            }
+            else if(((FImplies)originFormula).getSubformulas()[0].isAffected()){
+                if(runtimeNode1.isTruth() && runtimeNode2.isTruth()){
+                    // check whether runtimeNode2.links reusable
+                    Set<Link> ret2;
+                    if(checker.getPrevSubstantialNodes().contains(runtimeNode2)){
+                        ret2 = runtimeNode2.getLinks();
+                    }
+                    else{
+                        ret2 = runtimeNode2.getFormula().LinksGeneration_PCC(runtimeNode2, ((FImplies) originFormula).getSubformulas()[1], contextChange, checker);
+                    }
+                    result.addAll(ret2);
+                }
+                else if(!runtimeNode1.isTruth() && runtimeNode2.isTruth()){
+                    Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_PCC(runtimeNode1, ((FImplies)originFormula).getSubformulas()[0], contextChange, checker);
+                    // check whether runtimeNode2.links reusable
+                    Set<Link> ret2;
+                    if(checker.getPrevSubstantialNodes().contains(runtimeNode2)){
+                        ret2 = runtimeNode2.getLinks();
+                    }
+                    else{
+                        ret2 = runtimeNode2.getFormula().LinksGeneration_PCC(runtimeNode2, ((FImplies) originFormula).getSubformulas()[1], contextChange, checker);
+                    }
+                    result.addAll(lgUtils.FlipSet(ret1));
+                    result.addAll(ret2);
+                }
+                else{
+                    Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_PCC(runtimeNode1, ((FImplies)originFormula).getSubformulas()[0], contextChange, checker);
+                    result.addAll(lgUtils.FlipSet(ret1));
+                }
+            }
+            else{
+                if(runtimeNode1.isTruth() && runtimeNode2.isTruth()){
+                    Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_PCC(runtimeNode2, ((FImplies)originFormula).getSubformulas()[1], contextChange, checker);
+                    result.addAll(ret2);
+                }
+                else if(!runtimeNode1.isTruth() && runtimeNode2.isTruth()){
+                    Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_PCC(runtimeNode2, ((FImplies)originFormula).getSubformulas()[1], contextChange, checker);
+                    Set<Link> ret1;
+                    // check whether runtimeNode1.links reusable
+                    if(checker.getPrevSubstantialNodes().contains(runtimeNode1)){
+                        ret1 = runtimeNode1.getLinks();
+                    }
+                    else{
+                        ret1 = runtimeNode1.getFormula().LinksGeneration_PCC(runtimeNode1, ((FImplies) originFormula).getSubformulas()[0], contextChange, checker);
+                    }
+                    result.addAll(lgUtils.FlipSet(ret1));
+                    result.addAll(ret2);
+                }
+                else {
+                    Set<Link> ret1;
+                    // check whether runtimeNode1.links reusable
+                    if(checker.getPrevSubstantialNodes().contains(runtimeNode1)){
+                        ret1 = runtimeNode1.getLinks();
+                    }
+                    else{
+                        ret1 = runtimeNode1.getFormula().LinksGeneration_PCC(runtimeNode1, ((FImplies) originFormula).getSubformulas()[0], contextChange, checker);
+                    }
+                    result.addAll(lgUtils.FlipSet(ret1));
                 }
             }
         }
         else{
-            Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_PCC(runtimeNode2, ((FImplies)originFormula).getSubformulas()[1], contextChange, checker);
-            if(runtimeNode1.isTruth()){
-                if(runtimeNode2.isTruth()){
-                    curNode.setLinks(ret2);
+            // case 3: MG && false --> all
+            assert runtimeNode1.isTruth() && !runtimeNode2.isTruth();
+            // taint substantial nodes
+            checker.getCurSubstantialNodes().add(runtimeNode1);
+            checker.getCurSubstantialNodes().add(runtimeNode2);
+            // generate links
+            if(!originFormula.isAffected()){
+                // check whether curNode.links reusable
+                if(checker.getPrevSubstantialNodes().contains(curNode)){
                     return curNode.getLinks();
                 }
                 else{
-                    Set<Link> ret1 = new HashSet<>(runtimeNode1.getLinks());
-                    Set<Link> result = lgUtils.CartesianSet(ret2,lgUtils.FlipSet(ret1));
-                    curNode.setLinks(result);
-                    return curNode.getLinks();
+                    Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_PCC(runtimeNode1, ((FImplies) originFormula).getSubformulas()[0], contextChange, checker);
+                    Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_PCC(runtimeNode2, ((FImplies) originFormula).getSubformulas()[1], contextChange, checker);
+                    result.addAll(lgUtils.CartesianSet(lgUtils.FlipSet(ret1), ret2));
                 }
+            }
+            else if(((FImplies)originFormula).getSubformulas()[0].isAffected()){
+                Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_PCC(runtimeNode1, ((FImplies) originFormula).getSubformulas()[0], contextChange, checker);
+                // check whether runtimeNode2.links reusable
+                Set<Link> ret2;
+                if(checker.getPrevSubstantialNodes().contains(runtimeNode2)){
+                    ret2 = runtimeNode2.getLinks();
+                }
+                else{
+                    ret2 = runtimeNode2.getFormula().LinksGeneration_PCC(runtimeNode2, ((FImplies) originFormula).getSubformulas()[1], contextChange, checker);
+                }
+                result.addAll(lgUtils.CartesianSet(lgUtils.FlipSet(ret1), ret2));
             }
             else{
-                if(runtimeNode2.isTruth()){
-                    Set<Link> result = lgUtils.FlipSet(runtimeNode1.getLinks());
-                    result.addAll(ret2);
-                    curNode.setLinks(result);
-                    return curNode.getLinks();
+                Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_PCC(runtimeNode2, ((FImplies) originFormula).getSubformulas()[1], contextChange, checker);
+                // check whether runtimeNode1.links reusable
+                Set<Link> ret1;
+                if (checker.getPrevSubstantialNodes().contains(runtimeNode1)) {
+                    ret1 = runtimeNode1.getLinks();
                 }
                 else{
-                    Set<Link> ret1 = new HashSet<>(runtimeNode1.getLinks());
-                    Set<Link> result = lgUtils.FlipSet(ret1);
-                    curNode.setLinks(result);
-                    return curNode.getLinks();
+                    ret1 = runtimeNode1.getFormula().LinksGeneration_PCC(runtimeNode1, ((FImplies) originFormula).getSubformulas()[0], contextChange, checker);
                 }
+                result.addAll(lgUtils.CartesianSet(lgUtils.FlipSet(ret1), ret2));
             }
         }
+
+
+        curNode.setLinks(result);
+        return curNode.getLinks();
     }
 
     /*
