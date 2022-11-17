@@ -37,7 +37,6 @@ public class OfflineStarter implements Loggable {
     private String mfuncFile;
 
     private String dataFile;
-    private String dataType;
     private String incOutFile;
     private String dataOutFile;
 
@@ -52,13 +51,12 @@ public class OfflineStarter implements Loggable {
 
     public OfflineStarter() {}
 
-    public void start(String approach, String ruleFile, String bfuncFile, String patternFile, String mfuncFile, String dataFile, String dataType, String incOutFile, String dataOutFile, String type){
+    public void start(String approach, String ruleFile, String bfuncFile, String patternFile, String mfuncFile, String dataFile, String dataType, boolean isMG, String incOutFile, String dataOutFile, String type){
         this.ruleFile = ruleFile;
         this.bfuncFile = bfuncFile;
         this.patternFile = patternFile;
         this.mfuncFile = mfuncFile;
         this.dataFile = dataFile;
-        this.dataType = dataType;
         this.incOutFile = incOutFile;
         this.dataOutFile = dataOutFile;
         this.type = type;
@@ -105,19 +103,19 @@ public class OfflineStarter implements Loggable {
 
         switch (technique) {
             case "ECC":
-                this.checker = new ECC(this.ruleHandler, this.contextPool, bfuncInstance);
+                this.checker = new ECC(this.ruleHandler, this.contextPool, bfuncInstance, isMG);
                 break;
             case "ConC":
-                this.checker = new ConC(this.ruleHandler, this.contextPool, bfuncInstance);
+                this.checker = new ConC(this.ruleHandler, this.contextPool, bfuncInstance, isMG);
                 break;
             case "PCC":
-                this.checker = new PCC(this.ruleHandler, this.contextPool, bfuncInstance);
+                this.checker = new PCC(this.ruleHandler, this.contextPool, bfuncInstance, isMG);
                 break;
             case "INFUSE_base":
-                this.checker = new BASE(this.ruleHandler, this.contextPool, bfuncInstance);
+                this.checker = new BASE(this.ruleHandler, this.contextPool, bfuncInstance, isMG);
                 break;
             case "INFUSE_C":
-                this.checker = new INFUSE_C(this.ruleHandler, this.contextPool, bfuncInstance);
+                this.checker = new INFUSE_C(this.ruleHandler, this.contextPool, bfuncInstance, isMG);
                 break;
         }
 
@@ -194,6 +192,7 @@ public class OfflineStarter implements Loggable {
             InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
             BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
             while((line = bufferedReader.readLine()) != null){
+                //logger.info(line.trim());
                 List<ContextChange> changeList = this.contextHandler.generateChanges(line);
                 while(!changeList.isEmpty()){
                     ContextChange chg = changeList.get(0);

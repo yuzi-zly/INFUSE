@@ -55,7 +55,7 @@ public class OnlineStarter implements Loggable {
         private final Queue<ContextChange> changeQueue = new LinkedList<>();
         private boolean cleaned = false;
 
-        public CCEServer(String approach, String ruleFile, String bfuncFile, String patternFile, String mfuncFile, String dataType, String incOutFile, String dataOutFile) {
+        public CCEServer(String approach, String ruleFile, String bfuncFile, String patternFile, String mfuncFile, String dataType, boolean isMG, String incOutFile, String dataOutFile) {
             this.ruleFile = ruleFile;
             this.bfuncFile = bfuncFile;
             this.patternFile = patternFile;
@@ -105,19 +105,19 @@ public class OnlineStarter implements Loggable {
 
             switch (technique) {
                 case "ECC":
-                    this.checker = new ECC(this.ruleHandler, this.contextPool, bfuncInstance);
+                    this.checker = new ECC(this.ruleHandler, this.contextPool, bfuncInstance, isMG);
                     break;
                 case "ConC":
-                    this.checker = new ConC(this.ruleHandler, this.contextPool, bfuncInstance);
+                    this.checker = new ConC(this.ruleHandler, this.contextPool, bfuncInstance, isMG);
                     break;
                 case "PCC":
-                    this.checker = new PCC(this.ruleHandler, this.contextPool, bfuncInstance);
+                    this.checker = new PCC(this.ruleHandler, this.contextPool, bfuncInstance, isMG);
                     break;
                 case "INFUSE_base":
-                    this.checker = new BASE(this.ruleHandler, this.contextPool, bfuncInstance);
+                    this.checker = new BASE(this.ruleHandler, this.contextPool, bfuncInstance, isMG);
                     break;
                 case "INFUSE_C":
-                    this.checker = new INFUSE_C(this.ruleHandler, this.contextPool, bfuncInstance);
+                    this.checker = new INFUSE_C(this.ruleHandler, this.contextPool, bfuncInstance, isMG);
                     break;
             }
 
@@ -377,9 +377,9 @@ public class OnlineStarter implements Loggable {
     public OnlineStarter() {
     }
 
-    public void start(String approach, String ruleFile, String bfuncFile, String patternFile, String mfuncFile, String dataType, String incOutFile, String dataOutFile){
+    public void start(String approach, String ruleFile, String bfuncFile, String patternFile, String mfuncFile, String dataType, boolean isMG, String incOutFile, String dataOutFile){
         FutureTask<Void> clientTask = new FutureTask<>(new CCEClient("./taxi/data_5_0-1_new.txt"));
-        FutureTask<Void> serverTask = new FutureTask<>(new CCEServer(approach, ruleFile, bfuncFile, patternFile, mfuncFile, dataType, incOutFile, dataOutFile));
+        FutureTask<Void> serverTask = new FutureTask<>(new CCEServer(approach, ruleFile, bfuncFile, patternFile, mfuncFile, dataType, isMG, incOutFile, dataOutFile));
         new Thread(clientTask, "Client...").start();
         new Thread(serverTask, "Server...").start();
         try {

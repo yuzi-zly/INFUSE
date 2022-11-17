@@ -69,6 +69,8 @@ public class CLIParser implements Loggable {
         opt_cp.setRequired(false);
 
 
+        Option opt_mg = new Option("mg", "minimizeLinkGeneration", false, "Run with mg");
+
         Options options = new Options();
         options.addOption(opt_h);
         options.addOption(opt_t);
@@ -81,6 +83,7 @@ public class CLIParser implements Loggable {
         options.addOption(opt_bf);
         options.addOption(opt_dt);
         options.addOption(opt_cp);
+        options.addOption(opt_mg);
 
         CommandLine cli = null;
         CommandLineParser cliParser = new DefaultParser();
@@ -142,6 +145,8 @@ public class CLIParser implements Loggable {
             else{
                 contextPool = cli.getOptionValue("cp");
             }
+            // isMG or not
+            boolean isMG = cli.hasOption("mg");
 
             String parentPathStr = testModeDataConvertor(contextPool);
             String patternFile = parentPathStr + "/tmpPatterns.xml";
@@ -150,7 +155,7 @@ public class CLIParser implements Loggable {
             //default offline checking
             long startTime = System.nanoTime();
             OfflineStarter offlineStarter = new OfflineStarter();
-            offlineStarter.start(approach, ruleFile, bfuncFile, patternFile, null, dataFile, "change", testIncOut, null, "test");
+            offlineStarter.start(approach, ruleFile, bfuncFile, patternFile, null, dataFile, "change", isMG, testIncOut, null, "test");
             long totalTime = System.nanoTime() - startTime;
 
             Files.delete(Paths.get(patternFile));
@@ -239,7 +244,7 @@ public class CLIParser implements Loggable {
                     dataFile = cli.getOptionValue("df");
                 }
             }
-            //data type
+            // data type
             String dataType = null;
             if(!cli.hasOption("dt")){
                 dataType = defaultDataType;
@@ -248,18 +253,20 @@ public class CLIParser implements Loggable {
             else{
                 dataType = cli.getOptionValue("dt");
             }
+            // isMG or not
+            boolean isMG = cli.hasOption("mg");
 
             // start
             if(checkingMode.equalsIgnoreCase("offline")){
                 long startTime = System.nanoTime();
                 OfflineStarter offlineStarter = new OfflineStarter();
-                offlineStarter.start(approach, ruleFile, bfuncFile, patternFile, mfuncFile, dataFile, dataType, incOut, dataOut, "run");
+                offlineStarter.start(approach, ruleFile, bfuncFile, patternFile, mfuncFile, dataFile, dataType, isMG, incOut, dataOut, "run");
                 long totalTime = System.nanoTime() - startTime;
                 logger.info("Checking Approach: " + approach +  "\tData: " + dataFile +  "\t\033[92m" + totalTime / 1000000L + " ms\033[0m");
             }
             else if(checkingMode.equalsIgnoreCase("online")){
                 OnlineStarter onlineStarter = new OnlineStarter();
-                onlineStarter.start(approach, ruleFile, bfuncFile, patternFile, mfuncFile, dataType, incOut, dataOut);
+                onlineStarter.start(approach, ruleFile, bfuncFile, patternFile, mfuncFile, dataType, isMG, incOut, dataOut);
             }
         }
     }

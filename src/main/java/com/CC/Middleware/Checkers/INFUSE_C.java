@@ -23,8 +23,8 @@ import java.util.concurrent.Executors;
 public class INFUSE_C extends Checker{
     public final ExecutorService ThreadPool;
 
-    public INFUSE_C(RuleHandler ruleHandler, ContextPool contextPool, Object bfunctions) {
-        super(ruleHandler, contextPool, bfunctions);
+    public INFUSE_C(RuleHandler ruleHandler, ContextPool contextPool, Object bfunctions, boolean isMG) {
+        super(ruleHandler, contextPool, bfunctions, isMG);
         ThreadPool = Executors.newFixedThreadPool(13);
         this.technique = "CPCC_NB";
     }
@@ -176,15 +176,6 @@ public class INFUSE_C extends Checker{
         rule.UpdateAffectedWithChanges(this);
         rule.UpdateCanConcurrent_CPCC_NB(this);
 
-        /*
-        if(rule.isCCTAlready()){
-            rule.ModifyCCT_CPCC_NB(this);
-        }
-        else{
-            rule.BuildCCT_CPCC_NB(this);
-        }
-
-         */
         rule.ModifyCCT_CPCC_NB(this);
         rule.TruthEvaluation_CPCC_NB(this, false);
         Set<Link> links2 = rule.LinksGeneration_CPCC_NB(this);
@@ -200,7 +191,7 @@ public class INFUSE_C extends Checker{
     @Override
     public void ctxChangeCheckIMD(ContextChange contextChange) {
         for(Rule rule : ruleHandler.getRuleMap().values()) {
-            if (rule.getVarPatternMap().values().contains(contextChange.getPattern_id())) {
+            if (rule.getVarPatternMap().containsValue(contextChange.getPattern_id())) {
                 List<ContextChange> batch = new ArrayList<>();
                 batch.add(contextChange);
 
@@ -208,15 +199,6 @@ public class INFUSE_C extends Checker{
                 rule.UpdateAffectedWithChanges(this);
                 rule.UpdateCanConcurrent_CPCC_NB(this);
 
-                /*
-                if(rule.isCCTAlready()){
-                    rule.ModifyCCT_CPCC_NB(this);
-                }
-                else{
-                    rule.BuildCCT_CPCC_NB(this);
-                }
-
-                 */
                 rule.ModifyCCT_CPCC_NB(this);
                 rule.TruthEvaluation_CPCC_NB(this,false);
                 Set<Link> links2 = rule.LinksGeneration_CPCC_NB(this);

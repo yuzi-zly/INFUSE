@@ -385,15 +385,40 @@ public class FForall extends Formula{
     public Set<Link> LinksGeneration_ECC(RuntimeNode curNode, Formula originFormula, Checker checker)  {
         Set<Link> result = new HashSet<>();
         LGUtils lgUtils = new LGUtils();
-        for(RuntimeNode child : curNode.getChildren()){
-            Set<Link> childLink =  child.getFormula().LinksGeneration_ECC(child,((FForall)originFormula).getSubformula(), checker);
-            Set<Link> initialSet = new HashSet<>();
-            Link initialLink = new Link(Link.Link_Type.VIOLATED);
-            initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
-            initialSet.add(initialLink);
-            if(child.isTruth()) continue;
-            Set<Link> res = lgUtils.CartesianSet(initialSet, childLink);
-            result.addAll(res);
+        if(!checker.isMG()) {
+            // case 1: !MG --> all
+            // not taint substantial nodes
+            // generate links
+            for(RuntimeNode child : curNode.getChildren()){
+                Set<Link> childLink =  child.getFormula().LinksGeneration_ECC(child,((FForall)originFormula).getSubformula(), checker);
+                Set<Link> initialSet = new HashSet<>();
+                Link initialLink = new Link(Link.Link_Type.VIOLATED);
+                initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
+                initialSet.add(initialLink);
+                if(child.isTruth()) continue;
+                Set<Link> res = lgUtils.CartesianSet(initialSet, childLink);
+                result.addAll(res);
+            }
+        }
+        else if(curNode.isTruth()){
+            // case 2: MG && true --> none
+            // do nothing
+        }
+        else {
+            // case 3: MG && false --> false
+            for(RuntimeNode child : curNode.getChildren()){
+                if(child.isTruth()) continue;
+                // taint substantial nodes
+                checker.getCurSubstantialNodes().add(child);
+                // generate links
+                Set<Link> childLink =  child.getFormula().LinksGeneration_ECC(child,((FForall)originFormula).getSubformula(), checker);
+                Set<Link> initialSet = new HashSet<>();
+                Link initialLink = new Link(Link.Link_Type.VIOLATED);
+                initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
+                initialSet.add(initialLink);
+                Set<Link> res = lgUtils.CartesianSet(initialSet, childLink);
+                result.addAll(res);
+            }
         }
         curNode.setLinks(result);
         return curNode.getLinks();
@@ -627,17 +652,40 @@ public class FForall extends Formula{
         LGUtils lgUtils = new LGUtils();
         if(canConcurrent){
             Map<Integer, Future<Set<Link>>> LSMap = new HashMap<>();
-            for(int index = 0; index < curNode.getChildren().size(); ++index){
-                RuntimeNode child = curNode.getChildren().get(index);
-                assert checker instanceof ConC;
-                Future<Set<Link>> future = ((ConC) checker).ThreadPool.submit(
-                        new ConC.LinksGenerationTask_ConC(child, ((FForall)originFormula).getSubformula(), checker)
-                );
-                LSMap.put(index, future);
-            }
-
-            //合并links
             Set<Link> result = new HashSet<>();
+            if(!checker.isMG()) {
+                // case 1: !MG --> all
+                // not taint substantial nodes
+                // generate links
+                for(int index = 0; index < curNode.getChildren().size(); ++index){
+                    RuntimeNode child = curNode.getChildren().get(index);
+                    assert checker instanceof ConC;
+                    Future<Set<Link>> future = ((ConC) checker).ThreadPool.submit(
+                            new ConC.LinksGenerationTask_ConC(child, ((FForall)originFormula).getSubformula(), checker)
+                    );
+                    LSMap.put(index, future);
+                }
+            }
+            else if(curNode.isTruth()){
+                // case 2: MG && true --> none
+                // do nothing
+            }
+            else {
+                // case 3: MG && false --> false
+                for(int index = 0; index < curNode.getChildren().size(); ++index){
+                    RuntimeNode child = curNode.getChildren().get(index);
+                    if(child.isTruth()) continue;
+                    // taint substantial nodes
+                    checker.getCurSubstantialNodes().add(child);
+                    // generate links
+                    assert checker instanceof ConC;
+                    Future<Set<Link>> future = ((ConC) checker).ThreadPool.submit(
+                            new ConC.LinksGenerationTask_ConC(child, ((FForall)originFormula).getSubformula(), checker)
+                    );
+                    LSMap.put(index, future);
+                }
+            }
+            //合并links
             for(Map.Entry<Integer, Future<Set<Link>>> entry : LSMap.entrySet()){
                 int index = entry.getKey();
                 RuntimeNode child = curNode.getChildren().get(index);
@@ -661,15 +709,40 @@ public class FForall extends Formula{
         }
         else{
             Set<Link> result = new HashSet<>();
-            for(RuntimeNode child : curNode.getChildren()){
-                Set<Link> childLink =  child.getFormula().LinksGeneration_ConC(child,((FForall)originFormula).getSubformula(), false, checker);
-                Set<Link> initialSet = new HashSet<>();
-                Link initialLink = new Link(Link.Link_Type.VIOLATED);
-                initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
-                initialSet.add(initialLink);
-                if(child.isTruth()) continue;
-                Set<Link> res = lgUtils.CartesianSet(initialSet, childLink);
-                result.addAll(res);
+            if(!checker.isMG()) {
+                // case 1: !MG --> all
+                // not taint substantial nodes
+                // generate links
+                for(RuntimeNode child : curNode.getChildren()){
+                    Set<Link> childLink =  child.getFormula().LinksGeneration_ConC(child,((FForall)originFormula).getSubformula(), false, checker);
+                    Set<Link> initialSet = new HashSet<>();
+                    Link initialLink = new Link(Link.Link_Type.VIOLATED);
+                    initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
+                    initialSet.add(initialLink);
+                    if(child.isTruth()) continue;
+                    Set<Link> res = lgUtils.CartesianSet(initialSet, childLink);
+                    result.addAll(res);
+                }
+            }
+            else if(curNode.isTruth()){
+                // case 2: MG && true --> none
+                // do nothing
+            }
+            else {
+                // case 3: MG && false --> false
+                for(RuntimeNode child : curNode.getChildren()){
+                    if(child.isTruth()) continue;
+                    // taint substantial nodes
+                    checker.getCurSubstantialNodes().add(child);
+                    // generate links
+                    Set<Link> childLink =  child.getFormula().LinksGeneration_ConC(child,((FForall)originFormula).getSubformula(), false, checker);
+                    Set<Link> initialSet = new HashSet<>();
+                    Link initialLink = new Link(Link.Link_Type.VIOLATED);
+                    initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
+                    initialSet.add(initialLink);
+                    Set<Link> res = lgUtils.CartesianSet(initialSet, childLink);
+                    result.addAll(res);
+                }
             }
             curNode.setLinks(result);
             return curNode.getLinks();

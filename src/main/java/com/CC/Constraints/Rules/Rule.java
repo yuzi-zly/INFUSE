@@ -190,6 +190,12 @@ public class Rule {
     public Set<Link> LinksGeneration_ECC(Checker checker){
         Set<Link> result = this.CCTRoot.getFormula().LinksGeneration_ECC(this.CCTRoot, this.formula, checker);
         this.CCTRoot.setLinks(result);
+        if(checker.isMG()){
+            // store substantial nodes
+            checker.getPrevSubstantialNodes().clear();
+            checker.getPrevSubstantialNodes().addAll(checker.getCurSubstantialNodes());
+            checker.getCurSubstantialNodes().clear();
+        }
         return result;
     }
 
@@ -203,6 +209,12 @@ public class Rule {
     public Set<Link> LinksGeneration_PCC(ContextChange contextChange, Checker checker){
         Set<Link> result = this.CCTRoot.getFormula().LinksGeneration_PCC(this.CCTRoot, this.formula, contextChange, checker);
         this.CCTRoot.setLinks(result);
+        if(checker.isMG()){
+            // store substantial nodes
+            checker.getPrevSubstantialNodes().clear();
+            checker.getPrevSubstantialNodes().addAll(checker.getCurSubstantialNodes());
+            checker.getCurSubstantialNodes().clear();
+        }
         return result;
     }
 
@@ -216,6 +228,12 @@ public class Rule {
     public Set<Link> LinksGeneration_ConC(Checker checker){
         Set<Link> result = this.CCTRoot.getFormula().LinksGeneration_ConC(this.CCTRoot, this.formula, true, checker);
         this.CCTRoot.setLinks(result);
+        if(checker.isMG()){
+            // store substantial nodes
+            checker.getPrevSubstantialNodes().clear();
+            checker.getPrevSubstantialNodes().addAll(checker.getCurSubstantialNodes());
+            checker.getCurSubstantialNodes().clear();
+        }
         return result;
     }
 

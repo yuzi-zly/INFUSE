@@ -12,15 +12,15 @@ import java.util.Set;
 
 public class BASE extends ConC{
 
-    public BASE(RuleHandler ruleHandler, ContextPool contextPool, Object bfunctions) {
-        super(ruleHandler, contextPool, bfunctions);
+    public BASE(RuleHandler ruleHandler, ContextPool contextPool, Object bfunctions, boolean isMG) {
+        super(ruleHandler, contextPool, bfunctions, isMG);
         this.technique = "BASE";
     }
 
     @Override
     public void ctxChangeCheckIMD(ContextChange contextChange) {
         for(Rule rule : ruleHandler.getRuleMap().values()){
-            if(rule.getVarPatternMap().values().contains(contextChange.getPattern_id())){
+            if(rule.getVarPatternMap().containsValue(contextChange.getPattern_id())){
                 //apply changes
                 contextPool.ApplyChange(rule.getRule_id(), contextChange);
                 rule.UpdateAffectedWithOneChange(contextChange, this);
@@ -37,40 +37,6 @@ public class BASE extends ConC{
                 if(links != null){
                     storeLink(rule.getRule_id(), rule.getCCTRoot().isTruth(), links);
                 }
-                /*
-                //modify CCT
-                if(rule.isCCTAlready()){
-                    rule.ModifyCCT_BASE(contextChange, this);
-                    //truth evaluation
-                    rule.TruthEvaluation_BASE(contextChange, this);
-                    //links generation
-                    Set<Link> links = rule.LinksGeneration_BASE(contextChange, this);
-                    if(links != null){
-                        rule.addCriticalSet(links);
-                    }
-                    rule.CleanAffected();
-                    if(links != null){
-                        storeLink(rule.getRule_id(), rule.getCCTRoot().isTruth(), links);
-                    }
-                }
-                //build CCT
-                else{
-                    //same as ECC
-                    rule.BuildCCT_ECCPCC(this);
-                    //truth evaluation
-                    rule.TruthEvaluation_ECC(this);
-                    //links generation
-                    Set<Link> links = rule.LinksGeneration_ECC(this);
-                    if(links != null){
-                        rule.addCriticalSet(links);
-                    }
-                    rule.CleanAffected();
-                    if(links != null){
-                        storeLink(rule.getRule_id(), rule.getCCTRoot().isTruth(), links);
-                    }
-                }
-
-                 */
             }
         }
     }

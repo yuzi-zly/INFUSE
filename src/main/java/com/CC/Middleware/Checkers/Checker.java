@@ -3,6 +3,7 @@ package com.CC.Middleware.Checkers;
 import com.CC.Constraints.Rules.Rule;
 import com.CC.Constraints.Rules.RuleHandler;
 import com.CC.Constraints.Runtime.Link;
+import com.CC.Constraints.Runtime.RuntimeNode;
 import com.CC.Contexts.ContextChange;
 import com.CC.Contexts.ContextPool;
 import com.CC.Util.NotSupportedException;
@@ -14,14 +15,22 @@ public abstract class Checker {
     protected ContextPool contextPool;
     protected String technique;
     protected Object bfuncInstance;
+    // for MG
+    protected boolean isMG;
+    protected final Set<RuntimeNode> prevSubstantialNodes;
+    protected final Set<RuntimeNode> curSubstantialNodes;
+
 
     // rule_id -> [(truthValue1, linkSet1), (truthValue2,linkSet2)]
-    protected Map<String, List<Map.Entry<Boolean, Set<Link>>>> ruleLinksMap;
+    protected final Map<String, List<Map.Entry<Boolean, Set<Link>>>> ruleLinksMap;
 
-    public Checker(RuleHandler ruleHandler, ContextPool contextPool, Object bfuncInstance) {
+    public Checker(RuleHandler ruleHandler, ContextPool contextPool, Object bfuncInstance, boolean isMG) {
         this.ruleHandler = ruleHandler;
         this.contextPool = contextPool;
         this.bfuncInstance = bfuncInstance;
+        this.isMG = isMG;
+        this.prevSubstantialNodes = new HashSet<>();
+        this.curSubstantialNodes = new HashSet<>();
         this.ruleLinksMap = new HashMap<>();
     }
 
@@ -61,5 +70,17 @@ public abstract class Checker {
 
     public Map<String, List<Map.Entry<Boolean, Set<Link>>>> getRuleLinksMap() {
         return ruleLinksMap;
+    }
+
+    public Set<RuntimeNode> getCurSubstantialNodes() {
+        return curSubstantialNodes;
+    }
+
+    public Set<RuntimeNode> getPrevSubstantialNodes() {
+        return prevSubstantialNodes;
+    }
+
+    public boolean isMG() {
+        return isMG;
     }
 }

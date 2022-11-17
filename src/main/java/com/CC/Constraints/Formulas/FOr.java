@@ -195,32 +195,65 @@ public class FOr extends Formula {
 
     @Override
     public Set<Link> LinksGeneration_ECC(RuntimeNode curNode, Formula originFormula, Checker checker) {
-        Set<Link> result;
+        Set<Link> result = new HashSet<>();
         RuntimeNode runtimeNode1 = curNode.getChildren().get(0);
         RuntimeNode runtimeNode2 = curNode.getChildren().get(1);
         LGUtils lgUtils = new LGUtils();
-        if(runtimeNode1.isTruth()){
+
+        if(!checker.isMG() || !curNode.isTruth()){
+            // case 1: !MG --> all
+            // case 3: MG && false --> all
+            // taint substantial nodes
+            if(checker.isMG()){
+                checker.getCurSubstantialNodes().add(runtimeNode1);
+                checker.getCurSubstantialNodes().add(runtimeNode2);
+            }
+            // generate links
+            if(runtimeNode1.isTruth()){
+                if(runtimeNode2.isTruth()){
+                    Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_ECC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], checker);
+                    Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_ECC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], checker);
+                    result.addAll(ret1);
+                    result.addAll(ret2);
+                }
+                else{
+                    result = runtimeNode1.getFormula().LinksGeneration_ECC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], checker);
+                    runtimeNode2.getFormula().LinksGeneration_ECC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], checker);
+                }
+            }
+            else{
+                if(runtimeNode2.isTruth()){
+                    runtimeNode1.getFormula().LinksGeneration_ECC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], checker);
+                    result = runtimeNode2.getFormula().LinksGeneration_ECC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], checker);
+                }
+                else{
+                    Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_ECC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], checker);
+                    Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_ECC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], checker);
+                    result = lgUtils.CartesianSet(ret1, ret2);
+                }
+            }
+        }
+        else{
+            // case 2: MG && true --> true
+            // taint substantial node
+            if(runtimeNode1.isTruth()){
+                checker.getCurSubstantialNodes().add(runtimeNode1);
+            }
             if(runtimeNode2.isTruth()){
-                result = new HashSet<>();
+                checker.getCurSubstantialNodes().add(runtimeNode2);
+            }
+            // generate links
+            if(runtimeNode1.isTruth() && runtimeNode2.isTruth()){
                 Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_ECC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], checker);
                 Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_ECC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], checker);
                 result.addAll(ret1);
                 result.addAll(ret2);
             }
-            else{
+            else if(runtimeNode1.isTruth() && !runtimeNode2.isTruth()){
                 result = runtimeNode1.getFormula().LinksGeneration_ECC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], checker);
-                runtimeNode2.getFormula().LinksGeneration_ECC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], checker);
-            }
-        }
-        else{
-            if(runtimeNode2.isTruth()){
-                runtimeNode1.getFormula().LinksGeneration_ECC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], checker);
-                result = runtimeNode2.getFormula().LinksGeneration_ECC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], checker);
             }
             else{
-                Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_ECC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], checker);
-                Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_ECC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], checker);
-                result = lgUtils.CartesianSet(ret1, ret2);
+                result = runtimeNode2.getFormula().LinksGeneration_ECC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], checker);
             }
         }
         curNode.setLinks(result);
@@ -359,32 +392,64 @@ public class FOr extends Formula {
 
     @Override
     public Set<Link> LinksGeneration_ConC(RuntimeNode curNode, Formula originFormula, boolean canConcurrent, Checker checker) {
-        Set<Link> result;
+        Set<Link> result = new HashSet<>();
         RuntimeNode runtimeNode1 = curNode.getChildren().get(0);
         RuntimeNode runtimeNode2 = curNode.getChildren().get(1);
         LGUtils lgUtils = new LGUtils();
-        if(runtimeNode1.isTruth()){
+        if(!checker.isMG() || !curNode.isTruth()){
+            // case 1: !MG --> all
+            // case 3: MG && false --> all
+            // taint substantial nodes
+            if(checker.isMG()){
+                checker.getCurSubstantialNodes().add(runtimeNode1);
+                checker.getCurSubstantialNodes().add(runtimeNode2);
+            }
+            // generate links
+            if(runtimeNode1.isTruth()){
+                if(runtimeNode2.isTruth()){
+                    Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_ConC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], canConcurrent, checker);
+                    Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_ConC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], canConcurrent, checker);
+                    result.addAll(ret1);
+                    result.addAll(ret2);
+                }
+                else{
+                    result = runtimeNode1.getFormula().LinksGeneration_ConC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], canConcurrent, checker);
+                    runtimeNode2.getFormula().LinksGeneration_ConC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], canConcurrent, checker);
+                }
+            }
+            else{
+                if(runtimeNode2.isTruth()){
+                    runtimeNode1.getFormula().LinksGeneration_ConC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], canConcurrent, checker);
+                    result = runtimeNode2.getFormula().LinksGeneration_ConC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], canConcurrent, checker);
+                }
+                else{
+                    Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_ConC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], canConcurrent, checker);
+                    Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_ConC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], canConcurrent, checker);
+                    result = lgUtils.CartesianSet(ret1, ret2);
+                }
+            }
+        }
+        else{
+            // case 2: MG && true --> true
+            // taint substantial node
+            if(runtimeNode1.isTruth()){
+                checker.getCurSubstantialNodes().add(runtimeNode1);
+            }
             if(runtimeNode2.isTruth()){
-                result = new HashSet<>();
+                checker.getCurSubstantialNodes().add(runtimeNode2);
+            }
+            // generate links
+            if(runtimeNode1.isTruth() && runtimeNode2.isTruth()){
                 Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_ConC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], canConcurrent, checker);
                 Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_ConC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], canConcurrent, checker);
                 result.addAll(ret1);
                 result.addAll(ret2);
             }
-            else{
+            else if(runtimeNode1.isTruth() && !runtimeNode2.isTruth()){
                 result = runtimeNode1.getFormula().LinksGeneration_ConC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], canConcurrent, checker);
-                runtimeNode2.getFormula().LinksGeneration_ConC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], canConcurrent, checker);
-            }
-        }
-        else{
-            if(runtimeNode2.isTruth()){
-                runtimeNode1.getFormula().LinksGeneration_ConC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], canConcurrent, checker);
-                result = runtimeNode2.getFormula().LinksGeneration_ConC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], canConcurrent, checker);
             }
             else{
-                Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_ConC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], canConcurrent, checker);
-                Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_ConC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], canConcurrent, checker);
-                result = lgUtils.CartesianSet(ret1, ret2);
+                result = runtimeNode2.getFormula().LinksGeneration_ConC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], canConcurrent, checker);
             }
         }
         curNode.setLinks(result);

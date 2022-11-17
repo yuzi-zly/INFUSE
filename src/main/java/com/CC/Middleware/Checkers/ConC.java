@@ -23,8 +23,8 @@ public class ConC extends Checker {
 
     public final ExecutorService ThreadPool;
 
-    public ConC(RuleHandler ruleHandler, ContextPool contextPool, Object bfunctions) {
-        super(ruleHandler, contextPool, bfunctions);
+    public ConC(RuleHandler ruleHandler, ContextPool contextPool, Object bfunctions, boolean isMG) {
+        super(ruleHandler, contextPool, bfunctions, isMG);
         ThreadPool = Executors.newFixedThreadPool(13);
         this.technique = "ConC";
     }
@@ -107,7 +107,7 @@ public class ConC extends Checker {
     public void ctxChangeCheckIMD(ContextChange contextChange) {
         //consistency checking
         for(Rule rule : ruleHandler.getRuleMap().values()){
-            if(rule.getVarPatternMap().values().contains(contextChange.getPattern_id())){
+            if(rule.getVarPatternMap().containsValue(contextChange.getPattern_id())){
                 //apply changes
                 contextPool.ApplyChange(rule.getRule_id(), contextChange);
                 //build CCT

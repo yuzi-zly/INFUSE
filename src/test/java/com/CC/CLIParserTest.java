@@ -10,13 +10,31 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class CLIParserTest {
 
-    public static void testTaxi(String md, String ap, String data){
-        String [] args = new String[]{
-          "-md", md, "-ap", ap,
-          "-rf", "src/test/resources/taxi/rules.xml", "-pf", "src/test/resources/taxi/patterns.xml",
-          "-df", "src/test/resources/taxi/"+data + ".txt", "-bf", "src/test/resources/taxi/Bfunction.class",
-          "-o", "src/test/resources/taxi/" + data + "_cceResult.txt"
-        };
+    public static void testTaxi(String ap, boolean isMG){
+        String[] args = null;
+        if(isMG){
+            args = new String[]{
+                    "-md", "offline", "-ap", ap,
+                    "-rf", "src/test/resources/taxi/rules.xml",
+                    "-bf", "src/test/resources/taxi/Bfunction.class",
+                    "-pf", "src/test/resources/taxi/patterns.xml",
+                    "-mf", "src/test/resources/taxi/Mfunction.class",
+                    "-df", "src/test/resources/taxi/data_5_0-1_new.txt",
+                    "-dt", "rawData",
+                    "-mg"
+            };
+        }
+        else{
+            args = new String[]{
+                    "-md", "offline", "-ap", ap,
+                    "-rf", "src/test/resources/taxi/rules.xml",
+                    "-bf", "src/test/resources/taxi/Bfunction.class",
+                    "-pf", "src/test/resources/taxi/patterns.xml",
+                    "-mf", "src/test/resources/taxi/Mfunction.class",
+                    "-df", "src/test/resources/taxi/data_5_0-1_new.txt",
+                    "-dt", "rawData"
+            };
+        }
         try {
             CLIParser.main(args);
             //TODO: compare answer

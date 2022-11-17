@@ -165,6 +165,12 @@ public class FNot extends Formula{
     public Set<Link> LinksGeneration_ECC(RuntimeNode curNode, Formula originFormula, Checker checker) {
         RuntimeNode runtimeNode = curNode.getChildren().get(0);
         LGUtils lgUtils = new LGUtils();
+        // only one case: all
+        // taint substantial node
+        if(checker.isMG()){
+            checker.getCurSubstantialNodes().add(runtimeNode);
+        }
+        // generate links
         Set<Link> ret = runtimeNode.getFormula().LinksGeneration_ECC(runtimeNode, ((FNot)originFormula).getSubformula(), checker);
         Set<Link> result = lgUtils.FlipSet(ret);
         curNode.setLinks(result);
@@ -235,6 +241,12 @@ public class FNot extends Formula{
     public Set<Link> LinksGeneration_ConC(RuntimeNode curNode, Formula originFormula, boolean canConcurrent, Checker checker) {
         RuntimeNode runtimeNode = curNode.getChildren().get(0);
         LGUtils lgUtils = new LGUtils();
+        // only one case: all
+        // taint substantial node
+        if(checker.isMG()){
+            checker.getCurSubstantialNodes().add(runtimeNode);
+        }
+        // generate links
         Set<Link> ret = runtimeNode.getFormula().LinksGeneration_ConC(runtimeNode, ((FNot)originFormula).getSubformula(), canConcurrent, checker);
         Set<Link> result = lgUtils.FlipSet(ret);;
         curNode.setLinks(result);

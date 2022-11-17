@@ -11,8 +11,8 @@ import java.util.Set;
 
 public class ECC extends Checker{
 
-    public ECC(RuleHandler ruleHandler, ContextPool contextPool, Object bfunctions) {
-        super(ruleHandler, contextPool, bfunctions);
+    public ECC(RuleHandler ruleHandler, ContextPool contextPool, Object bfunctions, boolean isMG) {
+        super(ruleHandler, contextPool, bfunctions, isMG);
         this.technique = "ECC";
     }
 

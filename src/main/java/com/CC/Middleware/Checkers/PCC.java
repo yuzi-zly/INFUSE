@@ -11,8 +11,8 @@ import java.util.Set;
 
 public class PCC extends Checker{
 
-    public PCC(RuleHandler ruleHandler, ContextPool contextPool, Object bfunctions) {
-        super(ruleHandler, contextPool, bfunctions);
+    public PCC(RuleHandler ruleHandler, ContextPool contextPool, Object bfunctions, boolean isMG) {
+        super(ruleHandler, contextPool, bfunctions, isMG);
         this.technique = "PCC";
     }
 
@@ -20,45 +20,10 @@ public class PCC extends Checker{
     public void ctxChangeCheckIMD(ContextChange contextChange) {
         //consistency checking
         for(Rule rule : ruleHandler.getRuleMap().values()){
-            if(rule.getVarPatternMap().values().contains(contextChange.getPattern_id())){
+            if(rule.getVarPatternMap().containsValue(contextChange.getPattern_id())){
                 //apply changes
                 contextPool.ApplyChange(rule.getRule_id(), contextChange);
                 rule.UpdateAffectedWithOneChange(contextChange, this);
-                /*
-                //modify CCT
-                if(rule.isCCTAlready()){
-                    rule.ModifyCCT_PCC(contextChange, this);
-                    //truth evaluation
-                    rule.TruthEvaluation_PCC(contextChange, this);
-                    //links generation
-                    Set<Link> links = rule.LinksGeneration_PCC(contextChange, this);
-                    if(links != null){
-                        rule.addCriticalSet(links);
-                        //rule.oracleCount(links, contextChange);
-                    }
-                    rule.CleanAffected();
-                    if(links != null){
-                        storeLink(rule.getRule_id(), rule.getCCTRoot().isTruth(), links);
-                    }
-                }
-                //build CCT
-                else{
-                    //same as ECC
-                    rule.BuildCCT_ECCPCC(this);
-                    //truth evaluation
-                    rule.TruthEvaluation_ECC(this);
-                    //links generation
-                    Set<Link> links = rule.LinksGeneration_ECC(this);
-                    if(links != null){
-                        rule.addCriticalSet(links);
-                        //rule.oracleCount(links, contextChange);
-                    }
-                    rule.CleanAffected();
-                    if(links != null){
-                        storeLink(rule.getRule_id(), rule.getCCTRoot().isTruth(), links);
-                    }
-                }
-                 */
 
                 rule.ModifyCCT_PCC(contextChange, this);
                 //truth evaluation
@@ -88,15 +53,6 @@ public class PCC extends Checker{
         }
         for(ContextChange contextChange : batch){
             contextPool.ApplyChangeWithSets(rule.getRule_id(), contextChange);
-            /*
-            if(rule.isCCTAlready()){
-                rule.ModifyCCT_PCCM(contextChange, this);
-            }
-            else{
-                rule.BuildCCT_ECCPCC(this);
-            }
-
-             */
             rule.ModifyCCT_PCCM(contextChange, this);
         }
         rule.UpdateAffectedWithChanges(this);
