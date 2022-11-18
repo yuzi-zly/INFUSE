@@ -16,6 +16,9 @@ TODOList
 - PCC+GEAS_ori+CG: 14763 ms
 - PCC+GEAS_ori+MG: 10807 ms
 
+- INFUSE+CG: 11982 ms
+- INFUSE+MG: 9519 ms
+
 
 ### MG
 
