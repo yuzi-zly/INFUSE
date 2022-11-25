@@ -40,7 +40,7 @@ public class OfflineStarter implements Loggable {
 
     private String dataFile;
     private String incOutFile;
-    private String dataOutFile;
+    private String dataOrCCTOutFile;
 
     private String type;
 
@@ -60,7 +60,7 @@ public class OfflineStarter implements Loggable {
         this.mfuncFile = mfuncFile;
         this.dataFile = dataFile;
         this.incOutFile = incOutFile;
-        this.dataOutFile = dataOutFile;
+        this.dataOrCCTOutFile = dataOutFile;
         this.type = type;
 
         this.ruleHandler = new RuleHandler();
@@ -149,11 +149,18 @@ public class OfflineStarter implements Loggable {
             if(type.equals("test")){
                 testRunEnd(bfuncInstance);
             }
-            IncOutput();
+            incsOutput();
+            if(type.equals("test")){
+                //output CCT
+                cctOutput();
+            }
+            else{
+                //output fixed data
+                //TODO()
+            }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-
     }
 
     private void buildRulesAndPatterns() throws Exception {
@@ -220,7 +227,7 @@ public class OfflineStarter implements Loggable {
         bfuncInstance.getClass().getMethod("end").invoke(bfuncInstance);
     }
 
-    private void IncOutput() throws Exception {
+    private void incsOutput() throws Exception {
         if(type.equalsIgnoreCase("run")){
             OutputStream outputStream = Files.newOutputStream(Paths.get(incOutFile));
             OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
@@ -326,6 +333,20 @@ public class OfflineStarter implements Loggable {
         }
         else{
             assert false;
+        }
+    }
+
+    private void cctOutput() throws Exception {
+        try(OutputStream outputStream = Files.newOutputStream(Paths.get(dataOrCCTOutFile))){
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
+            BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
+            for(Rule rule : ruleHandler.getRuleMap().values()){
+                bufferedWriter.write(rule.getCCTRoot().show(0, checker.getSubstantialNodes(), null));
+                bufferedWriter.write("\n");
+                bufferedWriter.flush();
+            }
+            bufferedWriter.close();
+            outputStreamWriter.close();
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.CC.Constraints.Runtime;
 
+import com.CC.Constraints.Formulas.FBfunc;
 import com.CC.Constraints.Formulas.FExists;
 import com.CC.Constraints.Formulas.FForall;
 import com.CC.Constraints.Formulas.Formula;
@@ -245,32 +246,89 @@ public class RuntimeNode {
                 '}';
     }
 
-    public void PrintRuntimeNode(int offset){
-        for(int i = 0; i < offset; ++i)
-            System.out.print(" ");
-        System.out.println(this.toString());
-
-        if(this.children.size() != 0){
-            for(RuntimeNode runtimeNode : this.children){
-                runtimeNode.PrintRuntimeNode(offset + 4);
-            }
-        }
-    }
-
-    public String GetMess(int offset){
+    public String show(int offset, final Set<RuntimeNode> scctNodes, String pVar){
         StringBuilder stringBuilder = new StringBuilder();
-        for(int i = 0; i < offset; ++i)
-            stringBuilder.append(" ");
-        stringBuilder.append(this.toString()).append("\n");
-        System.out.println(parent);
-
-        if(this.children.size() != 0){
-            for(RuntimeNode runtimeNode : this.children){
-                stringBuilder.append(runtimeNode.GetMess(offset + 4));
+        //offset
+        stringBuilder.append(" ".repeat(Math.max(0, offset)));
+        //prefix
+        if(pVar != null){
+            stringBuilder.append("\"").append(pVar).append("=").append(this.getVarEnv().get(pVar).getCtx_id()).append("\"@");
+        }
+        //start
+        stringBuilder.append("(\"");
+        //SCCT
+        if(scctNodes.contains(this)){
+            stringBuilder.append("SCCT ");
+        }
+        //truth value
+        if(this.isTruth()){
+            stringBuilder.append("T ");
+        }
+        else{
+            stringBuilder.append("F ");
+        }
+        //formula
+        switch (this.formula.getFormula_type()){
+            case FORALL:{
+                String var = ((FForall) this.formula).getVar();
+                stringBuilder.append("forall ").append(var).append(" ").append(((FForall) this.formula).getPattern_id()).append("\"").append("\n");
+                for(RuntimeNode child : this.getChildren()){
+                    stringBuilder.append(child.show(offset+4, scctNodes, var));
+                }
+                stringBuilder.append(" ".repeat(Math.max(0, offset)));
+                stringBuilder.append(")\n");
+                break;
             }
+            case EXISTS:{
+                String var = ((FExists) this.formula).getVar();
+                stringBuilder.append("exists ").append(var).append(" ").append(((FExists) this.formula).getPattern_id()).append("\"").append("\n");
+                for(RuntimeNode child : this.getChildren()){
+                    stringBuilder.append(child.show(offset+4, scctNodes, var));
+                }
+                stringBuilder.append(" ".repeat(Math.max(0, offset)));
+                stringBuilder.append(")\n");
+                break;
+            }
+            case AND:{
+                stringBuilder.append("and\"").append("\n");
+                stringBuilder.append(this.getChildren().get(0).show(offset+4, scctNodes, null));
+                stringBuilder.append(this.getChildren().get(1).show(offset+4, scctNodes, null));
+                stringBuilder.append(" ".repeat(Math.max(0, offset)));
+                stringBuilder.append(")\n");
+                break;
+            }
+            case OR:{
+                stringBuilder.append("or\"").append("\n");
+                stringBuilder.append(this.getChildren().get(0).show(offset+4, scctNodes, null));
+                stringBuilder.append(this.getChildren().get(1).show(offset+4, scctNodes, null));
+                stringBuilder.append(" ".repeat(Math.max(0, offset)));
+                stringBuilder.append(")\n");
+                break;
+            }
+            case IMPLIES:{
+                stringBuilder.append("implies\"").append("\n");
+                stringBuilder.append(this.getChildren().get(0).show(offset+4, scctNodes, null));
+                stringBuilder.append(this.getChildren().get(1).show(offset+4, scctNodes, null));
+                stringBuilder.append(" ".repeat(Math.max(0, offset)));
+                stringBuilder.append(")\n");
+                break;
+            }
+            case NOT:{
+                stringBuilder.append("not\"").append("\n");
+                stringBuilder.append(this.getChildren().get(0).show(offset+4, scctNodes, null));
+                stringBuilder.append(" ".repeat(Math.max(0, offset)));
+                stringBuilder.append(")\n");
+                break;
+            }
+            case BFUNC:{
+                stringBuilder.append("bfunc ").append(((FBfunc) this.formula).getFunc()).append("\")\n");
+                break;
+            }
+            default:
+                assert false;
+                break;
         }
         return stringBuilder.toString();
     }
 }
-
 

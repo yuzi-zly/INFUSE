@@ -19,6 +19,7 @@ public abstract class Checker {
     protected boolean isMG;
     protected final Set<RuntimeNode> prevSubstantialNodes;
     protected final Set<RuntimeNode> curSubstantialNodes;
+    protected final Set<RuntimeNode> substantialNodes;
 
 
     // rule_id -> [(truthValue1, linkSet1), (truthValue2,linkSet2)]
@@ -31,6 +32,7 @@ public abstract class Checker {
         this.isMG = isMG;
         this.prevSubstantialNodes = new HashSet<>();
         this.curSubstantialNodes = new HashSet<>();
+        this.substantialNodes = new HashSet<>();
         this.ruleLinksMap = new HashMap<>();
     }
 
@@ -78,6 +80,10 @@ public abstract class Checker {
 
     public Set<RuntimeNode> getPrevSubstantialNodes() {
         return prevSubstantialNodes;
+    }
+
+    public Set<RuntimeNode> getSubstantialNodes() {
+        return substantialNodes;
     }
 
     public boolean isMG() {

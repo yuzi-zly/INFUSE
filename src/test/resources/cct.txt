@@ -1,0 +1,11 @@
+("SCCT F forall v1 pat_1"
+    "v1=1"@("T exists v2 pat_2"
+        "v2=3"@("F bfunc random_32")
+        "v2=4"@("T bfunc random_32")
+    )
+    "v1=2"@("SCCT F exists v2 pat_2"
+        "v2=3"@("F bfunc random_32")
+        "v2=4"@("F bfunc random_32")
+    )
+)
+

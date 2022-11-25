@@ -1,0 +1,18 @@
+{
+  "rule_2_18": {
+    "truth": false,
+    "links": [
+      [
+        {
+          "var": "v1",
+          "value": {
+            "ctx_id": "2",
+            "fields": {
+              "data": "2"
+            }
+          }
+        }
+      ]
+    ]
+  }
+}

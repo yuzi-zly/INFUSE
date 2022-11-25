@@ -207,7 +207,9 @@ public class OnlineStarter implements Loggable {
             this.scheduler.checkEnds();
             totalTime_det += System.currentTimeMillis() - oldTime_chk;
 
-            IncOutput();
+            incsOutput();
+            //Output fixed data
+            //TODO()
             logger.info("Checking completes at " + new Date(System.currentTimeMillis()) );
             logger.info("TotalTime_gen: " + this.totalTime_gen + " ms\ttotalTime_det: " + this.totalTime_det + " ms\n");
             return null;
@@ -256,7 +258,7 @@ public class OnlineStarter implements Loggable {
             return null;
         }
 
-        private void IncOutput() throws Exception {
+        private void incsOutput() throws Exception {
             OutputStream outputStream = Files.newOutputStream(Paths.get(incOutFile));
             OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
             BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
