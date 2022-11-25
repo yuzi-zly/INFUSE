@@ -94,7 +94,7 @@ public class CLIParser implements Loggable {
                 .desc("Load patterns from given file (XML file)")
                 .build();
 
-        Option opt_mf = Option.builder("mfunc")
+        Option opt_mf = Option.builder("mfuncs")
                 .argName("file")
                 .hasArg()
                 .required(false)

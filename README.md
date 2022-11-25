@@ -20,3 +20,15 @@ INFUSE is a constraint checking engine for context consistency.
 ```json
 {"changeType":"+","patternId":"pat_1","context":{"contextId":"ctx_1","fields":{"key1":"string_value","key2":3.14,"key3":2}}}
 ```
+
+### How to run
+
+#### normal 
+
+
+#### testing
+
+```shell
+# jdk11
+java -jar INFUSE.jar -test -mg -approach INFUSE -rules rules.xml -bfuncs Bfunction.class -contextpool cp.json -incs incsOutput.json -cct cctOutput.txt
+```
