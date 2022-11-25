@@ -40,36 +40,39 @@ public class CLIParser implements Loggable {
 
     public static String testIncOut = "cceResult.json";
 
-    public static void main(String[] args) throws Exception {
-        Option opt_h = new Option("h", "help", false, "To print the usage");
-        opt_h.setRequired(false);
-        Option opt_t = new Option("t","test",false,"Run in the testing mode");
-        opt_t.setRequired(false);
+    public static String testCCTOut = "cct.json";
 
-        Option opt_md = new Option("md", "mode", true, "To specify the checkingMode [offline/online]");
-        opt_md.setRequired(false);
-        Option opt_ap = new Option("ap", "approach", true,
-                "To specify the checkingApproach [ECC+IMD/ECC+GEAS_ori/PCC+IMD/PCC+GEAS_ori/ConC+IMD/ConC+GEAS_ori/INFUSE_base/INFUSE]");
+    public static void main(String[] args) throws Exception {
+        // common
+        Option opt_ap = new Option("ap", "approach", true, "To specify the checkingApproach [ECC+IMD/ECC+GEAS_ori/PCC+IMD/PCC+GEAS_ori/ConC+IMD/ConC+GEAS_ori/INFUSE_base/INFUSE]");
         opt_ap.setRequired(false);
         Option opt_rf = new Option("rf",  "ruleFile", true, "To specify the ruleFile [e.g. src/main/resources/example/rules.xml]");
         opt_rf.setRequired(false);
         Option opt_bf = new Option("bf",  "bfuncFile", true, "To specify the bfuncFile [e.g. src/main/resources/example/Bfunctions.class]");
         opt_bf.setRequired(false);
+        Option opt_mg = new Option("mg", "minimizeLinkGeneration", false, "Run with mg");
+        opt_mg.setRequired(false);
+        Option opt_df = new Option("df", "dataFile", true, "To specify the dataFile [e.g. src/main/resources/example/data.txt]");
+        opt_df.setRequired(false);
+        Option opt_h = new Option("h", "help", false, "To print the usage");
+        opt_h.setRequired(false);
+
+        // normal run
+        Option opt_md = new Option("md", "mode", true, "To specify the checkingMode [offline/online]");
+        opt_md.setRequired(false);
         Option opt_pf = new Option("pf", "patternFile", true, "To specify the patternFile [e.g. src/main/resources/example/patterns.xml]");
         opt_pf.setRequired(false);
         Option opt_mf = new Option("mf", "mfuncFile", true, "To specify the mfuncFile [e.g. src/main/resources/example/Mfunctions.class]");
         opt_mf.setRequired(false);
-
-        Option opt_df = new Option("df", "dataFile", true, "To specify the dataFile [e.g. src/main/resources/example/data.txt]");
-        opt_df.setRequired(false);
         Option opt_dt = new Option("dt", "dataType", true, "To specify the type of dataFile [rawData/change]");
         opt_dt.setRequired(false);
 
+        // testing run
+        Option opt_t = new Option("t","test",false,"Run in the testing mode");
+        opt_t.setRequired(false);
         Option opt_cp = new Option("cp", "contextPool", true, "To specify the contextPool file [e.g. src/main/resources/example/cp.json]");
         opt_cp.setRequired(false);
 
-
-        Option opt_mg = new Option("mg", "minimizeLinkGeneration", false, "Run with mg");
 
         Options options = new Options();
         options.addOption(opt_h);
