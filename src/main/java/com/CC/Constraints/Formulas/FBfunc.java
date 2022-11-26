@@ -154,9 +154,15 @@ public class FBfunc extends Formula {
         this.setAffected(false);
     }
 
+    //MG
+    @Override
+    public void taintSCCT(RuntimeNode curNode, Formula originFormula, Set<RuntimeNode> substantialNodes) {
+        substantialNodes.add(curNode);
+    }
+
     /*
-                                        ECC PCC
-                                     */
+                                            ECC PCC
+                                         */
     @Override
     public void CreateBranches_ECCPCC(String rule_id, RuntimeNode curNode, Formula originFormula, Checker checker) {
         //do nothing
@@ -174,8 +180,7 @@ public class FBfunc extends Formula {
     }
 
     @Override
-    public Set<Link> LinksGeneration_ECC(RuntimeNode curNode, Formula originFormula, Checker checker) {
-        LGUtils lgUtils = new LGUtils();
+    public Set<Link> LinksGeneration_ECC(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
         Set<Link> result = new HashSet<>(1);
         curNode.setLinks(result);
         return curNode.getLinks();
@@ -202,8 +207,7 @@ public class FBfunc extends Formula {
     }
 
     @Override
-    public Set<Link> LinksGeneration_PCC(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
-        LGUtils lgUtils = new LGUtils();
+    public Set<Link> LinksGeneration_PCC(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
         Set<Link> result = new HashSet<>(1);
         curNode.setLinks(result);
         return curNode.getLinks();
@@ -226,8 +230,7 @@ public class FBfunc extends Formula {
     }
 
     @Override
-    public Set<Link> LinksGeneration_ConC(RuntimeNode curNode, Formula originFormula, boolean canConcurrent, Checker checker) {
-        LGUtils lgUtils = new LGUtils();
+    public Set<Link> LinksGeneration_ConC(RuntimeNode curNode, Formula originFormula, boolean canConcurrent, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
         Set<Link> result = new HashSet<>(1);
         curNode.setLinks(result);
         return curNode.getLinks();
@@ -254,8 +257,7 @@ public class FBfunc extends Formula {
     }
 
     @Override
-    public Set<Link> LinksGeneration_PCCM(RuntimeNode curNode, Formula originFormula, Checker checker) {
-        LGUtils lgUtils = new LGUtils();
+    public Set<Link> LinksGeneration_PCCM(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
         Set<Link> result = new HashSet<>(1);
         curNode.setLinks(result);
         return curNode.getLinks();
@@ -297,7 +299,7 @@ public class FBfunc extends Formula {
     }
 
     @Override
-    public Set<Link> LinksGeneration_CPCC_NB(RuntimeNode curNode, Formula originFormula, Checker checker) {
+    public Set<Link> LinksGeneration_CPCC_NB(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
         Set<Link> result = new HashSet<>(1);
         curNode.setLinks(result);
         return curNode.getLinks();
@@ -324,8 +326,7 @@ public class FBfunc extends Formula {
     }
 
     @Override
-    public Set<Link> LinksGeneration_BASE(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
-        LGUtils lgUtils = new LGUtils();
+    public Set<Link> LinksGeneration_BASE(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
         Set<Link> result = new HashSet<>(1);
         curNode.setLinks(result);
         return curNode.getLinks();

@@ -3,9 +3,11 @@ package com.CC.Middleware.Checkers;
 import com.CC.Constraints.Rules.Rule;
 import com.CC.Constraints.Rules.RuleHandler;
 import com.CC.Constraints.Runtime.Link;
+import com.CC.Constraints.Runtime.RuntimeNode;
 import com.CC.Contexts.ContextChange;
 import com.CC.Contexts.ContextPool;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -28,8 +30,13 @@ public class PCC extends Checker{
                 rule.ModifyCCT_PCC(contextChange, this);
                 //truth evaluation
                 rule.TruthEvaluation_PCC(contextChange, this);
+                //taint SCCT
+                Set<RuntimeNode> prevSubstantialNodes = this.substantialNodes.getOrDefault(rule.getRule_id(),  new HashSet<>());
+                if(this.isMG){
+                    this.substantialNodes.put(rule.getRule_id(), rule.taintSCCT());
+                }
                 //links generation
-                Set<Link> links = rule.LinksGeneration_PCC(contextChange, this);
+                Set<Link> links = rule.LinksGeneration_PCC(contextChange, this, prevSubstantialNodes);
                 if(links != null){
                     rule.addCriticalSet(links);
                     //rule.oracleCount(links, contextChange);
@@ -57,7 +64,12 @@ public class PCC extends Checker{
         }
         rule.UpdateAffectedWithChanges(this);
         rule.TruthEvaluation_PCCM(this);
-        Set<Link> links = rule.LinksGeneration_PCCM(this);
+        //taint SCCT
+        Set<RuntimeNode> prevSubstantialNodes = this.substantialNodes.getOrDefault(rule.getRule_id(),  new HashSet<>());
+        if(this.isMG){
+            this.substantialNodes.put(rule.getRule_id(), rule.taintSCCT());
+        }
+        Set<Link> links = rule.LinksGeneration_PCCM(this, prevSubstantialNodes);
         if(links != null){
             rule.addCriticalSet(links);
         }

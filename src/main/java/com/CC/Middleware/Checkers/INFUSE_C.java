@@ -12,10 +12,7 @@ import com.CC.Contexts.ContextChange;
 import com.CC.Contexts.ContextPool;
 import com.CC.Util.NotSupportedException;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -128,34 +125,38 @@ public class INFUSE_C extends Checker{
     public static class LinksGenerationTaskCom_CPCC_NB implements Callable<Set<Link>>{
         RuntimeNode curNode;
         Formula originFormula;
+        final Set<RuntimeNode> prevSubstantialNodes;
         Checker checker;
 
-        public LinksGenerationTaskCom_CPCC_NB(RuntimeNode curNode, Formula originFormula, Checker checker){
+        public LinksGenerationTaskCom_CPCC_NB(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker){
             this.curNode = curNode;
             this.originFormula = originFormula;
+            this.prevSubstantialNodes = prevSubstantialNodes;
             this.checker = checker;
         }
 
         @Override
         public Set<Link> call() {
-            return curNode.getFormula().LinksGeneration_ECC(curNode, originFormula, checker);
+            return curNode.getFormula().LinksGeneration_ECC(curNode, originFormula, prevSubstantialNodes, checker);
         }
     }
 
     public static class LinksGenerationTaskPar_CPCC_NB implements Callable<Set<Link>>{
         RuntimeNode curNode;
         Formula originFormula;
+        final Set<RuntimeNode> prevSubstantialNodes;
         Checker checker;
 
-        public LinksGenerationTaskPar_CPCC_NB(RuntimeNode curNode, Formula originFormula, Checker checker){
+        public LinksGenerationTaskPar_CPCC_NB(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker){
             this.curNode = curNode;
             this.originFormula = originFormula;
+            this.prevSubstantialNodes = prevSubstantialNodes;
             this.checker = checker;
         }
 
         @Override
         public Set<Link> call() {
-            return curNode.getFormula().LinksGeneration_CPCC_NB(curNode, originFormula, checker);
+            return curNode.getFormula().LinksGeneration_CPCC_NB(curNode, originFormula, prevSubstantialNodes, checker);
         }
     }
 
@@ -164,7 +165,12 @@ public class INFUSE_C extends Checker{
         for(Rule rule : this.ruleHandler.getRuleMap().values()){
             rule.BuildCCT_CPCC_NB(this);
             rule.TruthEvaluation_CPCC_NB(this, true);
-            rule.LinksGeneration_CPCC_NB(this);
+            //taint SCCT
+            Set<RuntimeNode> prevSubstantialNodes = this.substantialNodes.getOrDefault(rule.getRule_id(),  new HashSet<>());
+            if(this.isMG){
+                this.substantialNodes.put(rule.getRule_id(), rule.taintSCCT());
+            }
+            rule.LinksGeneration_CPCC_NB(this, prevSubstantialNodes);
         }
     }
 
@@ -178,7 +184,12 @@ public class INFUSE_C extends Checker{
 
         rule.ModifyCCT_CPCC_NB(this);
         rule.TruthEvaluation_CPCC_NB(this, false);
-        Set<Link> links2 = rule.LinksGeneration_CPCC_NB(this);
+        //taint SCCT
+        Set<RuntimeNode> prevSubstantialNodes = this.substantialNodes.getOrDefault(rule.getRule_id(),  new HashSet<>());
+        if(this.isMG){
+            this.substantialNodes.put(rule.getRule_id(), rule.taintSCCT());
+        }
+        Set<Link> links2 = rule.LinksGeneration_CPCC_NB(this, prevSubstantialNodes);
         if(links2 != null){
             rule.addCriticalSet(links2);
         }
@@ -201,7 +212,12 @@ public class INFUSE_C extends Checker{
 
                 rule.ModifyCCT_CPCC_NB(this);
                 rule.TruthEvaluation_CPCC_NB(this,false);
-                Set<Link> links2 = rule.LinksGeneration_CPCC_NB(this);
+                //taint SCCT
+                Set<RuntimeNode> prevSubstantialNodes = this.substantialNodes.getOrDefault(rule.getRule_id(),  new HashSet<>());
+                if(this.isMG){
+                    this.substantialNodes.put(rule.getRule_id(), rule.taintSCCT());
+                }
+                Set<Link> links2 = rule.LinksGeneration_CPCC_NB(this, prevSubstantialNodes);
                 if (links2 != null) {
                     rule.addCriticalSet(links2);
                    // rule.oracleCount(links2, contextChange);

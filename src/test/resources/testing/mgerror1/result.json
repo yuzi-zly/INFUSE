@@ -1,0 +1,27 @@
+{
+  "rule_3_1632": {
+    "truth": false,
+    "links": [
+      [
+        {
+          "var": "v1",
+          "value": {
+            "ctx_id": "2",
+            "fields": {
+              "data": "2"
+            }
+          }
+        },
+        {
+          "var": "v2",
+          "value": {
+            "ctx_id": "3",
+            "fields": {
+              "data": "3"
+            }
+          }
+        }
+      ]
+    ]
+  }
+}

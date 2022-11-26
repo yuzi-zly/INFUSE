@@ -6,22 +6,22 @@
             <and>
                 <implies>
                     <exists var="v1" in="pat_1">
-                        <bfunction name="random_2337">
+                        <bfunc name="random_2337">
                             <param pos="1" var="v1"/>
-                        </bfunction>
+                        </bfunc>
                     </exists>
                     <exists var="v2" in="pat_2">
-                        <bfunction name="random_2338">
+                        <bfunc name="random_2338">
                             <param pos="1" var="v2"/>
-                        </bfunction>
+                        </bfunc>
                     </exists>
                 </implies>
                 <forall var="v3" in="pat_3">
                     <exists var="v4" in="pat_4">
-                        <bfunction name="random_2339">
+                        <bfunc name="random_2339">
                             <param pos="1" var="v3"/>
                             <param pos="2" var="v4"/>
-                        </bfunction>
+                        </bfunc>
                     </exists>
                 </forall>
             </and>

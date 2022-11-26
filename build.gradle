@@ -13,7 +13,7 @@ java{
 }
 
 group 'org.INFUSE'
-version '2.1[jdk11]'
+version '2.1.1[jdk11]'
 
 jar {
     duplicatesStrategy = DuplicatesStrategy.INCLUDE

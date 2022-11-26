@@ -350,9 +350,21 @@ public class FForall extends Formula{
         this.subformula.CleanAffectedAndCanConcurrent();
     }
 
+    //MG
+    @Override
+    public void taintSCCT(RuntimeNode curNode, Formula originFormula, Set<RuntimeNode> substantialNodes) {
+        substantialNodes.add(curNode);
+        if(!curNode.isTruth()){
+            for(RuntimeNode child : curNode.getChildren()){
+                if(child.isTruth()) continue;
+                child.getFormula().taintSCCT(child, ((FForall) originFormula).getSubformula(), substantialNodes);
+            }
+        }
+    }
+
     /*
-                        ECC PCC
-                    */
+                            ECC PCC
+                        */
     @Override
     public void CreateBranches_ECCPCC(String rule_id, RuntimeNode curNode, Formula originFormula, Checker checker) {
         Set<Context> pool = checker.getContextPool().GetPoolSet(rule_id, ((FForall)originFormula).getPattern_id());
@@ -382,15 +394,13 @@ public class FForall extends Formula{
     }
 
     @Override
-    public Set<Link> LinksGeneration_ECC(RuntimeNode curNode, Formula originFormula, Checker checker)  {
+    public Set<Link> LinksGeneration_ECC(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker)  {
         Set<Link> result = new HashSet<>();
         LGUtils lgUtils = new LGUtils();
         if(!checker.isMG()) {
             // case 1: !MG --> all
-            // not taint substantial nodes
-            // generate links
             for(RuntimeNode child : curNode.getChildren()){
-                Set<Link> childLink =  child.getFormula().LinksGeneration_ECC(child,((FForall)originFormula).getSubformula(), checker);
+                Set<Link> childLink =  child.getFormula().LinksGeneration_ECC(child,((FForall)originFormula).getSubformula(), prevSubstantialNodes, checker);
                 Set<Link> initialSet = new HashSet<>();
                 Link initialLink = new Link(Link.Link_Type.VIOLATED);
                 initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
@@ -408,10 +418,7 @@ public class FForall extends Formula{
             // case 3: MG && false --> false
             for(RuntimeNode child : curNode.getChildren()){
                 if(child.isTruth()) continue;
-                // taint substantial nodes
-                checker.getCurSubstantialNodes().add(child);
-                // generate links
-                Set<Link> childLink =  child.getFormula().LinksGeneration_ECC(child,((FForall)originFormula).getSubformula(), checker);
+                Set<Link> childLink =  child.getFormula().LinksGeneration_ECC(child,((FForall)originFormula).getSubformula(), prevSubstantialNodes, checker);
                 Set<Link> initialSet = new HashSet<>();
                 Link initialLink = new Link(Link.Link_Type.VIOLATED);
                 initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
@@ -509,14 +516,12 @@ public class FForall extends Formula{
     }
 
     @Override
-    public Set<Link> LinksGeneration_PCC(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
+    public Set<Link> LinksGeneration_PCC(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
         Set<Link> result = new HashSet<>();
         LGUtils lgUtils = new LGUtils();
 
         if(!checker.isMG()) {
             // case 1: !MG --> all
-            // not taint substantial nodes
-            // generate links
             if(!originFormula.isAffected()){
                 return curNode.getLinks();
             }
@@ -526,7 +531,7 @@ public class FForall extends Formula{
                         if(curNode.getLinks() != null)
                             result.addAll(curNode.getLinks());
                         RuntimeNode addchild = curNode.getChildren().get(curNode.getChildren().size() - 1);
-                        Set<Link> childLink = addchild.getFormula().LinksGeneration_ECC(addchild, ((FForall)originFormula).getSubformula(), checker);
+                        Set<Link> childLink = addchild.getFormula().LinksGeneration_ECC(addchild, ((FForall)originFormula).getSubformula(), prevSubstantialNodes, checker);
                         Set<Link> initialSet = new HashSet<>();
                         Link initialLink = new Link(Link.Link_Type.VIOLATED);
                         initialLink.AddVA(((FForall)originFormula).getVar(), addchild.getVarEnv().get(((FForall)originFormula).getVar()));
@@ -549,7 +554,7 @@ public class FForall extends Formula{
                 }
                 else{
                     for(RuntimeNode child : curNode.getChildren()){
-                        Set<Link> childLink = child.getFormula().LinksGeneration_PCC(child, ((FForall)originFormula).getSubformula(), contextChange, checker);
+                        Set<Link> childLink = child.getFormula().LinksGeneration_PCC(child, ((FForall)originFormula).getSubformula(), contextChange, prevSubstantialNodes, checker);
                         Set<Link> initialSet = new HashSet<>();
                         Link initialLink = new Link(Link.Link_Type.VIOLATED);
                         initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
@@ -567,21 +572,15 @@ public class FForall extends Formula{
         }
         else {
             // case 3: MG && false --> false
-            // taint substantial nodes
-            for(RuntimeNode child : curNode.getChildren()){
-                if(child.isTruth()) continue;
-                checker.getCurSubstantialNodes().add(child);
-            }
-            // generate links
             if(!originFormula.isAffected()){
                 // check whether curNode.links reusable
-                if(checker.getPrevSubstantialNodes().contains(curNode)){
+                if(prevSubstantialNodes.contains(curNode)){
                     return curNode.getLinks();
                 }
                 else{
                     for(RuntimeNode child : curNode.getChildren()){
                         if(child.isTruth()) continue;
-                        Set<Link> childLink = child.getFormula().LinksGeneration_PCC(child, ((FForall)originFormula).getSubformula(), contextChange, checker);
+                        Set<Link> childLink = child.getFormula().LinksGeneration_PCC(child, ((FForall)originFormula).getSubformula(), contextChange, prevSubstantialNodes, checker);
                         Set<Link> initialSet = new HashSet<>();
                         Link initialLink = new Link(Link.Link_Type.VIOLATED);
                         initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
@@ -596,7 +595,7 @@ public class FForall extends Formula{
                     if(contextChange.getChange_type() == ContextChange.Change_Type.ADDITION){
                         if(curNode.getLinks() != null){
                             // check whether curNode.links reusable
-                            if(checker.getPrevSubstantialNodes().contains(curNode)){
+                            if(prevSubstantialNodes.contains(curNode)){
                                 result.addAll(curNode.getLinks());
                             }
                             else{
@@ -604,7 +603,7 @@ public class FForall extends Formula{
                                 for(int index = 0; index < curNode.getChildren().size() - 1; ++index){
                                     RuntimeNode child = curNode.getChildren().get(index);
                                     if(child.isTruth()) continue;
-                                    Set<Link> childLink = child.getFormula().LinksGeneration_PCC(child, ((FForall)originFormula).getSubformula(), contextChange, checker);
+                                    Set<Link> childLink = child.getFormula().LinksGeneration_PCC(child, ((FForall)originFormula).getSubformula(), contextChange, prevSubstantialNodes, checker);
                                     Set<Link> initialSet = new HashSet<>();
                                     Link initialLink = new Link(Link.Link_Type.VIOLATED);
                                     initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
@@ -616,7 +615,7 @@ public class FForall extends Formula{
                         }
                         RuntimeNode addchild = curNode.getChildren().get(curNode.getChildren().size() - 1);
                         if(!addchild.isTruth()){
-                            Set<Link> childLink = addchild.getFormula().LinksGeneration_ECC(addchild, ((FForall)originFormula).getSubformula(), checker);
+                            Set<Link> childLink = addchild.getFormula().LinksGeneration_ECC(addchild, ((FForall)originFormula).getSubformula(), prevSubstantialNodes, checker);
                             Set<Link> initialSet = new HashSet<>();
                             Link initialLink = new Link(Link.Link_Type.VIOLATED);
                             initialLink.AddVA(((FForall)originFormula).getVar(), addchild.getVarEnv().get(((FForall)originFormula).getVar()));
@@ -632,11 +631,11 @@ public class FForall extends Formula{
                             initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
                             initialSet.add(initialLink);
                             // check whether child.links reusable
-                            if(checker.getPrevSubstantialNodes().contains(child)){
+                            if(prevSubstantialNodes.contains(child)){
                                 result.addAll(lgUtils.cartesianSet(initialSet, child.getLinks()));
                             }
                             else{
-                                Set<Link> childLink = child.getFormula().LinksGeneration_PCC(child, ((FForall)originFormula).getSubformula(), contextChange, checker);
+                                Set<Link> childLink = child.getFormula().LinksGeneration_PCC(child, ((FForall)originFormula).getSubformula(), contextChange, prevSubstantialNodes, checker);
                                 result.addAll(lgUtils.cartesianSet(initialSet, childLink));
                             }
                         }
@@ -645,7 +644,7 @@ public class FForall extends Formula{
                 else{
                     for(RuntimeNode child : curNode.getChildren()){
                         if(child.isTruth()) continue;
-                        Set<Link> childLink = child.getFormula().LinksGeneration_PCC(child, ((FForall)originFormula).getSubformula(), contextChange, checker);
+                        Set<Link> childLink = child.getFormula().LinksGeneration_PCC(child, ((FForall)originFormula).getSubformula(), contextChange, prevSubstantialNodes, checker);
                         Set<Link> initialSet = new HashSet<>();
                         Link initialLink = new Link(Link.Link_Type.VIOLATED);
                         initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
@@ -739,20 +738,18 @@ public class FForall extends Formula{
     }
 
     @Override
-    public Set<Link> LinksGeneration_ConC(RuntimeNode curNode, Formula originFormula, boolean canConcurrent, Checker checker) {
+    public Set<Link> LinksGeneration_ConC(RuntimeNode curNode, Formula originFormula, boolean canConcurrent, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
         LGUtils lgUtils = new LGUtils();
         if(canConcurrent){
             Map<Integer, Future<Set<Link>>> LSMap = new HashMap<>();
             Set<Link> result = new HashSet<>();
             if(!checker.isMG()) {
                 // case 1: !MG --> all
-                // not taint substantial nodes
-                // generate links
                 for(int index = 0; index < curNode.getChildren().size(); ++index){
                     RuntimeNode child = curNode.getChildren().get(index);
                     assert checker instanceof ConC;
                     Future<Set<Link>> future = ((ConC) checker).ThreadPool.submit(
-                            new ConC.LinksGenerationTask_ConC(child, ((FForall)originFormula).getSubformula(), checker)
+                            new ConC.LinksGenerationTask_ConC(child, ((FForall)originFormula).getSubformula(), prevSubstantialNodes, checker)
                     );
                     LSMap.put(index, future);
                 }
@@ -766,12 +763,9 @@ public class FForall extends Formula{
                 for(int index = 0; index < curNode.getChildren().size(); ++index){
                     RuntimeNode child = curNode.getChildren().get(index);
                     if(child.isTruth()) continue;
-                    // taint substantial nodes
-                    checker.getCurSubstantialNodes().add(child);
-                    // generate links
                     assert checker instanceof ConC;
                     Future<Set<Link>> future = ((ConC) checker).ThreadPool.submit(
-                            new ConC.LinksGenerationTask_ConC(child, ((FForall)originFormula).getSubformula(), checker)
+                            new ConC.LinksGenerationTask_ConC(child, ((FForall)originFormula).getSubformula(), prevSubstantialNodes, checker)
                     );
                     LSMap.put(index, future);
                 }
@@ -802,10 +796,8 @@ public class FForall extends Formula{
             Set<Link> result = new HashSet<>();
             if(!checker.isMG()) {
                 // case 1: !MG --> all
-                // not taint substantial nodes
-                // generate links
                 for(RuntimeNode child : curNode.getChildren()){
-                    Set<Link> childLink =  child.getFormula().LinksGeneration_ConC(child,((FForall)originFormula).getSubformula(), false, checker);
+                    Set<Link> childLink =  child.getFormula().LinksGeneration_ConC(child,((FForall)originFormula).getSubformula(), false, prevSubstantialNodes, checker);
                     Set<Link> initialSet = new HashSet<>();
                     Link initialLink = new Link(Link.Link_Type.VIOLATED);
                     initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
@@ -823,10 +815,7 @@ public class FForall extends Formula{
                 // case 3: MG && false --> false
                 for(RuntimeNode child : curNode.getChildren()){
                     if(child.isTruth()) continue;
-                    // taint substantial nodes
-                    checker.getCurSubstantialNodes().add(child);
-                    // generate links
-                    Set<Link> childLink =  child.getFormula().LinksGeneration_ConC(child,((FForall)originFormula).getSubformula(), false, checker);
+                    Set<Link> childLink =  child.getFormula().LinksGeneration_ConC(child,((FForall)originFormula).getSubformula(), false, prevSubstantialNodes, checker);
                     Set<Link> initialSet = new HashSet<>();
                     Link initialLink = new Link(Link.Link_Type.VIOLATED);
                     initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
@@ -943,14 +932,12 @@ public class FForall extends Formula{
     }
 
     @Override
-    public Set<Link> LinksGeneration_PCCM(RuntimeNode curNode, Formula originFormula, Checker checker) {
+    public Set<Link> LinksGeneration_PCCM(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
         Set<Link> result = new HashSet<>();
         LGUtils lgUtils = new LGUtils();
 
         if(!checker.isMG()){
             // case 1: !MG --> all
-            // not taint substantial nodes
-            // generate links
             if(!originFormula.isAffected()){
                 return curNode.getLinks();
             }
@@ -960,7 +947,7 @@ public class FForall extends Formula{
                     int UpdSetSize = checker.getContextPool().GetUpdSetSize(((FForall)originFormula).getPattern_id());
                     for(int i = 0; i < curNode.getChildren().size() - AddSetSize - UpdSetSize; ++i){
                         RuntimeNode child = curNode.getChildren().get(i);
-                        Set<Link> childLink =  child.getFormula().LinksGeneration_PCCM(child,((FForall)originFormula).getSubformula(), checker);
+                        Set<Link> childLink =  child.getFormula().LinksGeneration_PCCM(child,((FForall)originFormula).getSubformula(), prevSubstantialNodes, checker);
                         Set<Link> initialSet = new HashSet<>();
                         Link initialLink = new Link(Link.Link_Type.VIOLATED);
                         initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
@@ -971,7 +958,7 @@ public class FForall extends Formula{
                     }
                     for(int i = curNode.getChildren().size() - AddSetSize - UpdSetSize; i < curNode.getChildren().size(); ++i){
                         RuntimeNode child = curNode.getChildren().get(i);
-                        Set<Link> childLink = child.getFormula().LinksGeneration_ECC(child,((FForall)originFormula).getSubformula(), checker);
+                        Set<Link> childLink = child.getFormula().LinksGeneration_ECC(child,((FForall)originFormula).getSubformula(), prevSubstantialNodes, checker);
                         Set<Link> initialSet = new HashSet<>();
                         Link initialLink = new Link(Link.Link_Type.VIOLATED);
                         initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
@@ -990,7 +977,7 @@ public class FForall extends Formula{
                             result.addAll(curNode.getLinks());
                         for(int i = curNode.getChildren().size() - AddSetSize; i < curNode.getChildren().size(); ++i){
                             RuntimeNode child = curNode.getChildren().get(i);
-                            Set<Link> childLink =  child.getFormula().LinksGeneration_ECC(child,((FForall)originFormula).getSubformula(), checker);
+                            Set<Link> childLink =  child.getFormula().LinksGeneration_ECC(child,((FForall)originFormula).getSubformula(), prevSubstantialNodes, checker);
                             Set<Link> initialSet = new HashSet<>();
                             Link initialLink = new Link(Link.Link_Type.VIOLATED);
                             initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
@@ -1013,7 +1000,7 @@ public class FForall extends Formula{
                         }
                         for(int i = curNode.getChildren().size() - AddSetSize - UpdSetSize; i < curNode.getChildren().size(); ++i){
                             RuntimeNode child = curNode.getChildren().get(i);
-                            Set<Link> childLink = child.getFormula().LinksGeneration_ECC(child,((FForall)originFormula).getSubformula(), checker);
+                            Set<Link> childLink = child.getFormula().LinksGeneration_ECC(child,((FForall)originFormula).getSubformula(), prevSubstantialNodes, checker);
                             Set<Link> initialSet = new HashSet<>();
                             Link initialLink = new Link(Link.Link_Type.VIOLATED);
                             initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
@@ -1032,21 +1019,15 @@ public class FForall extends Formula{
         }
         else{
             // case 3: MG && false --> false
-            // taint substantial nodes
-            for(RuntimeNode child : curNode.getChildren()){
-                if(child.isTruth()) continue;
-                checker.getCurSubstantialNodes().add(child);
-            }
-            // generate links
             if(!originFormula.isAffected()){
                 // check whether curNode.links reusable
-                if(checker.getPrevSubstantialNodes().contains(curNode)){
+                if(prevSubstantialNodes.contains(curNode)){
                     return curNode.getLinks();
                 }
                 else{
                     for(RuntimeNode child : curNode.getChildren()){
                         if(child.isTruth()) continue;
-                        Set<Link> childLink =  child.getFormula().LinksGeneration_PCCM(child,((FForall)originFormula).getSubformula(), checker);
+                        Set<Link> childLink =  child.getFormula().LinksGeneration_PCCM(child,((FForall)originFormula).getSubformula(), prevSubstantialNodes, checker);
                         Set<Link> initialSet = new HashSet<>();
                         Link initialLink = new Link(Link.Link_Type.VIOLATED);
                         initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
@@ -1063,7 +1044,7 @@ public class FForall extends Formula{
                     for(int i = 0; i < curNode.getChildren().size() - AddSetSize - UpdSetSize; ++i){
                         RuntimeNode child = curNode.getChildren().get(i);
                         if(child.isTruth()) continue;
-                        Set<Link> childLink =  child.getFormula().LinksGeneration_PCCM(child,((FForall)originFormula).getSubformula(), checker);
+                        Set<Link> childLink =  child.getFormula().LinksGeneration_PCCM(child,((FForall)originFormula).getSubformula(), prevSubstantialNodes, checker);
                         Set<Link> initialSet = new HashSet<>();
                         Link initialLink = new Link(Link.Link_Type.VIOLATED);
                         initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
@@ -1074,7 +1055,7 @@ public class FForall extends Formula{
                     for(int i = curNode.getChildren().size() - AddSetSize - UpdSetSize; i < curNode.getChildren().size(); ++i){
                         RuntimeNode child = curNode.getChildren().get(i);
                         if(child.isTruth()) continue;
-                        Set<Link> childLink = child.getFormula().LinksGeneration_ECC(child,((FForall)originFormula).getSubformula(), checker);
+                        Set<Link> childLink = child.getFormula().LinksGeneration_ECC(child,((FForall)originFormula).getSubformula(), prevSubstantialNodes, checker);
                         Set<Link> initialSet = new HashSet<>();
                         Link initialLink = new Link(Link.Link_Type.VIOLATED);
                         initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
@@ -1090,14 +1071,14 @@ public class FForall extends Formula{
                     if(DelSetSize == 0 && UpdSetSize == 0){
                         if(curNode.getLinks() != null){
                             // check whether curNode.links reusable
-                            if(checker.getPrevSubstantialNodes().contains(curNode)){
+                            if(prevSubstantialNodes.contains(curNode)){
                                 result.addAll(curNode.getLinks());
                             }
                             else{
                                 for(int i = 0; i < curNode.getChildren().size() - AddSetSize; ++i){
                                     RuntimeNode child = curNode.getChildren().get(i);
                                     if(child.isTruth()) continue;
-                                    Set<Link> childLink =  child.getFormula().LinksGeneration_PCCM(child,((FForall)originFormula).getSubformula(), checker);
+                                    Set<Link> childLink =  child.getFormula().LinksGeneration_PCCM(child,((FForall)originFormula).getSubformula(), prevSubstantialNodes, checker);
                                     Set<Link> initialSet = new HashSet<>();
                                     Link initialLink = new Link(Link.Link_Type.VIOLATED);
                                     initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
@@ -1110,7 +1091,7 @@ public class FForall extends Formula{
                         for(int i = curNode.getChildren().size() - AddSetSize; i < curNode.getChildren().size(); ++i){
                             RuntimeNode child = curNode.getChildren().get(i);
                             if(child.isTruth()) continue;
-                            Set<Link> childLink =  child.getFormula().LinksGeneration_ECC(child,((FForall)originFormula).getSubformula(), checker);
+                            Set<Link> childLink =  child.getFormula().LinksGeneration_ECC(child,((FForall)originFormula).getSubformula(), prevSubstantialNodes, checker);
                             Set<Link> initialSet = new HashSet<>();
                             Link initialLink = new Link(Link.Link_Type.VIOLATED);
                             initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
@@ -1128,12 +1109,12 @@ public class FForall extends Formula{
                             initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
                             initialSet.add(initialLink);
                             // check whether child.links reusable
-                            if(checker.getPrevSubstantialNodes().contains(child)){
+                            if(prevSubstantialNodes.contains(child)){
                                 Set<Link> res = lgUtils.cartesianSet(initialSet, child.getLinks());
                                 result.addAll(res);
                             }
                             else{
-                                Set<Link> childLink =  child.getFormula().LinksGeneration_PCCM(child,((FForall)originFormula).getSubformula(), checker);
+                                Set<Link> childLink =  child.getFormula().LinksGeneration_PCCM(child,((FForall)originFormula).getSubformula(), prevSubstantialNodes, checker);
                                 Set<Link> res = lgUtils.cartesianSet(initialSet, childLink);
                                 result.addAll(res);
                             }
@@ -1141,7 +1122,7 @@ public class FForall extends Formula{
                         for(int i = curNode.getChildren().size() - AddSetSize - UpdSetSize; i < curNode.getChildren().size(); ++i){
                             RuntimeNode child = curNode.getChildren().get(i);
                             if(child.isTruth()) continue;
-                            Set<Link> childLink = child.getFormula().LinksGeneration_ECC(child,((FForall)originFormula).getSubformula(), checker);
+                            Set<Link> childLink = child.getFormula().LinksGeneration_ECC(child,((FForall)originFormula).getSubformula(), prevSubstantialNodes, checker);
                             Set<Link> initialSet = new HashSet<>();
                             Link initialLink = new Link(Link.Link_Type.VIOLATED);
                             initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
@@ -1509,14 +1490,12 @@ public class FForall extends Formula{
     }
 
     @Override
-    public Set<Link> LinksGeneration_CPCC_NB(RuntimeNode curNode, Formula originFormula, Checker checker) {
+    public Set<Link> LinksGeneration_CPCC_NB(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
         Set<Link> result = new HashSet<>();
         LGUtils lgUtils = new LGUtils();
 
         if(!checker.isMG()){
             // case 1: !MG --> all
-            // not taint substantial nodes
-            // generate links
             if(!originFormula.isAffected()){
                 //case 1
                 return curNode.getLinks();
@@ -1531,14 +1510,14 @@ public class FForall extends Formula{
                         for(int i = 0; i < curNode.getChildren().size() - AddSetSize - ModSetSize; ++i){
                             RuntimeNode child = curNode.getChildren().get(i);
                             Future<Set<Link>> future = ((INFUSE_C) checker).ThreadPool.submit(
-                                    new INFUSE_C.LinksGenerationTaskPar_CPCC_NB(child, ((FForall)originFormula).getSubformula(), checker)
+                                    new INFUSE_C.LinksGenerationTaskPar_CPCC_NB(child, ((FForall)originFormula).getSubformula(), prevSubstantialNodes, checker)
                             );
                             LSMap.put(i,future);
                         }
                         for(int i = curNode.getChildren().size() - AddSetSize - ModSetSize; i < curNode.getChildren().size(); ++i){
                             RuntimeNode child = curNode.getChildren().get(i);
                             Future<Set<Link>> future = ((INFUSE_C) checker).ThreadPool.submit(
-                                    new INFUSE_C.LinksGenerationTaskCom_CPCC_NB(child, ((FForall)originFormula).getSubformula(), checker)
+                                    new INFUSE_C.LinksGenerationTaskCom_CPCC_NB(child, ((FForall)originFormula).getSubformula(), prevSubstantialNodes, checker)
                             );
                             LSMap.put(i, future);
                         }
@@ -1565,7 +1544,7 @@ public class FForall extends Formula{
                     else{
                         for(int i = 0; i < curNode.getChildren().size() - AddSetSize - ModSetSize; ++i){
                             RuntimeNode child = curNode.getChildren().get(i);
-                            Set<Link> childLink = child.getFormula().LinksGeneration_CPCC_NB(child, ((FForall)originFormula).getSubformula(), checker);
+                            Set<Link> childLink = child.getFormula().LinksGeneration_CPCC_NB(child, ((FForall)originFormula).getSubformula(), prevSubstantialNodes, checker);
                             Set<Link> initialSet = new HashSet<>();
                             Link initialLink = new Link(Link.Link_Type.VIOLATED);
                             initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
@@ -1576,7 +1555,7 @@ public class FForall extends Formula{
                         }
                         for(int i = curNode.getChildren().size() - AddSetSize - ModSetSize; i < curNode.getChildren().size(); ++i){
                             RuntimeNode child = curNode.getChildren().get(i);
-                            Set<Link> childLink = child.getFormula().LinksGeneration_ECC(child, ((FForall)originFormula).getSubformula(), checker);
+                            Set<Link> childLink = child.getFormula().LinksGeneration_ECC(child, ((FForall)originFormula).getSubformula(), prevSubstantialNodes, checker);
                             Set<Link> initialSet = new HashSet<>();
                             Link initialLink = new Link(Link.Link_Type.VIOLATED);
                             initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
@@ -1601,7 +1580,7 @@ public class FForall extends Formula{
                             for(int i = curNode.getChildren().size() - AddSetSize; i < curNode.getChildren().size(); ++i){
                                 RuntimeNode child = curNode.getChildren().get(i);
                                 Future<Set<Link>> future = ((INFUSE_C) checker).ThreadPool.submit(
-                                        new INFUSE_C.LinksGenerationTaskCom_CPCC_NB(child, ((FForall)originFormula).getSubformula(), checker)
+                                        new INFUSE_C.LinksGenerationTaskCom_CPCC_NB(child, ((FForall)originFormula).getSubformula(), prevSubstantialNodes, checker)
                                 );
                                 LSMap.put(i, future);
                             }
@@ -1632,7 +1611,7 @@ public class FForall extends Formula{
                             //AddSet
                             for(int i = curNode.getChildren().size() - AddSetSize; i < curNode.getChildren().size(); ++i){
                                 RuntimeNode child = curNode.getChildren().get(i);
-                                Set<Link> childLink = child.getFormula().LinksGeneration_ECC(child, ((FForall)originFormula).getSubformula(), checker);
+                                Set<Link> childLink = child.getFormula().LinksGeneration_ECC(child, ((FForall)originFormula).getSubformula(), prevSubstantialNodes, checker);
                                 Set<Link> initialSet = new HashSet<>();
                                 Link initialLink = new Link(Link.Link_Type.VIOLATED);
                                 initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
@@ -1660,7 +1639,7 @@ public class FForall extends Formula{
                             for(int i = curNode.getChildren().size() - AddSetSize - ModSetSize; i < curNode.getChildren().size(); ++i){
                                 RuntimeNode child = curNode.getChildren().get(i);
                                 Future<Set<Link>> future = ((INFUSE_C) checker).ThreadPool.submit(
-                                        new INFUSE_C.LinksGenerationTaskCom_CPCC_NB(child, ((FForall)originFormula).getSubformula(), checker)
+                                        new INFUSE_C.LinksGenerationTaskCom_CPCC_NB(child, ((FForall)originFormula).getSubformula(), prevSubstantialNodes, checker)
                                 );
                                 LSMap.put(i, future);
                             }
@@ -1698,7 +1677,7 @@ public class FForall extends Formula{
                             }
                             for(int i = curNode.getChildren().size() - AddSetSize - ModSetSize; i < curNode.getChildren().size(); ++i){
                                 RuntimeNode child = curNode.getChildren().get(i);
-                                Set<Link> childLink = child.getFormula().LinksGeneration_ECC(child, ((FForall)originFormula).getSubformula(), checker);
+                                Set<Link> childLink = child.getFormula().LinksGeneration_ECC(child, ((FForall)originFormula).getSubformula(), prevSubstantialNodes, checker);
                                 Set<Link> initialSet = new HashSet<>();
                                 Link initialLink = new Link(Link.Link_Type.VIOLATED);
                                 initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
@@ -1718,15 +1697,9 @@ public class FForall extends Formula{
         }
         else{
             // case 3: MG && false --> false
-            // taint substantial nodes
-            for(RuntimeNode child : curNode.getChildren()){
-                if(child.isTruth()) continue;
-                checker.getCurSubstantialNodes().add(child);
-            }
-            // generate links
             if(!originFormula.isAffected()){
                 // check whether curNode.links reusable
-                if(checker.getPrevSubstantialNodes().contains(curNode)){
+                if(prevSubstantialNodes.contains(curNode)){
                     return curNode.getLinks();
                 }
                 else{
@@ -1734,7 +1707,7 @@ public class FForall extends Formula{
                     assert !((FForall) originFormula).isCanConcurrent();
                     for(RuntimeNode child : curNode.getChildren()){
                         if(child.isTruth()) continue;
-                        Set<Link> childLink = child.getFormula().LinksGeneration_CPCC_NB(child, ((FForall)originFormula).getSubformula(), checker);
+                        Set<Link> childLink = child.getFormula().LinksGeneration_CPCC_NB(child, ((FForall)originFormula).getSubformula(), prevSubstantialNodes, checker);
                         Set<Link> initialSet = new HashSet<>();
                         Link initialLink = new Link(Link.Link_Type.VIOLATED);
                         initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
@@ -1755,7 +1728,7 @@ public class FForall extends Formula{
                             RuntimeNode child = curNode.getChildren().get(i);
                             if(child.isTruth()) continue;
                             Future<Set<Link>> future = ((INFUSE_C) checker).ThreadPool.submit(
-                                    new INFUSE_C.LinksGenerationTaskPar_CPCC_NB(child, ((FForall)originFormula).getSubformula(), checker)
+                                    new INFUSE_C.LinksGenerationTaskPar_CPCC_NB(child, ((FForall)originFormula).getSubformula(), prevSubstantialNodes, checker)
                             );
                             LSMap.put(i,future);
                         }
@@ -1763,7 +1736,7 @@ public class FForall extends Formula{
                             RuntimeNode child = curNode.getChildren().get(i);
                             if(child.isTruth()) continue;
                             Future<Set<Link>> future = ((INFUSE_C) checker).ThreadPool.submit(
-                                    new INFUSE_C.LinksGenerationTaskCom_CPCC_NB(child, ((FForall)originFormula).getSubformula(), checker)
+                                    new INFUSE_C.LinksGenerationTaskCom_CPCC_NB(child, ((FForall)originFormula).getSubformula(), prevSubstantialNodes, checker)
                             );
                             LSMap.put(i, future);
                         }
@@ -1790,7 +1763,7 @@ public class FForall extends Formula{
                         for(int i = 0; i < curNode.getChildren().size() - AddSetSize - ModSetSize; ++i){
                             RuntimeNode child = curNode.getChildren().get(i);
                             if(child.isTruth()) continue;
-                            Set<Link> childLink = child.getFormula().LinksGeneration_CPCC_NB(child, ((FForall)originFormula).getSubformula(), checker);
+                            Set<Link> childLink = child.getFormula().LinksGeneration_CPCC_NB(child, ((FForall)originFormula).getSubformula(), prevSubstantialNodes, checker);
                             Set<Link> initialSet = new HashSet<>();
                             Link initialLink = new Link(Link.Link_Type.VIOLATED);
                             initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
@@ -1801,7 +1774,7 @@ public class FForall extends Formula{
                         for(int i = curNode.getChildren().size() - AddSetSize - ModSetSize; i < curNode.getChildren().size(); ++i){
                             RuntimeNode child = curNode.getChildren().get(i);
                             if(child.isTruth()) continue;
-                            Set<Link> childLink = child.getFormula().LinksGeneration_ECC(child, ((FForall)originFormula).getSubformula(), checker);
+                            Set<Link> childLink = child.getFormula().LinksGeneration_ECC(child, ((FForall)originFormula).getSubformula(), prevSubstantialNodes, checker);
                             Set<Link> initialSet = new HashSet<>();
                             Link initialLink = new Link(Link.Link_Type.VIOLATED);
                             initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
@@ -1821,7 +1794,7 @@ public class FForall extends Formula{
                             Map<Integer, Future<Set<Link>>> LSMap = new HashMap<>();
                             if(curNode.getLinks() != null){
                                 // check whether curNode.links reusable
-                                if(checker.getPrevSubstantialNodes().contains(curNode)){
+                                if(prevSubstantialNodes.contains(curNode)){
                                     result.addAll(curNode.getLinks());
                                 }
                                 else{
@@ -1830,7 +1803,7 @@ public class FForall extends Formula{
                                         RuntimeNode child = curNode.getChildren().get(i);
                                         if(child.isTruth()) continue;
                                         Future<Set<Link>> future = ((INFUSE_C) checker).ThreadPool.submit(
-                                                new INFUSE_C.LinksGenerationTaskPar_CPCC_NB(child, ((FForall) originFormula).getSubformula(), checker)
+                                                new INFUSE_C.LinksGenerationTaskPar_CPCC_NB(child, ((FForall) originFormula).getSubformula(), prevSubstantialNodes, checker)
                                         );
                                         LSMap.put(i, future);
                                     }
@@ -1841,7 +1814,7 @@ public class FForall extends Formula{
                                 RuntimeNode child = curNode.getChildren().get(i);
                                 if(child.isTruth()) continue;
                                 Future<Set<Link>> future = ((INFUSE_C) checker).ThreadPool.submit(
-                                        new INFUSE_C.LinksGenerationTaskCom_CPCC_NB(child, ((FForall)originFormula).getSubformula(), checker)
+                                        new INFUSE_C.LinksGenerationTaskCom_CPCC_NB(child, ((FForall)originFormula).getSubformula(), prevSubstantialNodes, checker)
                                 );
                                 LSMap.put(i, future);
                             }
@@ -1868,7 +1841,7 @@ public class FForall extends Formula{
                         else{
                             if(curNode.getLinks() != null){
                                 // check whether curNode.links reusable
-                                if(checker.getPrevSubstantialNodes().contains(curNode)){
+                                if(prevSubstantialNodes.contains(curNode)){
                                     result.addAll(curNode.getLinks());
                                 }
                                 else{
@@ -1876,7 +1849,7 @@ public class FForall extends Formula{
                                     for(int i = 0; i < curNode.getChildren().size() - AddSetSize; ++i){
                                         RuntimeNode child = curNode.getChildren().get(i);
                                         if(child.isTruth()) continue;
-                                        Set<Link> childLink = child.getFormula().LinksGeneration_CPCC_NB(child, ((FForall)originFormula).getSubformula(), checker);
+                                        Set<Link> childLink = child.getFormula().LinksGeneration_CPCC_NB(child, ((FForall)originFormula).getSubformula(), prevSubstantialNodes, checker);
                                         Set<Link> initialSet = new HashSet<>();
                                         Link initialLink = new Link(Link.Link_Type.VIOLATED);
                                         initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
@@ -1890,7 +1863,7 @@ public class FForall extends Formula{
                             for(int i = curNode.getChildren().size() - AddSetSize; i < curNode.getChildren().size(); ++i){
                                 RuntimeNode child = curNode.getChildren().get(i);
                                 if(child.isTruth()) continue;
-                                Set<Link> childLink = child.getFormula().LinksGeneration_ECC(child, ((FForall)originFormula).getSubformula(), checker);
+                                Set<Link> childLink = child.getFormula().LinksGeneration_ECC(child, ((FForall)originFormula).getSubformula(), prevSubstantialNodes, checker);
                                 Set<Link> initialSet = new HashSet<>();
                                 Link initialLink = new Link(Link.Link_Type.VIOLATED);
                                 initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
@@ -1908,7 +1881,7 @@ public class FForall extends Formula{
                                 RuntimeNode child = curNode.getChildren().get(i);
                                 if(child.isTruth()) continue;
                                 // check whether child.links reusable
-                                if(checker.getPrevSubstantialNodes().contains(child)){
+                                if(prevSubstantialNodes.contains(child)){
                                     Set<Link> initialSet = new HashSet<>();
                                     Link initialLink = new Link(Link.Link_Type.VIOLATED);
                                     initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
@@ -1918,7 +1891,7 @@ public class FForall extends Formula{
                                 }
                                 else{
                                     Future<Set<Link>> future = ((INFUSE_C) checker).ThreadPool.submit(
-                                            new INFUSE_C.LinksGenerationTaskPar_CPCC_NB(child, ((FForall) originFormula).getSubformula(), checker)
+                                            new INFUSE_C.LinksGenerationTaskPar_CPCC_NB(child, ((FForall) originFormula).getSubformula(), prevSubstantialNodes, checker)
                                     );
                                     LSMap.put(i, future);
                                 }
@@ -1927,7 +1900,7 @@ public class FForall extends Formula{
                                 RuntimeNode child = curNode.getChildren().get(i);
                                 if(child.isTruth()) continue;
                                 Future<Set<Link>> future = ((INFUSE_C) checker).ThreadPool.submit(
-                                        new INFUSE_C.LinksGenerationTaskCom_CPCC_NB(child, ((FForall)originFormula).getSubformula(), checker)
+                                        new INFUSE_C.LinksGenerationTaskCom_CPCC_NB(child, ((FForall)originFormula).getSubformula(), prevSubstantialNodes, checker)
                                 );
                                 LSMap.put(i, future);
                             }
@@ -1956,7 +1929,7 @@ public class FForall extends Formula{
                                 RuntimeNode child = curNode.getChildren().get(i);
                                 if(child.isTruth()) continue;
                                 // check whether child.links reusable
-                                if(checker.getPrevSubstantialNodes().contains(child)){
+                                if(prevSubstantialNodes.contains(child)){
                                     Set<Link> initialSet = new HashSet<>();
                                     Link initialLink = new Link(Link.Link_Type.VIOLATED);
                                     initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
@@ -1965,7 +1938,7 @@ public class FForall extends Formula{
                                     result.addAll(res);
                                 }
                                 else{
-                                    Set<Link> childLink = child.getFormula().LinksGeneration_CPCC_NB(child, ((FForall)originFormula).getSubformula(), checker);
+                                    Set<Link> childLink = child.getFormula().LinksGeneration_CPCC_NB(child, ((FForall)originFormula).getSubformula(), prevSubstantialNodes, checker);
                                     Set<Link> initialSet = new HashSet<>();
                                     Link initialLink = new Link(Link.Link_Type.VIOLATED);
                                     initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
@@ -1977,7 +1950,7 @@ public class FForall extends Formula{
                             for(int i = curNode.getChildren().size() - AddSetSize - ModSetSize; i < curNode.getChildren().size(); ++i){
                                 RuntimeNode child = curNode.getChildren().get(i);
                                 if(child.isTruth()) continue;
-                                Set<Link> childLink = child.getFormula().LinksGeneration_ECC(child, ((FForall)originFormula).getSubformula(), checker);
+                                Set<Link> childLink = child.getFormula().LinksGeneration_ECC(child, ((FForall)originFormula).getSubformula(), prevSubstantialNodes, checker);
                                 Set<Link> initialSet = new HashSet<>();
                                 Link initialLink = new Link(Link.Link_Type.VIOLATED);
                                 initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
@@ -2064,64 +2037,149 @@ public class FForall extends Formula{
     }
 
     @Override
-    public Set<Link> LinksGeneration_BASE(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
+    public Set<Link> LinksGeneration_BASE(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
+        Set<Link> result = new HashSet<>();
         LGUtils lgUtils = new LGUtils();
-        if(!originFormula.isAffected()){
-            return curNode.getLinks();
-        }
-        else{
-            if(contextChange.getPattern_id().equals(((FForall)originFormula).getPattern_id())){
-                if(contextChange.getChange_type() == ContextChange.Change_Type.ADDITION){
-                    Set<Link> result = new HashSet<>();
-                    if(curNode.getLinks() != null)
-                        result.addAll(curNode.getLinks());
-                    RuntimeNode addchild = curNode.getChildren().get(curNode.getChildren().size() - 1);
-                    Set<Link> childLink = addchild.getFormula().LinksGeneration_ConC(addchild, ((FForall)originFormula).getSubformula(), true, checker);
-                    Set<Link> initialSet = new HashSet<>();
-                    Link initialLink = new Link(Link.Link_Type.VIOLATED);
-                    initialLink.AddVA(((FForall)originFormula).getVar(), addchild.getVarEnv().get(((FForall)originFormula).getVar()));
-                    initialSet.add(initialLink);
-                    if(addchild.isTruth()){
-                        curNode.setLinks(result);
-                        return curNode.getLinks();
+
+        if(!checker.isMG()) {
+            // case 1: !MG --> all
+            if(!originFormula.isAffected()){
+                return curNode.getLinks();
+            }
+            else{
+                if(contextChange.getPattern_id().equals(((FForall)originFormula).getPattern_id())){
+                    if(contextChange.getChange_type() == ContextChange.Change_Type.ADDITION){
+                        if(curNode.getLinks() != null)
+                            result.addAll(curNode.getLinks());
+                        RuntimeNode addchild = curNode.getChildren().get(curNode.getChildren().size() - 1);
+                        Set<Link> childLink = addchild.getFormula().LinksGeneration_ConC(addchild, ((FForall)originFormula).getSubformula(), true, prevSubstantialNodes, checker);
+                        Set<Link> initialSet = new HashSet<>();
+                        Link initialLink = new Link(Link.Link_Type.VIOLATED);
+                        initialLink.AddVA(((FForall)originFormula).getVar(), addchild.getVarEnv().get(((FForall)originFormula).getVar()));
+                        initialSet.add(initialLink);
+                        if(!addchild.isTruth()){
+                            Set<Link> res = lgUtils.cartesianSet(initialSet, childLink);
+                            result.addAll(res);
+                        }
                     }
                     else{
-                        Set<Link> res = lgUtils.cartesianSet(initialSet, childLink);
-                        result.addAll(res);
-                        curNode.setLinks(result);
-                        return curNode.getLinks();
+                        for(RuntimeNode child : curNode.getChildren()){
+                            Set<Link> initialSet = new HashSet<>();
+                            Link initialLink = new Link(Link.Link_Type.VIOLATED);
+                            initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
+                            initialSet.add(initialLink);
+                            if(child.isTruth()) continue;
+                            Set<Link> res = lgUtils.cartesianSet(initialSet, child.getLinks());
+                            result.addAll(res);
+                        }
                     }
                 }
                 else{
-                    Set<Link> result = new HashSet<>();
                     for(RuntimeNode child : curNode.getChildren()){
+                        Set<Link> childLink = child.getFormula().LinksGeneration_BASE(child, ((FForall)originFormula).getSubformula(), contextChange, prevSubstantialNodes, checker);
                         Set<Link> initialSet = new HashSet<>();
                         Link initialLink = new Link(Link.Link_Type.VIOLATED);
                         initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
                         initialSet.add(initialLink);
                         if(child.isTruth()) continue;
-                        Set<Link> res = lgUtils.cartesianSet(initialSet, child.getLinks());
+                        Set<Link> res = lgUtils.cartesianSet(initialSet, childLink);
                         result.addAll(res);
                     }
-                    curNode.setLinks(result);
+                }
+            }
+        }
+        else if(curNode.isTruth()){
+            // case 2: MG && true --> none
+            // do nothing
+        }
+        else {
+            // case 3: MG && false --> false
+            if(!originFormula.isAffected()){
+                // check whether curNode.links reusable
+                if(prevSubstantialNodes.contains(curNode)){
                     return curNode.getLinks();
+                }
+                else{
+                    for(RuntimeNode child : curNode.getChildren()){
+                        if(child.isTruth()) continue;
+                        Set<Link> childLink = child.getFormula().LinksGeneration_BASE(child, ((FForall)originFormula).getSubformula(), contextChange, prevSubstantialNodes, checker);
+                        Set<Link> initialSet = new HashSet<>();
+                        Link initialLink = new Link(Link.Link_Type.VIOLATED);
+                        initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
+                        initialSet.add(initialLink);
+                        Set<Link> res = lgUtils.cartesianSet(initialSet, childLink);
+                        result.addAll(res);
+                    }
                 }
             }
             else{
-                Set<Link> result = new HashSet<>();
-                for(RuntimeNode child : curNode.getChildren()){
-                    Set<Link> childLink = child.getFormula().LinksGeneration_BASE(child, ((FForall)originFormula).getSubformula(), contextChange, checker);
-                    Set<Link> initialSet = new HashSet<>();
-                    Link initialLink = new Link(Link.Link_Type.VIOLATED);
-                    initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
-                    initialSet.add(initialLink);
-                    if(child.isTruth()) continue;
-                    Set<Link> res = lgUtils.cartesianSet(initialSet, childLink);
-                    result.addAll(res);
+                if(contextChange.getPattern_id().equals(((FForall)originFormula).getPattern_id())){
+                    if(contextChange.getChange_type() == ContextChange.Change_Type.ADDITION){
+                        if(curNode.getLinks() != null){
+                            // check whether curNode.links reusable
+                            if(prevSubstantialNodes.contains(curNode)){
+                                result.addAll(curNode.getLinks());
+                            }
+                            else{
+                                // except the last one (new add one)
+                                for(int index = 0; index < curNode.getChildren().size() - 1; ++index){
+                                    RuntimeNode child = curNode.getChildren().get(index);
+                                    if(child.isTruth()) continue;
+                                    Set<Link> childLink = child.getFormula().LinksGeneration_BASE(child, ((FForall)originFormula).getSubformula(), contextChange, prevSubstantialNodes, checker);
+                                    Set<Link> initialSet = new HashSet<>();
+                                    Link initialLink = new Link(Link.Link_Type.VIOLATED);
+                                    initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
+                                    initialSet.add(initialLink);
+                                    Set<Link> res = lgUtils.cartesianSet(initialSet, childLink);
+                                    result.addAll(res);
+                                }
+                            }
+                        }
+                        RuntimeNode addchild = curNode.getChildren().get(curNode.getChildren().size() - 1);
+                        if(!addchild.isTruth()){
+                            Set<Link> childLink = addchild.getFormula().LinksGeneration_ConC(addchild, ((FForall)originFormula).getSubformula(), true, prevSubstantialNodes, checker);
+                            Set<Link> initialSet = new HashSet<>();
+                            Link initialLink = new Link(Link.Link_Type.VIOLATED);
+                            initialLink.AddVA(((FForall)originFormula).getVar(), addchild.getVarEnv().get(((FForall)originFormula).getVar()));
+                            initialSet.add(initialLink);
+                            result.addAll(lgUtils.cartesianSet(initialSet, childLink));
+                        }
+                    }
+                    else{
+                        for(RuntimeNode child : curNode.getChildren()){
+                            if(child.isTruth()) continue;
+                            Set<Link> initialSet = new HashSet<>();
+                            Link initialLink = new Link(Link.Link_Type.VIOLATED);
+                            initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
+                            initialSet.add(initialLink);
+                            // check whether child.links reusable
+                            if(prevSubstantialNodes.contains(child)){
+                                result.addAll(lgUtils.cartesianSet(initialSet, child.getLinks()));
+                            }
+                            else{
+                                Set<Link> childLink = child.getFormula().LinksGeneration_BASE(child, ((FForall)originFormula).getSubformula(), contextChange, prevSubstantialNodes, checker);
+                                result.addAll(lgUtils.cartesianSet(initialSet, childLink));
+                            }
+                        }
+                    }
                 }
-                curNode.setLinks(result);
-                return curNode.getLinks();
+                else{
+                    for(RuntimeNode child : curNode.getChildren()){
+                        if(child.isTruth()) continue;
+                        Set<Link> childLink = child.getFormula().LinksGeneration_BASE(child, ((FForall)originFormula).getSubformula(), contextChange, prevSubstantialNodes, checker);
+                        Set<Link> initialSet = new HashSet<>();
+                        Link initialLink = new Link(Link.Link_Type.VIOLATED);
+                        initialLink.AddVA(((FForall)originFormula).getVar(), child.getVarEnv().get(((FForall)originFormula).getVar()));
+                        initialSet.add(initialLink);
+                        Set<Link> res = lgUtils.cartesianSet(initialSet, childLink);
+                        result.addAll(res);
+                    }
+                }
             }
         }
+
+        curNode.setLinks(result);
+        return curNode.getLinks();
+
     }
 }

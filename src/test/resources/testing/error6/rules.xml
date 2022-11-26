@@ -6,19 +6,19 @@
             <and>
                 <forall var="v1" in="pat_1">
                     <or>
-                        <bfunction name="random_1151">
+                        <bfunc name="random_1151">
                             <param pos="1" var="v1"/>
-                        </bfunction>
-                        <bfunction name="random_1152">
+                        </bfunc>
+                        <bfunc name="random_1152">
                             <param pos="1" var="v1"/>
-                        </bfunction>
+                        </bfunc>
                     </or>
                 </forall>
                 <not>
                     <exists var="v2" in="pat_2">
-                        <bfunction name="random_1153">
+                        <bfunc name="random_1153">
                             <param pos="1" var="v2"/>
-                        </bfunction>
+                        </bfunc>
                     </exists>
                 </not>
             </and>

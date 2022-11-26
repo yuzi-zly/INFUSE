@@ -13,6 +13,7 @@ import com.CC.Contexts.ContextPool;
 import com.CC.Util.NotSupportedException;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -89,17 +90,21 @@ public class ConC extends Checker {
     public static class LinksGenerationTask_ConC implements Callable<Set<Link>>{
         RuntimeNode curNode;
         Formula originFormula;
+
+        Set<RuntimeNode> prevSubstantialNodes;
+
         Checker checker;
 
-        public LinksGenerationTask_ConC(RuntimeNode curNode, Formula originFormula, Checker checker){
+        public LinksGenerationTask_ConC(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker){
             this.curNode = curNode;
             this.originFormula = originFormula;
+            this.prevSubstantialNodes = prevSubstantialNodes;
             this.checker = checker;
         }
 
         @Override
         public Set<Link> call(){
-            return curNode.getFormula().LinksGeneration_ConC(curNode, originFormula, false, checker);
+            return curNode.getFormula().LinksGeneration_ConC(curNode, originFormula, false, prevSubstantialNodes, checker);
         }
     }
 
@@ -114,8 +119,13 @@ public class ConC extends Checker {
                 rule.BuildCCT_CONC(this);
                 //Truth value evaluation
                 rule.TruthEvaluation_ConC(this);
+                //taint SCCT
+                Set<RuntimeNode> prevSubstantialNodes = this.substantialNodes.getOrDefault(rule.getRule_id(),  new HashSet<>());
+                if(this.isMG){
+                    this.substantialNodes.put(rule.getRule_id(), rule.taintSCCT());
+                }
                 //Links Generation
-                Set<Link> links = rule.LinksGeneration_ConC(this);
+                Set<Link> links = rule.LinksGeneration_ConC(this, prevSubstantialNodes);
                 if(links != null){
                     rule.addCriticalSet(links);
                 }
@@ -134,7 +144,12 @@ public class ConC extends Checker {
         }
         rule.BuildCCT_CONC(this);
         rule.TruthEvaluation_ConC(this);
-        Set<Link> links = rule.LinksGeneration_ConC(this);
+        //taint SCCT
+        Set<RuntimeNode> prevSubstantialNodes = this.substantialNodes.getOrDefault(rule.getRule_id(),  new HashSet<>());
+        if(this.isMG){
+            this.substantialNodes.put(rule.getRule_id(), rule.taintSCCT());
+        }
+        Set<Link> links = rule.LinksGeneration_ConC(this, prevSubstantialNodes);
         if(links != null){
             rule.addCriticalSet(links);
         }

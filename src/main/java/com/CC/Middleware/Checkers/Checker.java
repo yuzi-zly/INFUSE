@@ -17,10 +17,7 @@ public abstract class Checker {
     protected Object bfuncInstance;
     // for MG
     protected boolean isMG;
-    protected final Set<RuntimeNode> prevSubstantialNodes;
-    protected final Set<RuntimeNode> curSubstantialNodes;
-    protected final Set<RuntimeNode> substantialNodes;
-
+    protected final Map<String, Set<RuntimeNode>> substantialNodes;
 
     // rule_id -> [(truthValue1, linkSet1), (truthValue2,linkSet2)]
     protected final Map<String, List<Map.Entry<Boolean, Set<Link>>>> ruleLinksMap;
@@ -30,9 +27,7 @@ public abstract class Checker {
         this.contextPool = contextPool;
         this.bfuncInstance = bfuncInstance;
         this.isMG = isMG;
-        this.prevSubstantialNodes = new HashSet<>();
-        this.curSubstantialNodes = new HashSet<>();
-        this.substantialNodes = new HashSet<>();
+        this.substantialNodes = new HashMap<>();
         this.ruleLinksMap = new HashMap<>();
     }
 
@@ -47,7 +42,11 @@ public abstract class Checker {
         for(Rule rule : ruleHandler.getRuleMap().values()){
             rule.BuildCCT_ECCPCC(this);
             rule.TruthEvaluation_ECC(this);
-            rule.LinksGeneration_ECC(this);
+            Set<RuntimeNode> prevSubstantialNodes = this.substantialNodes.getOrDefault(rule.getRule_id(),  new HashSet<>());
+            if(this.isMG){
+                this.substantialNodes.put(rule.getRule_id(), rule.taintSCCT());
+            }
+            rule.LinksGeneration_ECC(this, prevSubstantialNodes);
         }
     }
     public abstract void ctxChangeCheckIMD(ContextChange contextChange);
@@ -74,15 +73,7 @@ public abstract class Checker {
         return ruleLinksMap;
     }
 
-    public Set<RuntimeNode> getCurSubstantialNodes() {
-        return curSubstantialNodes;
-    }
-
-    public Set<RuntimeNode> getPrevSubstantialNodes() {
-        return prevSubstantialNodes;
-    }
-
-    public Set<RuntimeNode> getSubstantialNodes() {
+    public Map<String, Set<RuntimeNode>> getSubstantialNodes() {
         return substantialNodes;
     }
 

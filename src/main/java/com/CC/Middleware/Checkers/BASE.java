@@ -3,10 +3,12 @@ package com.CC.Middleware.Checkers;
 import com.CC.Constraints.Rules.Rule;
 import com.CC.Constraints.Rules.RuleHandler;
 import com.CC.Constraints.Runtime.Link;
+import com.CC.Constraints.Runtime.RuntimeNode;
 import com.CC.Contexts.ContextChange;
 import com.CC.Contexts.ContextPool;
 import com.CC.Util.NotSupportedException;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -28,8 +30,13 @@ public class BASE extends ConC{
                 rule.ModifyCCT_BASE(contextChange, this);
                 //truth evaluation
                 rule.TruthEvaluation_BASE(contextChange, this);
+                //taint SCCT
+                Set<RuntimeNode> prevSubstantialNodes = this.substantialNodes.getOrDefault(rule.getRule_id(),  new HashSet<>());
+                if(this.isMG){
+                    this.substantialNodes.put(rule.getRule_id(), rule.taintSCCT());
+                }
                 //links generation
-                Set<Link> links = rule.LinksGeneration_BASE(contextChange, this);
+                Set<Link> links = rule.LinksGeneration_BASE(contextChange, this, prevSubstantialNodes);
                 if(links != null){
                     rule.addCriticalSet(links);
                 }

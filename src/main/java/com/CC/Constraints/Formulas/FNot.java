@@ -137,9 +137,17 @@ public class FNot extends Formula{
         this.subformula.CleanAffectedAndCanConcurrent();
     }
 
+    //MG
+    @Override
+    public void taintSCCT(RuntimeNode curNode, Formula originFormula, Set<RuntimeNode> substantialNodes) {
+        substantialNodes.add(curNode);
+        RuntimeNode runtimeNode = curNode.getChildren().get(0);
+        runtimeNode.getFormula().taintSCCT(runtimeNode, ((FNot) originFormula).getSubformula(), substantialNodes);
+    }
+
     /*
-                                        ECC PCC
-                                     */
+                                            ECC PCC
+                                         */
     @Override
     public void CreateBranches_ECCPCC(String rule_id, RuntimeNode curNode, Formula originFormula, Checker checker) {
         //分支1
@@ -163,16 +171,11 @@ public class FNot extends Formula{
     }
 
     @Override
-    public Set<Link> LinksGeneration_ECC(RuntimeNode curNode, Formula originFormula, Checker checker) {
+    public Set<Link> LinksGeneration_ECC(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
         RuntimeNode runtimeNode = curNode.getChildren().get(0);
         LGUtils lgUtils = new LGUtils();
         // only one case: all
-        // taint substantial node
-        if(checker.isMG()){
-            checker.getCurSubstantialNodes().add(runtimeNode);
-        }
-        // generate links
-        Set<Link> ret = runtimeNode.getFormula().LinksGeneration_ECC(runtimeNode, ((FNot)originFormula).getSubformula(), checker);
+        Set<Link> ret = runtimeNode.getFormula().LinksGeneration_ECC(runtimeNode, ((FNot)originFormula).getSubformula(), prevSubstantialNodes, checker);
         Set<Link> result = lgUtils.flipSet(ret);
         curNode.setLinks(result);
         return curNode.getLinks();
@@ -202,28 +205,23 @@ public class FNot extends Formula{
     }
 
     @Override
-    public Set<Link> LinksGeneration_PCC(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
+    public Set<Link> LinksGeneration_PCC(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
         Set<Link> result = new HashSet<>();
         RuntimeNode runtimeNode = curNode.getChildren().get(0);
         LGUtils lgUtils = new LGUtils();
         // only one case
-        // taint substantial node
-        if(checker.isMG()){
-            checker.getCurSubstantialNodes().add(runtimeNode);
-        }
-        // generate links
         if(originFormula.isAffected()){
-            Set<Link> ret = runtimeNode.getFormula().LinksGeneration_PCC(runtimeNode, ((FNot)originFormula).getSubformula(), contextChange, checker);
+            Set<Link> ret = runtimeNode.getFormula().LinksGeneration_PCC(runtimeNode, ((FNot)originFormula).getSubformula(), contextChange, prevSubstantialNodes, checker);
             result.addAll(lgUtils.flipSet(ret));
         }
         else{
             if(checker.isMG()){
                 // check whether curNode.links reusable
-                if(checker.getPrevSubstantialNodes().contains(curNode)){
+                if(prevSubstantialNodes.contains(curNode)){
                     return curNode.getLinks();
                 }
                 else{
-                    Set<Link> ret = runtimeNode.getFormula().LinksGeneration_PCC(runtimeNode, ((FNot)originFormula).getSubformula(), contextChange, checker);
+                    Set<Link> ret = runtimeNode.getFormula().LinksGeneration_PCC(runtimeNode, ((FNot)originFormula).getSubformula(), contextChange, prevSubstantialNodes, checker);
                     result.addAll(lgUtils.flipSet(ret));
                 }
             }
@@ -259,16 +257,11 @@ public class FNot extends Formula{
     }
 
     @Override
-    public Set<Link> LinksGeneration_ConC(RuntimeNode curNode, Formula originFormula, boolean canConcurrent, Checker checker) {
+    public Set<Link> LinksGeneration_ConC(RuntimeNode curNode, Formula originFormula, boolean canConcurrent, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
         RuntimeNode runtimeNode = curNode.getChildren().get(0);
         LGUtils lgUtils = new LGUtils();
         // only one case: all
-        // taint substantial node
-        if(checker.isMG()){
-            checker.getCurSubstantialNodes().add(runtimeNode);
-        }
-        // generate links
-        Set<Link> ret = runtimeNode.getFormula().LinksGeneration_ConC(runtimeNode, ((FNot)originFormula).getSubformula(), canConcurrent, checker);
+        Set<Link> ret = runtimeNode.getFormula().LinksGeneration_ConC(runtimeNode, ((FNot)originFormula).getSubformula(), canConcurrent, prevSubstantialNodes, checker);
         Set<Link> result = lgUtils.flipSet(ret);;
         curNode.setLinks(result);
         return curNode.getLinks();
@@ -299,28 +292,23 @@ public class FNot extends Formula{
     }
 
     @Override
-    public Set<Link> LinksGeneration_PCCM(RuntimeNode curNode, Formula originFormula, Checker checker) {
+    public Set<Link> LinksGeneration_PCCM(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
         Set<Link> result = new HashSet<>();
         RuntimeNode runtimeNode = curNode.getChildren().get(0);
         LGUtils lgUtils = new LGUtils();
         // only one case
-        // taint substantial node
-        if(checker.isMG()){
-            checker.getCurSubstantialNodes().add(runtimeNode);
-        }
-        // generate links
         if(originFormula.isAffected()){
-            Set<Link> ret = runtimeNode.getFormula().LinksGeneration_PCCM(runtimeNode, ((FNot)originFormula).getSubformula(), checker);
+            Set<Link> ret = runtimeNode.getFormula().LinksGeneration_PCCM(runtimeNode, ((FNot)originFormula).getSubformula(), prevSubstantialNodes, checker);
             result.addAll(lgUtils.flipSet(ret));
         }
         else{
             if(checker.isMG()){
                 // check whether curNode.links reusable
-                if(checker.getPrevSubstantialNodes().contains(curNode)){
+                if(prevSubstantialNodes.contains(curNode)){
                     return curNode.getLinks();
                 }
                 else{
-                    Set<Link> ret = runtimeNode.getFormula().LinksGeneration_PCCM(runtimeNode, ((FNot)originFormula).getSubformula(), checker);
+                    Set<Link> ret = runtimeNode.getFormula().LinksGeneration_PCCM(runtimeNode, ((FNot)originFormula).getSubformula(), prevSubstantialNodes, checker);
                     result.addAll(lgUtils.flipSet(ret));
                 }
             }
@@ -380,28 +368,23 @@ public class FNot extends Formula{
     }
 
     @Override
-    public Set<Link> LinksGeneration_CPCC_NB(RuntimeNode curNode, Formula originFormula, Checker checker) {
+    public Set<Link> LinksGeneration_CPCC_NB(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
         Set<Link> result = new HashSet<>();
         RuntimeNode runtimeNode = curNode.getChildren().get(0);
         LGUtils lgUtils = new LGUtils();
         // only one case
-        // taint substantial node
-        if(checker.isMG()){
-            checker.getCurSubstantialNodes().add(runtimeNode);
-        }
-        // generate links
         if(originFormula.isAffected()){
-            Set<Link> ret = runtimeNode.getFormula().LinksGeneration_CPCC_NB(runtimeNode, ((FNot)originFormula).getSubformula(), checker);
+            Set<Link> ret = runtimeNode.getFormula().LinksGeneration_CPCC_NB(runtimeNode, ((FNot)originFormula).getSubformula(), prevSubstantialNodes, checker);
             result.addAll(lgUtils.flipSet(ret));
         }
         else{
             if(checker.isMG()){
                 // check whether curNode.links reusable
-                if(checker.getPrevSubstantialNodes().contains(curNode)){
+                if(prevSubstantialNodes.contains(curNode)){
                     return curNode.getLinks();
                 }
                 else{
-                    Set<Link> ret = runtimeNode.getFormula().LinksGeneration_CPCC_NB(runtimeNode, ((FNot)originFormula).getSubformula(), checker);
+                    Set<Link> ret = runtimeNode.getFormula().LinksGeneration_CPCC_NB(runtimeNode, ((FNot)originFormula).getSubformula(), prevSubstantialNodes, checker);
                     result.addAll(lgUtils.flipSet(ret));
                 }
             }
@@ -438,17 +421,32 @@ public class FNot extends Formula{
     }
 
     @Override
-    public Set<Link> LinksGeneration_BASE(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
+    public Set<Link> LinksGeneration_BASE(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
+        Set<Link> result = new HashSet<>();
+        RuntimeNode runtimeNode = curNode.getChildren().get(0);
         LGUtils lgUtils = new LGUtils();
+        // only one case
         if(originFormula.isAffected()){
-            RuntimeNode runtimeNode = curNode.getChildren().get(0);
-            Set<Link> ret = runtimeNode.getFormula().LinksGeneration_BASE(runtimeNode, ((FNot)originFormula).getSubformula(), contextChange, checker);
-            Set<Link> result = lgUtils.flipSet(ret);
-            curNode.setLinks(result);
-            return curNode.getLinks();
+            Set<Link> ret = runtimeNode.getFormula().LinksGeneration_BASE(runtimeNode, ((FNot)originFormula).getSubformula(), contextChange, prevSubstantialNodes, checker);
+            result.addAll(lgUtils.flipSet(ret));
         }
         else{
-            return curNode.getLinks();
+            if(checker.isMG()){
+                // check whether curNode.links reusable
+                if(prevSubstantialNodes.contains(curNode)){
+                    return curNode.getLinks();
+                }
+                else{
+                    Set<Link> ret = runtimeNode.getFormula().LinksGeneration_BASE(runtimeNode, ((FNot)originFormula).getSubformula(), contextChange, prevSubstantialNodes, checker);
+                    result.addAll(lgUtils.flipSet(ret));
+                }
+            }
+            else{
+                return curNode.getLinks();
+            }
         }
+
+        curNode.setLinks(result);
+        return curNode.getLinks();
     }
 }

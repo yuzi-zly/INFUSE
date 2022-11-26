@@ -3,9 +3,11 @@ package com.CC.Middleware.Checkers;
 import com.CC.Constraints.Rules.Rule;
 import com.CC.Constraints.Rules.RuleHandler;
 import com.CC.Constraints.Runtime.Link;
+import com.CC.Constraints.Runtime.RuntimeNode;
 import com.CC.Contexts.ContextChange;
 import com.CC.Contexts.ContextPool;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -27,8 +29,13 @@ public class ECC extends Checker{
                 rule.BuildCCT_ECCPCC(this);
                 //truth value evaluation
                 rule.TruthEvaluation_ECC(this);
+                //taint SCCT
+                Set<RuntimeNode> prevSubstantialNodes = this.substantialNodes.getOrDefault(rule.getRule_id(),  new HashSet<>());
+                if(this.isMG){
+                    this.substantialNodes.put(rule.getRule_id(), rule.taintSCCT());
+                }
                 //links generation
-                Set<Link> links = rule.LinksGeneration_ECC(this);
+                Set<Link> links = rule.LinksGeneration_ECC(this, prevSubstantialNodes);
                 if(links != null){
                     storeLink(rule.getRule_id(), rule.getCCTRoot().isTruth(), links);
                 }
@@ -46,8 +53,13 @@ public class ECC extends Checker{
         rule.BuildCCT_ECCPCC(this);
         //truth value evaluation
         rule.TruthEvaluation_ECC(this);
+        //taint SCCT
+        Set<RuntimeNode> prevSubstantialNodes = this.substantialNodes.getOrDefault(rule.getRule_id(),  new HashSet<>());
+        if(this.isMG){
+            this.substantialNodes.put(rule.getRule_id(), rule.taintSCCT());
+        }
         //links generation
-        Set<Link> links = rule.LinksGeneration_ECC(this);
+        Set<Link> links = rule.LinksGeneration_ECC(this, prevSubstantialNodes);
         if(links != null){
             rule.addCriticalSet(links);
         }
