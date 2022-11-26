@@ -103,7 +103,7 @@ public class RuleHandler implements Loggable {
                 retFormula = tmpNot;
                 break;
             }
-            case "bfunction" :{
+            case "bfunc" :{
                 FBfunc tmpBfunc = new FBfunc(eFormula.attributeValue("name"));
                 // bfunc has several params
                 List<Element> paramElementList = eFormula.elements();

@@ -9,7 +9,7 @@
     <Loggers>
         <Root level="INFO">
             <AppenderRef ref="console"/>
-            <AppenderRef ref="log"/>
+<!--            <AppenderRef ref="log"/>-->
         </Root>
     </Loggers>
 
@@ -21,12 +21,12 @@
                 <Pattern>${pattern}</Pattern>
             </PatternLayout>
         </Console>
-        <File name="log" fileName="log/error.log" append="false">
-            <ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
-            <PatternLayout>
-                <Pattern>${pattern}</Pattern>
-            </PatternLayout>
-        </File>
+<!--        <File name="log" fileName="cceError.log" append="false">-->
+<!--            <ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>-->
+<!--            <PatternLayout>-->
+<!--                <Pattern>${pattern}</Pattern>-->
+<!--            </PatternLayout>-->
+<!--        </File>-->
 
     </Appenders>
 </Configuration>

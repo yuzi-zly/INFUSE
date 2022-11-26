@@ -5,10 +5,10 @@
         <formula>
             <forall var="v1" in="pat_1">
                 <exists var="v2" in="pat_2">
-                    <bfunction name="random_32">
+                    <bfunc name="random_32">
                         <param pos="1" var="v1"/>
                         <param pos="2" var="v2"/>
-                    </bfunction>
+                    </bfunc>
                 </exists>
             </forall>
         </formula>
