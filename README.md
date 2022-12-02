@@ -4,7 +4,7 @@
 
 <p align="center">A <b>general constraint checking enginel</b> for data consistency.</p>
 
-## :book: Tutorial
+## 🚩 Tutorial
 
 First, download **INFUSE_v2.1.jar** into your work directory.
 
@@ -21,6 +21,7 @@ Rules are writtern in **first-order logic** style language which contains **seve
 For example, a physical law  `no one can be in two rooms at the same time` can be writtern as:
 
 ```XML
+<!-- rules.xml -->
 <?xml version="1.0"?>
 
 <rules>
@@ -46,4 +47,6 @@ For example, a physical law  `no one can be in two rooms at the same time` can b
 
 ### Pattern template
 
-Patterns are used to specify some 
+Patterns (e.g., pat_room1 and pat_room2 in rule template) are used in `forall` and `exists` formulas to specify what kind of context the rule is interested in.
+
+Each pattern requires 
