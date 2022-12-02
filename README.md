@@ -1,3 +1,10 @@
+<h1 align="center">
+  INFUSE
+</h1>
+
+<p align="center">Create a new production-ready project with <b>backend</b> (Golang), <b>frontend</b> (JavaScript, TypeScript)<br/>and <b>deploy automation</b> (Ansible, Docker) by running one CLI command.<br/><br/>Focus on <b>writing</b> code and <b>thinking</b> of business-logic! The CLI will take care of the rest.</p>
+
+
 ## INFUSE
 
 INFUSE is a constraint checking engine for context consistency.
