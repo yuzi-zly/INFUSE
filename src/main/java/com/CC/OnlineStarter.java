@@ -70,7 +70,6 @@ public class OnlineStarter implements Loggable {
 
             try {
                 buildRulesAndPatterns();
-                logger.info("Build rules and patterns successfully.");
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -78,7 +77,7 @@ public class OnlineStarter implements Loggable {
             Object bfuncInstance = null;
             try {
                 bfuncInstance = loadBfuncFile();
-                logger.info("Load bfunc file successfully.");
+                logger.info("Load bfunctions successfully.");
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -99,7 +98,7 @@ public class OnlineStarter implements Loggable {
                     schedule = "INFUSE_S";
                 }
             }
-            logger.info("Checking technique is " + technique + ", scheduling strategy is " + schedule);
+            logger.debug("Checking technique is " + technique + ", scheduling strategy is " + schedule + ", with MG " + (isMG ? "on" : "off"));
 
             assert technique != null;
 
@@ -146,7 +145,9 @@ public class OnlineStarter implements Loggable {
 
         private void buildRulesAndPatterns() throws Exception {
             this.ruleHandler.buildRules(ruleFile);
+            logger.info("Build rules successfully");
             this.patternHandler.buildPatterns(patternFile, mfuncFile);
+            logger.info("Build patterns successfully");
 
             for(Rule rule : ruleHandler.getRuleMap().values()){
                 contextPool.PoolInit(rule);
@@ -179,14 +180,14 @@ public class OnlineStarter implements Loggable {
         public Void call() throws Exception {
             DatagramSocket datagramSocket = null;
             try {
-                datagramSocket = new DatagramSocket(10086);
+                datagramSocket = new DatagramSocket(6244);
                 datagramSocket.setSoTimeout(10000);
             } catch (SocketException e) {
                 logger.error("Fail to build datagramSocket.");
                 e.printStackTrace();
             }
-            logger.info("Build datagramSocket successfully.");
-            logger.info("Checking starts at " + new Date(System.currentTimeMillis()));
+            logger.info("Build datagramSocket (localhost:6244) successfully.");
+            //logger.info("Checking starts at " + new Date(System.currentTimeMillis()));
 
             while(true){
                 ContextChange contextChange = null;
@@ -380,12 +381,12 @@ public class OnlineStarter implements Loggable {
     }
 
     public void start(String approach, String ruleFile, String bfuncFile, String patternFile, String mfuncFile, String dataType, boolean isMG, String incOutFile, String dataOutFile){
-        FutureTask<Void> clientTask = new FutureTask<>(new CCEClient("./taxi/data_5_0-1_new.txt"));
+       //FutureTask<Void> clientTask = new FutureTask<>(new CCEClient("./taxi/data_5_0-1_new.txt"));
         FutureTask<Void> serverTask = new FutureTask<>(new CCEServer(approach, ruleFile, bfuncFile, patternFile, mfuncFile, dataType, isMG, incOutFile, dataOutFile));
-        new Thread(clientTask, "Client...").start();
+        //new Thread(clientTask, "Client...").start();
         new Thread(serverTask, "Server...").start();
         try {
-            clientTask.get();
+            //clientTask.get();
             serverTask.get();
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();

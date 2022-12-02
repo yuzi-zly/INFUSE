@@ -77,7 +77,7 @@ public class OfflineStarter implements Loggable {
         Object bfuncInstance = null;
         try {
             bfuncInstance = loadBfuncFile();
-            logger.info("Load bfunc file successfully.");
+            logger.info("Load bfunctions successfully.");
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -98,8 +98,8 @@ public class OfflineStarter implements Loggable {
                 schedule = "INFUSE_S";
             }
         }
-        logger.info("Checking technique is " + technique + ", scheduling strategy is " + schedule + (isMG ? ", with MG" : ""));
 
+        logger.debug("Checking technique is " + technique + ", scheduling strategy is " + schedule + ", with MG " + (isMG ? "on" : "off"));
         assert technique != null;
 
         switch (technique) {
@@ -341,12 +341,7 @@ public class OfflineStarter implements Loggable {
             OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
             BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
             for(Rule rule : ruleHandler.getRuleMap().values()){
-                if(rule.getCCTRoot().isTruth()){
-                    bufferedWriter.write(rule.getCCTRoot().show(0, new HashSet<>(), null));
-                }
-                else{
-                    bufferedWriter.write(rule.getCCTRoot().show(0, checker.getSubstantialNodes().get(rule.getRule_id()), null));
-                }
+                bufferedWriter.write(rule.getCCTRoot().show(0, checker.getPrevSubstantialNodes(), null));
                 bufferedWriter.write("\n");
                 bufferedWriter.flush();
             }

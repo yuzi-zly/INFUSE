@@ -26,21 +26,15 @@ public class CLIParser implements Loggable {
         add("PCC+GEAS_ori");
         add("ConC+IMD");
         add("ConC+GEAS_ori");
-        add("INFUSE_base");
+        //add("INFUSE_base");
         add("INFUSE");
     }};
-    public static String defaultCheckingMode = "offline";
-    public static String defaultApproach = "INFUSE";
 
-    public static String defaultDataType = "rawData";
 
-    public static String incOut = "inconsistencies.txt";
-
-    public static String dataOut = "fixedData.json";
-
-    public static String testIncOut = "cceResult.json";
-
+    public static String testIncOut = "inconsistencies.json";
     public static String testCCTOut = "cct.txt";
+    public static String incOut = "inconsistencies.txt";
+    public static String dataOut = "fixedData.json";
 
     public static void main(String[] args) throws Exception {
         // common
@@ -48,7 +42,7 @@ public class CLIParser implements Loggable {
                 .argName("approach")
                 .hasArg()
                 .required(false)
-                .desc("Use the specifed approach for checking [ECC+IMD/ECC+GEAS_ori/PCC+IMD/PCC+GEAS_ori/ConC+IMD/ConC+GEAS_ori/INFUSE_base/INFUSE]")
+                .desc("Use the specified approach for checking [ECC+IMD/ECC+GEAS_ori/PCC+IMD/PCC+GEAS_ori/ConC+IMD/ConC+GEAS_ori/INFUSE_base/INFUSE]")
                 .build();
 
         Option opt_rf = Option.builder("rules")
@@ -94,7 +88,7 @@ public class CLIParser implements Loggable {
                 .desc("Load patterns from given file (XML file)")
                 .build();
 
-        Option opt_mf = Option.builder("mfuncs")
+        Option opt_mf = Option.builder("mfunc")
                 .argName("file")
                 .hasArg()
                 .required(false)
@@ -187,66 +181,73 @@ public class CLIParser implements Loggable {
             // checking approach
             String approach = null;
             if(!cli.hasOption("approach")){
-                approach = defaultApproach;
-                logger.info("\033[92m" + "The default approach is \"" + defaultApproach + "\"\033[0m");
+                logger.error("\033[91m" + "No specified approach, please use option \"-approach \", available approaches: [ECC+IMD/ECC+GEAS_ori/PCC+IMD/PCC+GEAS_ori/ConC+IMD/ConC+GEAS_ori/INFUSE]" + "\033[0m");
+                logger.info("\033[92m" + "Use option \"-help\" for more information"  + "\033[0m");
+                System.exit(1);
             }
             else{
                 approach = cli.getOptionValue("approach");
                 if(!legalApproaches.contains(approach)){
-                    logger.error("\033[91m" + "The approach is illegal" + "\033[0m");
-                    helpFormatter.printHelp("java -jar INFUSE-version.jar [Options]", options);
+                    logger.error("\033[91m" + "The approach is illegal, available approaches: [ECC+IMD/ECC+GEAS_ori/PCC+IMD/PCC+GEAS_ori/ConC+IMD/ConC+GEAS_ori/INFUSE]" + "\033[0m");
+                    logger.info("\033[92m" + "Use option \"-help\" for more information"  + "\033[0m");
                     System.exit(1);
                 }
             }
             // rule file
             String ruleFile = null;
             if(!cli.hasOption("rules")){
-                logger.error("\033[91m" + "The rules cannot be empty" + "\033[0m");
-                helpFormatter.printHelp("java -jar INFUSE-version.jar [Options]", options);
+                logger.error("\033[91m" + "No specified rule file, please use option \"-rules\"" + "\033[0m");
+                logger.info("\033[92m" + "Use option \"-help\" for more information"  + "\033[0m");
                 System.exit(1);
             }
             else{
                 ruleFile = cli.getOptionValue("rules");
+                logger.info(String.format("The rule file is \"%s\"", ruleFile));
             }
             // bfunc file
             String bfuncFile = null;
             if(!cli.hasOption("bfuncs")){
-                logger.error("\033[91m" + "The bfunctions cannot be empty" + "\033[0m");
-                helpFormatter.printHelp("java -jar INFUSE-version.jar [Options]", options);
+                logger.error("\033[91m" + "No specified bfunction file, please use option \"-bfuncs\"" + "\033[0m");
+                logger.info("\033[92m" + "Use option \"-help\" for more information"  + "\033[0m");
                 System.exit(1);
             }
             else{
                 bfuncFile = cli.getOptionValue("bfuncs");
+                logger.info(String.format("The bfunction file is \"%s\"", bfuncFile));
             }
             // context pool file
             String contextPool = null;
             if(!cli.hasOption("contextpool")){
-                logger.error("\033[91m" + "The contextpool cannot be empty" + "\033[0m");
-                helpFormatter.printHelp("java -jar INFUSE-version.jar [Options]", options);
+                logger.error("\033[91m" + "No specified context pool, please use option \"contextpool\"" + "\033[0m");
+                logger.info("\033[92m" + "Use option \"-help\" for more information"  + "\033[0m");
                 System.exit(1);
             }
             else{
                 contextPool = cli.getOptionValue("contextpool");
+                logger.info(String.format("The context pool is \"%s\"", contextPool));
             }
             // isMG or not
             boolean isMG = cli.hasOption("mg");
+            logger.info(String.format("Minimizing link generation is %s", isMG ? "on" : "off"));
             // incs
             String incs = null;
             if(!cli.hasOption("incs")){
                 incs = testIncOut;
-                logger.info("\033[92m" + "The default inconsistency file is \"" + testIncOut + "\"\033[0m");
+                logger.info("The default inconsistency file is \"" + testIncOut + "\"");
             }
             else{
                 incs = cli.getOptionValue("incs");
+                logger.info("The inconsistency file is \"" + incs + "\"");
             }
             // cct
             String cct = null;
             if(!cli.hasOption("cct")){
                 cct = testCCTOut;
-                logger.info("\033[92m" + "The default cct file is \"" + testCCTOut + "\"\033[0m");
+                logger.info("The default cct file is \"" + testCCTOut + "\"");
             }
             else{
                 cct = cli.getOptionValue("cct");
+                logger.info("The cct file is \"" + cct + "\"");
             }
 
             String parentPathStr = testModeDataConvertor(contextPool);
@@ -283,101 +284,123 @@ java -jar INFUSE.jar
             // checking mode
             String checkingMode = null;
             if(!cli.hasOption("mode")){
-                checkingMode = defaultCheckingMode;
-                logger.info("\033[92m" + "The default mode is \"" + defaultCheckingMode + "\"\033[0m");
+                logger.error("\033[91m" + "No specified mode, please use option \"-mode\", available modes: [offline/online]" + "\033[0m");
+                logger.info("\033[92m" + "Use option \"-help\" for more information"  + "\033[0m");
+                System.exit(1);
             }
             else{
                 checkingMode = cli.getOptionValue("mode");
                 if(!checkingMode.equalsIgnoreCase("offline") && !checkingMode.equalsIgnoreCase("online")){
-                    logger.error("\033[91m" + "The mode is illegal" + "\033[0m");
-                    helpFormatter.printHelp("java -jar INFUSE-version.jar [Options]", options);
+                    logger.error("\033[91m" + "The mode is illegal, available modes: [offline/online]" + "\033[0m");
+                    logger.info("\033[92m" + "Use option \"-help\" for more information"  + "\033[0m");
                     System.exit(1);
                 }
             }
             // checking approach
             String approach = null;
             if(!cli.hasOption("approach")){
-                approach = defaultApproach;
-                logger.info("\033[92m" + "The default approach is \"" + defaultApproach + "\"\033[0m");
+                logger.error("\033[91m" + "No specified approach, please use option \"-approach \", available approaches: [ECC+IMD/ECC+GEAS_ori/PCC+IMD/PCC+GEAS_ori/ConC+IMD/ConC+GEAS_ori/INFUSE]" + "\033[0m");
+                logger.info("\033[92m" + "Use option \"-help\" for more information"  + "\033[0m");
+                System.exit(1);
             }
             else{
                 approach = cli.getOptionValue("approach");
                 if(!legalApproaches.contains(approach)){
-                    logger.error("\033[91m" + "The approach is illegal" + "\033[0m");
-                    helpFormatter.printHelp("java -jar INFUSE-version.jar [Options]", options);
+                    logger.error("\033[91m" + "The approach is illegal, available approaches: [ECC+IMD/ECC+GEAS_ori/PCC+IMD/PCC+GEAS_ori/ConC+IMD/ConC+GEAS_ori/INFUSE]" + "\033[0m");
+                    logger.info("\033[92m" + "Use option \"-help\" for more information"  + "\033[0m");
                     System.exit(1);
                 }
             }
             // rule file
             String ruleFile = null;
             if(!cli.hasOption("rules")){
-                logger.error("\033[91m" + "The ruleFile cannot be empty" + "\033[0m");
-                helpFormatter.printHelp("java -jar INFUSE-version.jar [Options]", options);
+                logger.error("\033[91m" + "No specified rule file, please use option \"-rules\"" + "\033[0m");
+                logger.info("\033[92m" + "Use option \"-help\" for more information"  + "\033[0m");
                 System.exit(1);
             }
             else{
                 ruleFile = cli.getOptionValue("rules");
+                logger.info(String.format("The rule file is \"%s\"", ruleFile));
             }
             // bfunc file
             String bfuncFile = null;
             if(!cli.hasOption("bfuncs")){
-                logger.error("\033[91m" + "The bfunctions cannot be empty" + "\033[0m");
-                helpFormatter.printHelp("java -jar INFUSE-version.jar [Options]", options);
+                logger.error("\033[91m" + "No specified bfunction file, please use option \"-bfuncs\"" + "\033[0m");
+                logger.info("\033[92m" + "Use option \"-help\" for more information"  + "\033[0m");
                 System.exit(1);
             }
             else{
                 bfuncFile = cli.getOptionValue("bfuncs");
+                logger.info(String.format("The bfunction file is \"%s\"", bfuncFile));
             }
             // pattern file
             String patternFile = null;
             if(!cli.hasOption("patterns")){
-                logger.error("\033[91m" + "The patterns cannot be empty" + "\033[0m");
-                helpFormatter.printHelp("java -jar INFUSE-version.jar [Options]", options);
+                logger.error("\033[91m" + "No specified pattern file, please use option \"-patterns\"" + "\033[0m");
+                logger.info("\033[92m" + "Use option \"-help\" for more information"  + "\033[0m");
                 System.exit(1);
             }
             else{
-                patternFile = cli.getOptionValue("patterns");
+                patternFile = cli.getOptionValue("pattenrs");
+                logger.info(String.format("The pattern file is \"%s\"", patternFile));
             }
             // mfunc file
             String mfuncFile = null;
             if(!cli.hasOption("mfuncs")){
-                logger.warn("No specified mfunctions");
+                logger.info("No specified mfunction file");
             }
             else{
                 mfuncFile = cli.getOptionValue("mfuncs");
+                logger.info(String.format("The mfunction file is \"%s\"", mfuncFile));
             }
             // data file [offline]
             String dataFile = null;
             if(checkingMode.equalsIgnoreCase("offline")){
                 //data file
                 if(!cli.hasOption("data")){
-                    logger.error("\033[91m" + "The data file cannot be empty in offline mode" + "\033[0m");
-                    helpFormatter.printHelp("java -jar INFUSE-version.jar [Options]", options);
+                    logger.error("\033[91m" + "No specified data file in offline mode, please use option \"-data\"" + "\033[0m");
+                    logger.info("\033[92m" + "Use option \"-help\" for more information"  + "\033[0m");
                     System.exit(1);
                 }
                 else{
                     dataFile = cli.getOptionValue("data");
+                    logger.info(String.format("The data file is \"%s\"", dataFile));
+                }
+            }
+            else{
+                if(cli.hasOption("data")){
+                    logger.error("\033[91m" + "Cannot specify data file in online mode" + "\033[0m");
+                    logger.info("\033[92m" + "Use option \"-help\" for more information"  + "\033[0m");
+                    System.exit(1);
                 }
             }
             // data type
             String dataType = null;
             if(!cli.hasOption("datatype")){
-                dataType = defaultDataType;
-                logger.info("\033[92m" + "The default data type is \"" + defaultDataType + "\"\033[0m");
+                logger.error("\033[91m" + "No specified data type, please use option \"-datatype\", available datatypes: [rawData/change]" + "\033[0m");
+                logger.info("\033[92m" + "Use option \"-help\" for more information"  + "\033[0m");
+                System.exit(1);
             }
             else{
                 dataType = cli.getOptionValue("datatype");
+                if(!dataType.equals("rawData") && !dataType.equals("change")){
+                    logger.error("\033[91m" + "The data type is illegal, available datatypes: [rawData/change]" + "\033[0m");
+                    logger.info("\033[92m" + "Use option \"-help\" for more information"  + "\033[0m");
+                    System.exit(1);
+                }
             }
             // isMG or not
             boolean isMG = cli.hasOption("mg");
+            logger.info(String.format("Minimizing link generation is %s", isMG ? "on" : "off"));
             // incs
             String incs = null;
             if(!cli.hasOption("incs")){
                 incs = incOut;
-                logger.info("\033[92m" + "The default inconsistency file is \"" + incOut + "\"\033[0m");
+                logger.info("The default inconsistency file is \"" + incOut + "\"");
             }
             else{
                 incs = cli.getOptionValue("incs");
+                logger.info(String.format("The inconsistency file is \"%s\"", incs));
             }
 //            // fixedData
 //            String fixedData = null;
@@ -395,7 +418,7 @@ java -jar INFUSE.jar
                 OfflineStarter offlineStarter = new OfflineStarter();
                 offlineStarter.start(approach, ruleFile, bfuncFile, patternFile, mfuncFile, dataFile, dataType, isMG, incs, null, "run");
                 long totalTime = System.nanoTime() - startTime;
-                logger.info("Checking Approach: " + approach +  "\tData: " + dataFile +  "\t\033[92m" + totalTime / 1000000L + " ms\033[0m");
+                logger.info("\033[92m" + "Time cost: " + totalTime / 1000000L + " ms\033[0m");
             }
             else if(checkingMode.equalsIgnoreCase("online")){
                 OnlineStarter onlineStarter = new OnlineStarter();
@@ -461,3 +484,4 @@ java -jar INFUSE.jar
     }
 
 }
+
