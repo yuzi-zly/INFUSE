@@ -341,7 +341,12 @@ public class OfflineStarter implements Loggable {
             OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
             BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
             for(Rule rule : ruleHandler.getRuleMap().values()){
-                bufferedWriter.write(rule.getCCTRoot().show(0, checker.getPrevSubstantialNodes(), null));
+                if(rule.getCCTRoot().isTruth()){
+                    bufferedWriter.write(rule.getCCTRoot().show(0, new HashSet<>(), null));
+                }
+                else{
+                    bufferedWriter.write(rule.getCCTRoot().show(0, checker.getSubstantialNodes().get(rule.getRule_id()), null));
+                }
                 bufferedWriter.write("\n");
                 bufferedWriter.flush();
             }

@@ -187,7 +187,7 @@ public class OnlineStarter implements Loggable {
                 e.printStackTrace();
             }
             logger.info("Build datagramSocket (localhost:6244) successfully.");
-            //logger.info("Checking starts at " + new Date(System.currentTimeMillis()));
+            logger.info("Checking starts at " + new Date(System.currentTimeMillis()));
 
             while(true){
                 ContextChange contextChange = null;
@@ -228,7 +228,7 @@ public class OnlineStarter implements Loggable {
                 datagramSocket.receive(datagramPacket);
                 oldTime_gen = System.currentTimeMillis();
                 String line = new String(datagramPacket.getData(), datagramPacket.getOffset(), datagramPacket.getLength(), StandardCharsets.UTF_8);
-                logger.info("Receive data \"" + line.trim() + "\"");
+                logger.info("Receive data: \"" + line.trim() + "\"");
 
                 List<ContextChange> changeList = this.contextHandler.generateChanges(line.trim());
                 changeQueue.addAll(changeList);
@@ -239,7 +239,7 @@ public class OnlineStarter implements Loggable {
                     return null;
                 }
                 else{
-                    logger.info("DatagramSocket timeout");
+                    logger.info("DatagramSocket timeout, stop receiving data");
                     try {
                         cleaned = true;
                         List<ContextChange> changeList = this.contextHandler.generateChanges(null);
@@ -250,10 +250,10 @@ public class OnlineStarter implements Loggable {
                     }
                 }
             } catch (ParseException e) {
-                logger.error("SimpleDateFormat failed to parse");
+                logger.error("\033[91m" + "SimpleDateFormat failed to parse" + "\033[0m");
                 e.printStackTrace();
             } catch (Exception e) {
-                logger.error("Fail to generate changes.");
+                logger.error("\033[91m" + "Fail to generate changes" + "\033[0m");
                 e.printStackTrace();
             }
             return null;
