@@ -31,10 +31,10 @@ For example, a physical law  `no one can be in two rooms at the same time` can b
             <forall var="v1" in="pat_room1">
                   <not>
                     <exists var="v2" in="pat_room2">
-                      <bfunction name="samePerson">
+                      <bfunc name="samePerson">
                           <param pos="1" var="v1"/>
                           <param pos="2" var="v2"/>
-                      </bfunction>
+                      </bfunc>
                     </exists>
                   </not>
             </forall>
@@ -43,3 +43,7 @@ For example, a physical law  `no one can be in two rooms at the same time` can b
 
 </rules>
 ```
+
+### Pattern template
+
+Patterns are used to specify some 
