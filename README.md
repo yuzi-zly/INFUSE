@@ -276,6 +276,7 @@ rule_02(VIOLATED,{(v1,2),(v2,3)})
 |`-dataType`|Specify the type of data in dataFile|`argument`|`rawData`,`change`|
 
 > :bell: Option `-data` only can be used under `offline` mode. 
+
 > :bell: INFUSE would build a UDP socket (localhost:6244) for receiving data under `online` mode.
 
 For example, if we want use `INFUSE` approach to check the consistency of data in **data.txt** with rules in **rules.xml**, patterns in **patterns.xml**, bfunctions in **Bfunction.class**, and mfunctions in **Mfunction.class** under `offline` mode with `MG`, we can use the following commands and detected inconsistencies would be output in **incs.txt**.
