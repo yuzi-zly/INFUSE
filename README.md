@@ -22,7 +22,7 @@
 
 Rules are writtern in **first-order logic** style language which contains **seven** formula types. 
 
-For example, a physical law  "*no one can be in two rooms at the same time*" can be writtern as:
+For example, a requirement  "*Subways on the same line should be separated from each other by a certain distance*" can be writtern as:
 
 ```XML
 <!-- rules.xml -->
@@ -33,10 +33,10 @@ For example, a physical law  "*no one can be in two rooms at the same time*" can
     <rule>
         <id>rule_02</id> <!-- unique id -->
         <formula>
-            <forall var="v1" in="pat_room1">
+            <forall var="v1" in="pat_metro1">
                   <not>
-                    <exists var="v2" in="pat_room2">
-                      <bfunc name="samePerson">
+                    <exists var="v2" in="pat_metro2">
+                      <bfunc name="dangerousDistance">
                           <param pos="1" var="v1"/>
                           <param pos="2" var="v2"/>
                       </bfunc>
@@ -51,7 +51,7 @@ For example, a physical law  "*no one can be in two rooms at the same time*" can
 
 ### Pattern Template
 
-Patterns (e.g., pat_room1 and pat_room2 in rule template) are used in `forall` and `exists` formulas to show what kind of context the rule is interested in.
+Patterns (e.g., pat_metro1 and pat_metro2 in rule template) are used in `forall` and `exists` formulas to show what kind of context the rule is interested in.
 
 Each pattern requires a `freshness` and a `matcher` that specify **how long a context stays in this pattern** and **which context can be added into it**, respectively.
 
@@ -74,7 +74,7 @@ Each pattern requires a `freshness` and a `matcher` that specify **how long a co
 ```
 
 - `matcher` is an **optional** component. If it is not explicitly writtern, **every context matches this pattern**, otherwise there are two explicit matcher types `function` and `primaryKey`.
-  - `function` matcher requires a `functionName` and an `extraArumentList` (please read [mfunction](#mfunc) part for more information)
+  - `function` matcher requires a `functionName` and an `extraArumentList`(optional) (please read [mfunction](#mfunc) part for more information)
   - `primaryKey` matcher requires a `primaryKey` and an `optionalValueList`
 
 ```XML
@@ -101,7 +101,7 @@ Each pattern requires a `freshness` and a `matcher` that specify **how long a co
 </matcher>
 ```
 
-For example, pattern `pat_car` only interests in red cars with 500ms freshness can be writtern as:
+For example, pattern `pat_metro1` only interests in the latest record of running subways can be writtern as:
 
 ```XML
 <!-- patterns.xml -->
@@ -110,16 +110,16 @@ For example, pattern `pat_car` only interests in red cars with 500ms freshness c
 <patterns>
 
     <pattern>
-        <id>pat_car</id> <!-- unique id -->
+        <id>pat_metro1</id> <!-- unique id -->
         <freshness> <!-- how long a context stays in this pattern -->
-            <type>time</type> 
-            <value>500</value>
+            <type>number</type> 
+            <value>1</value>
         </freshness>
         <matcher> <!-- which context can be added into this pattern -->
               <type>primaryKey</type>
-              <primaryKey>car_color</primaryKey>
+              <primaryKey>metro_status</primaryKey>
               <optionalValueList> 
-                <value>red</value>
+                <value>running</value>
               </optionalValueList>
         </matcher>
     </pattern>
