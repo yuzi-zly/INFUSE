@@ -2,7 +2,7 @@
   INFUSE
 </h1>
 
-<p align="center">A <b>general constraint checking enginel</b> for data consistency.</p>
+<p align="center">A <b>general constraint checking engine</b> for data consistency.</p>
 
 ## 🚩 Tutorial
 
@@ -10,7 +10,7 @@
 
 2. Write your own rules and patterns in **rules.xml** and **patterns.xml** according to their [templates](#templates).
 
-3. Write your own **bfunctions** and **mfunctions** ([Dynamic loaded functions](#dynamic)) in **java** and compile them into **class**.
+3. Write your own **bfunctions** and **mfunctions** ([Dynamic loaded functions](#dynamic)) in **java** and compile them into **class** file.
 
 4. Convert your data into [standard data formats]().
 
@@ -49,6 +49,8 @@ For example, a requirement  "*Subways on the same line should be separated from 
 </rules>
 ```
 
+
+
 ### Pattern Template
 
 Patterns (e.g., pat_metro1 and pat_metro2 in rule template) are used in `forall` and `exists` formulas to show what kind of context the rule is interested in.
@@ -74,7 +76,7 @@ Each pattern requires a `freshness` and a `matcher` that specify **how long a co
 ```
 
 - `matcher` is an **optional** component. If it is not explicitly writtern, **every context matches this pattern**, otherwise there are two explicit matcher types `function` and `primaryKey`.
-  - `function` matcher requires a `functionName` and an `extraArumentList`(optional) (please read [mfunction](#mfunc) part for more information)
+  - `function` matcher requires a `functionName` and an `extraArumentList`[optional] (please read [mfunction](#mfunc) part for more information)
   - `primaryKey` matcher requires a `primaryKey` and an `optionalValueList`
 
 ```XML
