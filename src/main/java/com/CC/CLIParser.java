@@ -99,7 +99,7 @@ public class CLIParser implements Loggable {
                 .argName("file")
                 .hasArg()
                 .required(false)
-                .desc("Read data from given file (JSON file)")
+                .desc("Read data from given file")
                 .build();
 
         Option opt_dt = Option.builder("datatype")

@@ -2,11 +2,11 @@
   INFUSE
 </h1>
 
-<p align="center">A <b>general constraint checking engine</b> for data consistency.<br/><br/>For more technique details, please refer to our <a href="#papers">papers</a>.</p>
+<p align="center">A <b>general constraint checking engine</b> for data consistency.<br/><br/>For more technique details, please refer to <a href="#papers">papers</a>.</p>
 
 ## :round_pushpin: Start
 
-1. Download [INFUSE_v2.1.jar]() into your work directory.
+1. Download [INFUSE_v2.1.jar](https://github.com/yuzi-zly/INFUSE/releases/tag/v2.1) into your work directory.
 
 2. Write your own rules and patterns in [rules.xml](#rule) and [patterns.xml](#pattern).
 
@@ -14,7 +14,7 @@
 
 4. Convert your data into [standard data formats](#dataFormat).
 
-5. run INFUSE with [options](#options) to start checking. 
+5. Run INFUSE with [options](#options) to start checking. 
 
 ## :scroll: Templates
 
@@ -229,11 +229,20 @@ Then, compile the java file to class file.
 
 ### Input Data
 
+#### Raw Data
+
 One piece of input data follows **json** format. It consists of `timestamp` and `fields`, where the timestamp follows `yyyy-MM-dd HH:mm:ss:SSS` format and the fields contain data values with different keys.
 
 ```json
-{"timestamp": "2011-04-08 04:00:00:000", "fields" : {"field1": value1, ...}}
-...
+{"timestamp": "2011-04-08 04:00:00:000", "fields" : {"key1": "value1", ...}}
+```
+
+#### Context Changes
+
+INFUSE also supports change-type input data, the format of which is as follows.
+
+```json
+{ "changeType": "+", "patternId": "pat_1", "context": { "contextId": "ctx_1", "fields": { "key1": "value1",...}}}
 ```
 
 ### Output Data
@@ -255,11 +264,31 @@ rule_02(VIOLATED,{(v1,2),(v2,3)})
 |Option|Description|Type|Available candidates| 
 |:---:|:---:|:---:|:---:|
 |`-help`|Print the usage|`bool`|None|
+|`-mode`|Run under the given mode|`argument`|`offline`, `online`|
 |`-approach`|Use the specified approach for checking|`argument`|`ECC+IMD`,`ECC+GEAS_ori`,`PCC+IMD`,`PCC+GEAS_ori`,`ConC+IMD`,`ConC+GEAS_ori`,`INFUSE`|
+|`-rules`|Load rules from given file (XML file)|`argument`|None|
+|`-bfuncs`|Load bfunctions from given file (Class file)|`argument`|None|
+|`-patterns`|Load patterns from given file (XML file)|`argument`|None|
+|`-mfuncs`|Load mfunctions from given file (Class file)|`argument`|None|
+|`-mg`|Enable link generation minimization|`bool`|None|
+|`-incs`|Write detected inconsistencies to given file|`argument`|None|
+|`-data`|Read data from given file (only under `offline` mode)|`argument`|None|
+|`-dataType`|Specify the type of data in dataFile|`argument`|`rawData`,`change`|
 
+> :bell: Option `-data` only can be used under `offline` mode. 
+> :bell: INFUSE would build a UDP socket (localhost:6244) for receiving data under `online` mode.
 
+For example, if we want use `INFUSE` approach to check the consistency of data in **data.txt** with rules in **rules.xml**, patterns in **patterns.xml**, bfunctions in **Bfunction.class**, and mfunctions in **Mfunction.class** under `offline` mode with `MG`, we can use the following commands and detected inconsistencies would be output in **incs.txt**.
 
+```shell
+java -jar INFUSE_v2.1.jar -mode offline -approach INFUSE -data data.txt -dataType rawData -rules rules.xml -patterns patterns.xml -bfuncs Bfunction.class -mfuncs Mfunction.class -mg -incs incs.txt 
+```
 
-## :bookmark_tabs: <span id="papers">Papers</span>
+## :bookmark_tabs: <span id="papers">Main Papers</span>
 
-- 
+- [ISSRE'22] [Minimizing Link Generation in Constraint Checking for Context Inconsistency Detection](https://lyzhang.site/publications/ISSRE22.pdf)
+- [ICSME'22] [INFUSE: Towards Efficient Context Consistency by Incremental-Concurrent Check Fusion](https://lyzhang.site/publications/ICSME22.pdf)
+- [TSE'21] [Generic Adaptive Scheduling for Efficient Context Inconsistency Detection](http://www.why.ink:8080/static/publications/TSE_2020.pdf)
+- [ICSME'17] [GEAS: Generic Adaptive Scheduling for High-efficiency Context Inconsistency Detection](https://cs.nju.edu.cn/changxu/1_publications/17/ICSME17.pdf)
+- [SCIS'13] [Towards Context Consistency by Concurrent Checking for Internetware Applications. Science](https://cs.nju.edu.cn/changxu/1_publications/13/SCIS13.pdf)
+- [TOSEM'10] [Partial Constraint Checking for Context Consistency in Pervasive Computing](https://cs.nju.edu.cn/changxu/1_publications/10/TOSEM10.pdf)
