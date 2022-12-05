@@ -6,7 +6,7 @@
 
 ## :round_pushpin: Start
 
-1. Download [INFUSE_v2.1.jar](https://github.com/yuzi-zly/INFUSE/releases/tag/v2.1_release) into your work directory.
+1. Download [INFUSE_v1.0_stable_jdk11.jar](https://github.com/yuzi-zly/INFUSE/releases/tag/v1.0_stable) into your work directory.
 
 2. Write your own rules and patterns in [rules.xml](#rule) and [patterns.xml](#pattern).
 
