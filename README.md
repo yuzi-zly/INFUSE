@@ -10,7 +10,7 @@
 
 2. Write your own rules and patterns in [rules.xml](#rule) and [patterns.xml](#pattern).
 
-3. Write your own [bfunctions](#bfunc) and [mfunctions](#mfunc) in **java** and compile them into **class** file (e.g., Bfunction.class and Mfunction.class).
+3. Write your own [bfunctions](#bfunc) and [mfunctions](#mfunc) in **java** and compile them into **class** files (e.g., Bfunction.class and Mfunction.class).
 
 4. Convert your data into [standard data formats](#dataFormat).
 
