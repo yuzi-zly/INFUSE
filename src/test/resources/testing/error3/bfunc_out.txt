@@ -1,8 +1,0 @@
-#random_1
-@v1
-(1) false
-(2) true
-#random_2
-@v2
-(4) false
-(3) false
