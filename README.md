@@ -57,7 +57,7 @@ Syntax for `and`, `or` and `implies` formula is as follows:
   <formula2> ... </formula2> <!-- formula1 can be all seven types -->
 </and>
 ```
-
+> :bell: Please make sure that every [pattern](#pattern) (e.g., pat_metro1) is **only used once** in the rule file, otherwise some errors may occur while using specific options like `-approach PCC+IMD`.
 
 ### <span id="pattern"> Pattern Template </span>
 
