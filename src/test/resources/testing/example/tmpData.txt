@@ -1,7 +1,0 @@
-{"changeType":"+","patternId":"pat_1","context":{"contextId":"ctx_1","fields":{"key1":"string_value","key2":3.14,"key3":2}}}
-{"changeType":"+","patternId":"pat_1","context":{"contextId":"ctx_2","fields":{"key1":"string_value2","key2":3.1415,"key3":-2}}}
-{"changeType":"+","patternId":"pat_2","context":{"contextId":"ctx_3","fields":{"key5":333,"key4":222}}}
-{"changeType":"+","patternId":"pat_2","context":{"contextId":"ctx_4","fields":{"key5":555,"key4":444}}}
-{"changeType":"+","patternId":"pat_2","context":{"contextId":"ctx_5","fields":{"key5":777,"key4":666}}}
-{"changeType":"+","patternId":"pat_3","context":{"contextId":"ctx_6","fields":{"key6":"A"}}}
-{"changeType":"+","patternId":"pat_3","context":{"contextId":"ctx_7","fields":{"key6":"B"}}}

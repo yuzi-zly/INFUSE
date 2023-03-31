@@ -4,6 +4,10 @@ import org.junit.jupiter.api.Test;
 
 public class TestingTest {
 
+
+    @Test
+    void mgerrorTest(){CLIParserTest.testTesting("INFUSE", "mgerror1");}
+
     @Test
     void exampleTest(){
         CLIParserTest.testTesting("INFUSE", "example");
