@@ -16,6 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
@@ -504,7 +505,7 @@ java -jar INFUSE.jar
 
         String cpStr = FileUtils.readFileToString(new File(contextPool), StandardCharsets.UTF_8);
         JSONArray cpArray = (JSONArray) JSON.parse(cpStr);
-        shuffleJSONArray(cpArray);
+        //cpArray = shuffleJSONArray(cpArray);
         for(Object patObj : cpArray){
             JSONObject patJsonObj = (JSONObject) patObj;
             String patternId = patJsonObj.getString("pat_id");
@@ -561,7 +562,7 @@ java -jar INFUSE.jar
             // 5. add origin elements
             for(JSONObject jsonObject : originChanges){
                 jsonObject.replace("changeType", "+");
-                dataWriter.write(jsonObject.toJSONString() + "\n");
+                dataBufferWriter.write(jsonObject.toJSONString() + "\n");
             }
 
         }
@@ -582,17 +583,17 @@ java -jar INFUSE.jar
         return parent;
     }
 
-    private static void shuffleJSONArray(JSONArray jsonArray){
-        // Implementing Fisher–Yates shuffle
-        Random rnd = new Random();
-        for (int i = jsonArray.size() - 1; i >= 0; i--)
-        {
-            int j = rnd.nextInt(i + 1);
-            // Simple swap
-            Object object = jsonArray.get(j);
-            jsonArray.add(j, jsonArray.get(i));
-            jsonArray.add(i, object);
+    private static JSONArray shuffleJSONArray(JSONArray jsonArray){
+        JSONArray shuffledArray = new JSONArray();
+        List<Integer> indexList = new ArrayList<>();
+        for(int i = 0; i < jsonArray.size(); ++i){
+            indexList.add(i);
         }
+        Collections.shuffle(indexList);
+        for(int index : indexList){
+            shuffledArray.add(jsonArray.get(index));
+        }
+        return shuffledArray;
     }
 }
 

@@ -1,0 +1,24 @@
+[
+  {
+    "pat_id": "pat_1",
+    "contexts": [
+      {
+        "ctx_id": "1",
+        "fields": {
+          "data": "1"
+        }
+      }
+    ]
+  },
+  {
+    "pat_id": "pat_2",
+    "contexts": [
+      {
+        "ctx_id": "2",
+        "fields": {
+          "data": "2"
+        }
+      }
+    ]
+  }
+]

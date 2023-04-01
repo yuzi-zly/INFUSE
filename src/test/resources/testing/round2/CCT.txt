@@ -1,0 +1,7 @@
+("SCCT F exists v1 pat_1"
+    "v1=1"@("F or"
+        ("F bfunc random_26")
+        ("F bfunc random_27")
+    )
+)
+

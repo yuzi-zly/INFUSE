@@ -1,0 +1,5 @@
+{"changeType":"+","patternId":"pat_1","context":{"contextId":"0","fields":{"data":"0"}}}
+{"changeType":"+","patternId":"pat_1","context":{"contextId":"1","fields":{"data":"1"}}}
+{"changeType":"-","patternId":"pat_1","context":{"contextId":"0","fields":{"data":"0"}}}
+{"changeType":"-","patternId":"pat_1","context":{"contextId":"1","fields":{"data":"1"}}}
+{"changeType":"+","patternId":"pat_1","context":{"contextId":"1","fields":{"data":"1"}}}

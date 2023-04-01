@@ -4,6 +4,13 @@ import org.junit.jupiter.api.Test;
 
 public class TestingTest {
 
+    @Test
+    void round2Test(){CLIParserTest.testTesting("PCC+IMD", "round2");}
+    @Test
+    void round1Test(){CLIParserTest.testTesting("ECC+IMD", "round1");}
+
+    @Test
+    void round0Test(){CLIParserTest.testTesting("ECC+IMD", "round0");}
 
     @Test
     void mgerrorTest(){CLIParserTest.testTesting("INFUSE", "mgerror1");}

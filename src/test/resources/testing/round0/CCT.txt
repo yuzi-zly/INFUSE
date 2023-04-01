@@ -1,0 +1,9 @@
+("SCCT F implies"
+    ("SCCT T forall v1 pat_1"
+        "v1=1"@("T bfunc random_28")
+    )
+    ("SCCT F exists v2 pat_2"
+        "v2=2"@("F bfunc random_29")
+    )
+)
+

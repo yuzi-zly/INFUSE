@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+
+<patterns>
+
+<pattern>
+<id>pat_1</id>
+<freshness>
+<type>number</type>
+<value>1</value>
+</freshness></pattern>
+
+</patterns>
