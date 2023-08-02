@@ -92,7 +92,7 @@ public class CLIParser implements Loggable {
                 .desc("Load patterns from given file (XML file)")
                 .build();
 
-        Option opt_mf = Option.builder("mfunc")
+        Option opt_mf = Option.builder("mfuncs")
                 .argName("file")
                 .hasArg()
                 .required(false)
@@ -345,7 +345,7 @@ java -jar INFUSE.jar
                 System.exit(1);
             }
             else{
-                patternFile = cli.getOptionValue("pattenrs");
+                patternFile = cli.getOptionValue("patterns");
                 logger.info(String.format("The pattern file is \"%s\"", patternFile));
             }
             // mfunc file
