@@ -127,7 +127,7 @@ java -jar INFUSE.jar
 -bfuncs bfuncs.class
 -patterns patterns.xml
 -data data.txt
--runtype S1
+-runtype highwayQ3
 -mg
 -incs incs.json
  */

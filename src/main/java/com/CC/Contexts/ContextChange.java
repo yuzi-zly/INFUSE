@@ -20,6 +20,10 @@ public class ContextChange {
         this.context = context;
     }
 
+    public void setAtomicGroup(int atomicGroup) {
+        this.atomicGroup = atomicGroup;
+    }
+
     public void setPattern_id(String pattern_id) {
         this.pattern_id = pattern_id;
     }
@@ -34,6 +38,10 @@ public class ContextChange {
 
     public String getPattern_id() {
         return pattern_id;
+    }
+
+    public int getAtomicGroup() {
+        return atomicGroup;
     }
 
     @Override

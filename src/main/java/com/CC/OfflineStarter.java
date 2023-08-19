@@ -3,17 +3,12 @@ package com.CC;
 import com.CC.Constraints.Rules.Rule;
 import com.CC.Constraints.Rules.RuleHandler;
 import com.CC.Constraints.Runtime.Link;
-import com.CC.Contexts.Context;
-import com.CC.Contexts.ContextChange;
-import com.CC.Contexts.ContextHandler;
-import com.CC.Contexts.ContextPool;
+import com.CC.Contexts.*;
 import com.CC.Middleware.Checkers.*;
 import com.CC.Middleware.Schedulers.*;
 import com.CC.Patterns.PatternHandler;
+import com.CC.Patterns.Q3PatternHandler;
 import com.CC.Util.Loggable;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.JSONWriter;
 
 import java.io.*;
 import java.lang.reflect.Constructor;
@@ -62,6 +57,14 @@ public class OfflineStarter implements Loggable {
         this.ruleHandler = new RuleHandler();
         // use switch to create specific patternHandler and contextHandler
         // ...
+        switch (runType){
+            case "highwayQ3" :{
+                this.patternHandler = new Q3PatternHandler();
+                this.contextHandler = new Q3ContextHandler(patternHandler);
+                break;
+            }
+            default: assert false;
+        }
 
         this.contextPool = new ContextPool();
 
@@ -94,6 +97,11 @@ public class OfflineStarter implements Loggable {
                 technique = "INFUSE_C";
                 schedule = "INFUSE_S";
             }
+        }
+
+        if(runType.equals("highwayQ3")){
+            technique = "PCC";
+            schedule = "Q3";
         }
 
         logger.debug("Checking technique is " + technique + ", scheduling strategy is " + schedule + ", with MG " + (isMG ? "on" : "off"));
@@ -132,6 +140,9 @@ public class OfflineStarter implements Loggable {
                 break;
             case "INFUSE_S":
                 this.scheduler = new INFUSE_S(ruleHandler, contextPool, checker);
+                break;
+            case "Q3":
+                this.scheduler = new Q3(ruleHandler, contextPool, checker);
                 break;
         }
 
@@ -211,7 +222,58 @@ public class OfflineStarter implements Loggable {
     }
 
     private void incsOutput() throws Exception {
-        if(runType.equalsIgnoreCase("run")){
+        if(runType.equals("highwayQ3")){
+            String dir = "src/test/resources/highwayQ3/answers";
+            File dirFile = new File(dir);
+            if(!dirFile.exists() && !dirFile.isDirectory()){
+                boolean mkdirflag = dirFile.mkdirs();
+                System.err.println("mkdirs: " + mkdirflag);
+            }
+            String ansFile = dir + "/answer_" + patternFile.charAt(patternFile.indexOf("_") + 1) + ".txt";
+            System.out.println(ansFile);
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(new FileOutputStream(ansFile), StandardCharsets.UTF_8);
+            BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
+            bufferedWriter.write("oldpassid,passid,stationid,stationtype,time,vehicleid\n");
+            bufferedWriter.flush();
+
+            for(List<Map.Entry<Boolean, Set<Link>>> answers : this.checker.getRuleLinksMap().values()){
+                //累计每一次的link，分为violated和satisfied(and or implies 两种都可能会有)
+                Set<Link> accumVioLinks = new HashSet<>();
+                Set<Link> accumSatLinks = new HashSet<>();
+                for(Map.Entry<Boolean, Set<Link>> resultEntry : answers){
+                    if(resultEntry.getKey()){
+                        accumSatLinks.addAll(resultEntry.getValue());
+                    }
+                    else{
+                        accumVioLinks.addAll(resultEntry.getValue());
+                    }
+                }
+
+                for(Link link : accumVioLinks){
+                    Context context1 = null, context2 = null;
+                    for(Map.Entry<String, Context> va : link.getVaSet()){
+                        if(va.getKey().equals("v1")){
+                            context1 = va.getValue();
+                        }
+                        if(va.getKey().equals("v2")){
+                            context2 = va.getValue();
+                        }
+                    }
+                    assert context1 != null && context2 != null;
+                    String str = context2.getCtx_fields().get("passId") +
+                            "," + context1.getCtx_fields().get("passId") +
+                            "," + context1.getCtx_fields().get("stationId") +
+                            "," + context1.getCtx_fields().get("flowType") +
+                            "," + context1.getCtx_fields().get("timeString") +
+                            "," + context1.getCtx_fields().get("vlp") + "-" + context1.getCtx_fields().get("vlpc");
+                    bufferedWriter.write(str + "\n");
+                    bufferedWriter.flush();
+                }
+            }
+            bufferedWriter.close();
+            outputStreamWriter.close();
+        }
+        else if(runType.equalsIgnoreCase("taxi")){
             OutputStream outputStream = Files.newOutputStream(Paths.get(incOutFile));
             OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
             BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
@@ -261,58 +323,6 @@ public class OfflineStarter implements Loggable {
             bufferedWriter.close();
             outputStreamWriter.close();
             outputStream.close();
-        }
-        else if (runType.equalsIgnoreCase("test")){
-            JSONObject root = new JSONObject();
-            Map<String, List<Map.Entry<Boolean, Set<Link>>>> ruleLinksMap = this.checker.getRuleLinksMap();
-            for(Rule rule : this.ruleHandler.getRuleMap().values()){
-                String rule_id = rule.getRule_id();
-                if(ruleLinksMap.containsKey(rule_id)){
-                    JSONObject ruleJsonObj = new JSONObject();
-                    Map.Entry<Boolean, Set<Link>> latestResult = ruleLinksMap.get(rule_id).get(ruleLinksMap.get(rule_id).size() - 1);
-                    ruleJsonObj.put("truth", latestResult.getKey());
-                    JSONArray linksJsonArray = new JSONArray();
-                    //links foreach
-                    for(Link link : latestResult.getValue()){
-                        JSONArray linkJsonArray = new JSONArray();
-                        //vaSet foreach
-                        for(Map.Entry<String, Context> vaEntry : link.getVaSet()){
-                            JSONObject vaJsonObj = new JSONObject();
-                            //set var
-                            vaJsonObj.put("var", vaEntry.getKey());
-                            //set value
-                            Context context = vaEntry.getValue();
-                            JSONObject valueJsonObj = new JSONObject();
-                            valueJsonObj.put("ctx_id", context.getCtx_id());
-                            JSONObject fieldsJsonObj = new JSONObject();
-                            //context fields foreach
-                            for(String fieldName : context.getCtx_fields().keySet()){
-                                fieldsJsonObj.put(fieldName, context.getCtx_fields().get(fieldName));
-                            }
-                            valueJsonObj.put("fields", fieldsJsonObj);
-                            vaJsonObj.put("value", valueJsonObj);
-                            //store vaNode
-                            linkJsonArray.add(vaJsonObj);
-                        }
-                        //store linkNode
-                        linksJsonArray.add(linkJsonArray);
-                    }
-                    //store linksNode
-                    ruleJsonObj.put("links", linksJsonArray);
-                    //store ruleNode
-                    root.put(rule_id, ruleJsonObj);
-                }
-                else{
-                    JSONObject ruleJsonObj = new JSONObject();
-                    ruleJsonObj.put("truth", rule.getCCTRoot().isTruth());
-                    ruleJsonObj.put("links", new JSONArray());
-                    root.put(rule_id, ruleJsonObj);
-                }
-            }
-
-            JSONWriter jsonWriter = new JSONWriter(new FileWriter(incOutFile));
-            jsonWriter.writeObject(root);
-            jsonWriter.close();
         }
         else{
             assert false;
