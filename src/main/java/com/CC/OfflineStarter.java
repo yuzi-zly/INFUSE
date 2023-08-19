@@ -36,13 +36,11 @@ public class OfflineStarter implements Loggable {
     private String ruleFile;
     private String bfuncFile;
     private String patternFile;
-    private String mfuncFile;
 
     private String dataFile;
     private String incOutFile;
-    private String dataOrCCTOutFile;
 
-    private String type;
+    private String runType;
 
 
     private RuleHandler ruleHandler;
@@ -53,19 +51,18 @@ public class OfflineStarter implements Loggable {
 
     public OfflineStarter() {}
 
-    public void start(String approach, String ruleFile, String bfuncFile, String patternFile, String mfuncFile, String dataFile, String dataType, boolean isMG, String incOutFile, String dataOutFile, String type){
+    public void start(String approach, String ruleFile, String bfuncFile, String patternFile, String dataFile, boolean isMG, String incOutFile, String runType){
         this.ruleFile = ruleFile;
         this.bfuncFile = bfuncFile;
         this.patternFile = patternFile;
-        this.mfuncFile = mfuncFile;
         this.dataFile = dataFile;
         this.incOutFile = incOutFile;
-        this.dataOrCCTOutFile = dataOutFile;
-        this.type = type;
+        this.runType = runType;
 
         this.ruleHandler = new RuleHandler();
-        this.patternHandler = new PatternHandler();
-        this.contextHandler = new ContextHandler(patternHandler, dataType);
+        // use switch to create specific patternHandler and contextHandler
+        // ...
+
         this.contextPool = new ContextPool();
 
         try {
@@ -146,18 +143,8 @@ public class OfflineStarter implements Loggable {
         try {
             logger.info("Start running......");
             run();
-            if(type.equals("test")){
-                testRunEnd(bfuncInstance);
-            }
+            logger.info("Start outputting incs......");
             incsOutput();
-            if(type.equals("test")){
-                //output CCT
-                cctOutput();
-            }
-            else{
-                //output fixed data
-                //TODO()
-            }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -166,7 +153,7 @@ public class OfflineStarter implements Loggable {
     private void buildRulesAndPatterns() throws Exception {
         this.ruleHandler.buildRules(ruleFile);
         logger.info("Build rules successfully.");
-        this.patternHandler.buildPatterns(patternFile, mfuncFile);
+        this.patternHandler.buildPatterns(patternFile);
         logger.info("Build patterns successfully.");
 
         for(Rule rule : ruleHandler.getRuleMap().values()){
@@ -223,12 +210,8 @@ public class OfflineStarter implements Loggable {
         }
     }
 
-    private void testRunEnd(Object bfuncInstance) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        bfuncInstance.getClass().getMethod("end").invoke(bfuncInstance);
-    }
-
     private void incsOutput() throws Exception {
-        if(type.equalsIgnoreCase("run")){
+        if(runType.equalsIgnoreCase("run")){
             OutputStream outputStream = Files.newOutputStream(Paths.get(incOutFile));
             OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
             BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
@@ -279,7 +262,7 @@ public class OfflineStarter implements Loggable {
             outputStreamWriter.close();
             outputStream.close();
         }
-        else if (type.equalsIgnoreCase("test")){
+        else if (runType.equalsIgnoreCase("test")){
             JSONObject root = new JSONObject();
             Map<String, List<Map.Entry<Boolean, Set<Link>>>> ruleLinksMap = this.checker.getRuleLinksMap();
             for(Rule rule : this.ruleHandler.getRuleMap().values()){
@@ -336,22 +319,4 @@ public class OfflineStarter implements Loggable {
         }
     }
 
-    private void cctOutput() throws Exception {
-        try(OutputStream outputStream = Files.newOutputStream(Paths.get(dataOrCCTOutFile))){
-            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
-            BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
-            for(Rule rule : ruleHandler.getRuleMap().values()){
-                if(rule.getCCTRoot().isTruth()){
-                    bufferedWriter.write(rule.getCCTRoot().show(0, new HashSet<>(), null));
-                }
-                else{
-                    bufferedWriter.write(rule.getCCTRoot().show(0, checker.getSubstantialNodes().get(rule.getRule_id()), null));
-                }
-                bufferedWriter.write("\n");
-                bufferedWriter.flush();
-            }
-            bufferedWriter.close();
-            outputStreamWriter.close();
-        }
-    }
 }

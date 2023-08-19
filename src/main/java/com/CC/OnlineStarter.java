@@ -22,7 +22,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -37,9 +36,7 @@ public class OnlineStarter implements Loggable {
         private final String ruleFile;
         private final String bfuncFile;
         private final String patternFile;
-        private final String mfuncFile;
         private final String incOutFile;
-        private final String dataOutFile;
 
         private final RuleHandler ruleHandler;
         private final PatternHandler patternHandler;
@@ -47,6 +44,7 @@ public class OnlineStarter implements Loggable {
         private final ContextPool contextPool;
         private Scheduler scheduler;
         private Checker checker;
+        private final String runType;
 
         private long oldTime_gen = 0L;
         private long totalTime_gen = 0L;
@@ -55,17 +53,18 @@ public class OnlineStarter implements Loggable {
         private final Queue<ContextChange> changeQueue = new LinkedList<>();
         private boolean cleaned = false;
 
-        public CCEServer(String approach, String ruleFile, String bfuncFile, String patternFile, String mfuncFile, String dataType, boolean isMG, String incOutFile, String dataOutFile) {
+        public CCEServer(String approach, String ruleFile, String bfuncFile, String patternFile, boolean isMG, String incOutFile, String runType) {
             this.ruleFile = ruleFile;
             this.bfuncFile = bfuncFile;
             this.patternFile = patternFile;
-            this.mfuncFile = mfuncFile;
             this.incOutFile = incOutFile;
-            this.dataOutFile = dataOutFile;
+            this.runType = runType;
 
             this.ruleHandler = new RuleHandler();
-            this.patternHandler = new PatternHandler();
-            this.contextHandler = new ContextHandler(patternHandler, dataType);
+            // use switch to create specific patternHandler and contextHandler
+            // ...
+            this.contextHandler = null;
+            this.patternHandler = null;
             this.contextPool = new ContextPool();
 
             try {
@@ -146,7 +145,7 @@ public class OnlineStarter implements Loggable {
         private void buildRulesAndPatterns() throws Exception {
             this.ruleHandler.buildRules(ruleFile);
             logger.info("Build rules successfully");
-            this.patternHandler.buildPatterns(patternFile, mfuncFile);
+            this.patternHandler.buildPatterns(patternFile);
             logger.info("Build patterns successfully");
 
             for(Rule rule : ruleHandler.getRuleMap().values()){
@@ -209,8 +208,6 @@ public class OnlineStarter implements Loggable {
             totalTime_det += System.currentTimeMillis() - oldTime_chk;
 
             incsOutput();
-            //Output fixed data
-            //TODO()
             logger.info("Checking completes at " + new Date(System.currentTimeMillis()) );
             logger.info("TotalTime_gen: " + this.totalTime_gen + " ms\ttotalTime_det: " + this.totalTime_det + " ms\n");
             return null;
@@ -249,9 +246,6 @@ public class OnlineStarter implements Loggable {
                         throw new RuntimeException(ex);
                     }
                 }
-            } catch (ParseException e) {
-                logger.error("\033[91m" + "SimpleDateFormat failed to parse" + "\033[0m");
-                e.printStackTrace();
             } catch (Exception e) {
                 logger.error("\033[91m" + "Fail to generate changes" + "\033[0m");
                 e.printStackTrace();
@@ -344,6 +338,8 @@ public class OnlineStarter implements Loggable {
                     break;
                 }
 
+                //TODO
+
                 JSONObject recordJsonObj = JSON.parseObject(line.trim());
                 long curTime_fake = simpleDateFormat.parse(recordJsonObj.getString("timestamp")).getTime();
                 long curTime_real = System.currentTimeMillis();
@@ -380,9 +376,9 @@ public class OnlineStarter implements Loggable {
     public OnlineStarter() {
     }
 
-    public void start(String approach, String ruleFile, String bfuncFile, String patternFile, String mfuncFile, String dataType, boolean isMG, String incOutFile, String dataOutFile){
+    public void start(String approach, String ruleFile, String bfuncFile, String patternFile, boolean isMG, String incOutFile, String runType){
        //FutureTask<Void> clientTask = new FutureTask<>(new CCEClient("./taxi/data_5_0-1_new.txt"));
-        FutureTask<Void> serverTask = new FutureTask<>(new CCEServer(approach, ruleFile, bfuncFile, patternFile, mfuncFile, dataType, isMG, incOutFile, dataOutFile));
+        FutureTask<Void> serverTask = new FutureTask<>(new CCEServer(approach, ruleFile, bfuncFile, patternFile, isMG, incOutFile, runType));
         //new Thread(clientTask, "Client...").start();
         new Thread(serverTask, "Server...").start();
         try {

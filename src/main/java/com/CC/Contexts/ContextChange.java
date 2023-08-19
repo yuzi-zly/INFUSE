@@ -8,6 +8,8 @@ public class ContextChange {
     private String pattern_id;
     private Context context;
 
+    private int atomicGroup;
+
 
     //setter and getter
     public void setChange_type(Change_Type change_type) {
