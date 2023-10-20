@@ -21,7 +21,7 @@ public class GEAS_opt_s extends GEAS_ori{
 
     @Override
     public void doSchedule(ContextChange contextChange) throws Exception {
-        Batch_FormAndRefine_Serial(contextChange);
+        batchFormAndRefineSerial(contextChange);
         for(Rule rule : ruleHandler.getRuleMap().values()){
             if(rule.getNewBatch() != null){
                 this.checker.ctxChangeCheckBatch(rule, rule.getBatch());
@@ -31,18 +31,18 @@ public class GEAS_opt_s extends GEAS_ori{
         }
     }
 
-    private void Batch_FormAndRefine_Serial(ContextChange newChange){
+    private void batchFormAndRefineSerial(ContextChange newChange){
         for(Rule rule : ruleHandler.getRuleMap().values()){
             if(!rule.getVarPatternMap().containsValue(newChange.getPattern_id()))
                 continue;
 
-            if(S_Condition_Match(rule, newChange)){
+            if(sConditionMatch(rule, newChange)){
                 List<ContextChange> newBatch = new ArrayList<>();
                 newBatch.add(newChange);
                 rule.setNewBatch(newBatch);
             }
             else{
-                ContextChange oriChange = C_Condition_Examine_Serial(rule, newChange);
+                ContextChange oriChange = cConditionExamineSerial(rule, newChange);
                 if(oriChange == null){
                     if(rule.getBatch() != null){
                         rule.getBatch().add(newChange);
@@ -62,13 +62,13 @@ public class GEAS_opt_s extends GEAS_ori{
         }
     }
 
-    private ContextChange C_Condition_Examine_Serial(Rule rule, ContextChange newChange){
+    private ContextChange cConditionExamineSerial(Rule rule, ContextChange newChange){
         if(rule.getBatch() == null)
             return null;
         if(rule.getIncType(newChange).equals("Minus"))
             return null;
         if(newChange.getChange_type() == ContextChange.Change_Type.DELETION){
-            Set<Context> pool = contextPool.GetPoolSet(rule.getRule_id(), newChange.getPattern_id());
+            Set<Context> pool = contextPool.getPoolSet(rule.getRule_id(), newChange.getPattern_id());
             if(!pool.contains(newChange.getContext()))
                 return null;
         }
@@ -85,7 +85,7 @@ public class GEAS_opt_s extends GEAS_ori{
                 continue;
             }
             //examine part2 - sideEffect
-            if(isEffectCancellableEvaluated_sideEffect_Serial(rule, chg, newChange)){
+            if(isEffectCancellableEvaluatedSideEffectSerial(rule, chg, newChange)){
                 return chg;
             }
             else{
@@ -100,27 +100,27 @@ public class GEAS_opt_s extends GEAS_ori{
         ContextChange delChange = chg1.getChange_type() == ContextChange.Change_Type.DELETION ? chg1 : chg2;
         ContextChange addChange = chg1.getChange_type() == ContextChange.Change_Type.ADDITION ? chg1 : chg2;
         //Context Pool
-        Set<Context> Pool = contextPool.GetPoolSet(rule.getRule_id(), delChange.getPattern_id());
+        Set<Context> Pool = contextPool.getPoolSet(rule.getRule_id(), delChange.getPattern_id());
         assert Pool.contains(delChange.getContext());
         Pool.remove(delChange.getContext());
         assert !Pool.contains(addChange.getContext());
         Pool.add(addChange.getContext());
     }
 
-    private boolean isEffectCancellableEvaluated_sideEffect_Serial(Rule rule, ContextChange chg1, ContextChange chg2){
+    private boolean isEffectCancellableEvaluatedSideEffectSerial(Rule rule, ContextChange chg1, ContextChange chg2){
         ContextChange delChange = chg1.getChange_type() == ContextChange.Change_Type.DELETION ? chg1 : chg2;
         ContextChange addChange = chg1.getChange_type() == ContextChange.Change_Type.ADDITION ? chg1 : chg2;
         assert !delChange.equals(addChange);
         if(rule.getCCTRoot() == null)
             return false;
-        return rule.getCCTRoot().getFormula().EvaluationAndEqualSideEffect(rule.getCCTRoot(), rule.getFormula(), null, delChange, addChange, false, this);
+        return rule.getCCTRoot().getFormula().evaluationAndEqualSideEffect(rule.getCCTRoot(), rule.getFormula(), null, delChange, addChange, false, this);
     }
 
     private void sideEffectResolution_Serial(Rule rule, ContextChange chg1, ContextChange chg2){
         assert chg1.getPattern_id().equals(chg2.getPattern_id());
         ContextChange delChange = chg1.getChange_type() == ContextChange.Change_Type.DELETION ? chg1 : chg2;
         ContextChange addChange = chg1.getChange_type() == ContextChange.Change_Type.ADDITION ? chg1 : chg2;
-        rule.getCCTRoot().getFormula().sideEffectResolution(rule.getCCTRoot(), rule.getFormula(), null, delChange, addChange, false, this);
+        rule.getCCTRoot().getFormula().sideeffectresolution(rule.getCCTRoot(), rule.getFormula(), null, delChange, addChange, false, this);
     }
 
 }

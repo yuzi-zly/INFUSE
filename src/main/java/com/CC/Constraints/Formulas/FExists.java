@@ -97,26 +97,26 @@ public class FExists extends Formula{
     }
 
     @Override
-    public Formula FormulaClone() {
+    public Formula formulaClone() {
         return new FExists(this.getVar(), this.getPattern_id());
     }
 
     //S-condition
     @Override
-    public void DeriveIncPlusSet(Set<Map.Entry<ContextChange.Change_Type, String>> incPlusSet) {
+    public void deriveIncPlusSet(Set<Map.Entry<ContextChange.Change_Type, String>> incPlusSet) {
         incPlusSet.add(new AbstractMap.SimpleEntry<>(ContextChange.Change_Type.DELETION, pattern_id));
-        this.subformula.DeriveIncPlusSet(incPlusSet);
+        this.subformula.deriveIncPlusSet(incPlusSet);
     }
 
     @Override
-    public void DeriveIncMinusSet(Set<Map.Entry<ContextChange.Change_Type, String>> incMinusSet) {
+    public void deriveIncMinusSet(Set<Map.Entry<ContextChange.Change_Type, String>> incMinusSet) {
         incMinusSet.add(new AbstractMap.SimpleEntry<>(ContextChange.Change_Type.ADDITION, pattern_id));
-        this.subformula.DeriveIncMinusSet(incMinusSet);
+        this.subformula.deriveIncMinusSet(incMinusSet);
     }
 
     //C-condition
     @Override
-    public boolean EvaluationAndEqualSideEffect(RuntimeNode curNode, Formula originFormula, String var, ContextChange delChange, ContextChange addChange, boolean canConcurrent, Scheduler scheduler) {
+    public boolean evaluationAndEqualSideEffect(RuntimeNode curNode, Formula originFormula, String var, ContextChange delChange, ContextChange addChange, boolean canConcurrent, Scheduler scheduler) {
         boolean result = true;
         if(curNode.getChildren().size() == 0)
             return false;
@@ -129,7 +129,7 @@ public class FExists extends Formula{
                 if(varEnv.get(this.var).equals(delChange.getContext())){//找到了对应分
                     meet_cnt++;
                     boolean tv1 = child.isTruth();
-                    boolean chk_flag = child.getFormula().EvaluationAndEqualSideEffect(child, ((FExists)originFormula).getSubformula(), this.var, delChange, addChange, false, scheduler);
+                    boolean chk_flag = child.getFormula().evaluationAndEqualSideEffect(child, ((FExists)originFormula).getSubformula(), this.var, delChange, addChange, false, scheduler);
                     boolean tv2 = child.isTruth();
                     if(tv1 != tv2){
                         result = false;
@@ -147,7 +147,7 @@ public class FExists extends Formula{
                 for(RuntimeNode child : curNode.getChildren()){
                     assert scheduler instanceof GEAS_opt_c;
                     Future<Boolean> future = ((GEAS_opt_c) scheduler).ThreadPool.submit(
-                            new GEAS_opt_c.EvaluationAndEqualSideEffect_Con(child, ((FExists)originFormula).getSubformula(), delChange, addChange, scheduler)
+                            new GEAS_opt_c.evaluationAndEqualSideEffectCon(child, ((FExists)originFormula).getSubformula(), delChange, addChange, scheduler)
                     );
                     retList.add(future);
                 }
@@ -179,7 +179,7 @@ public class FExists extends Formula{
                 }
                 boolean newTruth = false;
                 for(RuntimeNode child : curNode.getChildren()){
-                    boolean tempresult = child.getFormula().EvaluationAndEqualSideEffect(child, ((FExists)originFormula).getSubformula(), var, delChange, addChange, false, scheduler);
+                    boolean tempresult = child.getFormula().evaluationAndEqualSideEffect(child, ((FExists)originFormula).getSubformula(), var, delChange, addChange, false, scheduler);
                     result = result && tempresult;
                     newTruth = newTruth || child.isTruth();
                 }
@@ -191,7 +191,7 @@ public class FExists extends Formula{
     }
 
     @Override
-    public void sideEffectResolution(RuntimeNode curNode, Formula originFormula, String var, ContextChange delChange, ContextChange addChange, boolean canConcurrent, Scheduler scheduler) {
+    public void sideeffectresolution(RuntimeNode curNode, Formula originFormula, String var, ContextChange delChange, ContextChange addChange, boolean canConcurrent, Scheduler scheduler) {
         if(curNode.getChildren().size() == 0)
             return;
         if(delChange.getPattern_id().equals(this.pattern_id)){
@@ -201,7 +201,7 @@ public class FExists extends Formula{
                 HashMap<String, Context> varEnv = child.getVarEnv();
                 if(varEnv.get(this.var).equals(addChange.getContext())) {
                     meet_cnt++;
-                    child.getFormula().sideEffectResolution(child, ((FExists)originFormula).getSubformula(), this.var, delChange, addChange, false, scheduler);
+                    child.getFormula().sideeffectresolution(child, ((FExists)originFormula).getSubformula(), this.var, delChange, addChange, false, scheduler);
                 }
             }
             assert meet_cnt == 1;
@@ -213,7 +213,7 @@ public class FExists extends Formula{
                 for(RuntimeNode child : curNode.getChildren()){
                     assert scheduler instanceof GEAS_opt_c;
                     Future<Void> future = ((GEAS_opt_c) scheduler).ThreadPool.submit(
-                            new GEAS_opt_c.sideEffectResolution_Con(child, ((FExists)originFormula).getSubformula(), delChange, addChange, scheduler)
+                            new GEAS_opt_c.sideEffectResolutionCon(child, ((FExists)originFormula).getSubformula(), delChange, addChange, scheduler)
                     );
                     retList.add(future);
                 }
@@ -236,7 +236,7 @@ public class FExists extends Formula{
                     curNode.getVarEnv().put(var, delChange.getContext());
                 }
                 for(RuntimeNode child : curNode.getChildren()){
-                    child.getFormula().sideEffectResolution(child, ((FExists)originFormula).getSubformula(), var, delChange, addChange, false, scheduler);
+                    child.getFormula().sideeffectresolution(child, ((FExists)originFormula).getSubformula(), var, delChange, addChange, false, scheduler);
                 }
             }
         }
@@ -244,7 +244,7 @@ public class FExists extends Formula{
 
     //DIS
     @Override
-    public void DeriveRCRESets(boolean from) {
+    public void deriveRCRESets(boolean from) {
         if(from){
             //T to F
             this.rcSet.put(ContextChange.Change_Type.DELETION, new HashSet<RuntimeNode.Virtual_Truth_Type>(){
@@ -272,18 +272,18 @@ public class FExists extends Formula{
                 }
             });
         }
-        this.subformula.DeriveRCRESets(from);
+        this.subformula.deriveRCRESets(from);
     }
 
     //PCC
     @Override
-    public boolean UpdateAffectedWithOneChange(ContextChange contextChange, Checker checker) {
+    public boolean updateAffectedWithOneChange(ContextChange contextChange, Checker checker) {
         if(contextChange.getPattern_id().equals(this.pattern_id)){
             this.setAffected(true);
             return true;
         }
         else{
-            boolean result = this.subformula.UpdateAffectedWithOneChange(contextChange, checker);
+            boolean result = this.subformula.updateAffectedWithOneChange(contextChange, checker);
             this.setAffected(result);
             return result;
         }
@@ -291,30 +291,30 @@ public class FExists extends Formula{
 
     //PCCM && CPCC
     @Override
-    public boolean UpdateAffectedWithChanges(Checker checker) {
-        int AddSetSize = checker.getContextPool().GetAddSetSize(this.pattern_id);
-        int DelSetSize = checker.getContextPool().GetDelSetSize(this.pattern_id);
-        int UpdSetSize = checker.getContextPool().GetUpdSetSize(this.pattern_id);
-        boolean result = this.subformula.UpdateAffectedWithChanges(checker);
+    public boolean updateAffectedWithChanges(Checker checker) {
+        int AddSetSize = checker.getContextPool().getAddSetSize(this.pattern_id);
+        int DelSetSize = checker.getContextPool().getDelSetSize(this.pattern_id);
+        int UpdSetSize = checker.getContextPool().getUpdSetSize(this.pattern_id);
+        boolean result = this.subformula.updateAffectedWithChanges(checker);
         result = result || AddSetSize != 0 || DelSetSize!= 0 || UpdSetSize != 0;
         this.setAffected(result);
         return result;
     }
 
     @Override
-    public void CleanAffected() {
+    public void cleanAffected() {
         this.setAffected(false);
-        this.subformula.CleanAffected();
+        this.subformula.cleanAffected();
     }
 
     //CPCC_NB
     @Override
-    public void UpdateCanConcurrent_CPCC_NB(boolean canConcurrent, Rule rule, Checker checker) {
+    public void updateCanConcurrent_INFUSE(boolean canConcurrent, Rule rule, Checker checker) {
         if(canConcurrent){
-            int PoolSize = checker.getContextPool().GetPoolSetSize(rule.getRule_id(), this.pattern_id);
-            int AddSetSize = checker.getContextPool().GetAddSetSize(this.pattern_id);
-            int DelSetSize = checker.getContextPool().GetDelSetSize(this.pattern_id);
-            int UpdSetSize = checker.getContextPool().GetUpdSetSize(this.pattern_id);
+            int PoolSize = checker.getContextPool().getPoolSetSize(rule.getRule_id(), this.pattern_id);
+            int AddSetSize = checker.getContextPool().getAddSetSize(this.pattern_id);
+            int DelSetSize = checker.getContextPool().getDelSetSize(this.pattern_id);
+            int UpdSetSize = checker.getContextPool().getUpdSetSize(this.pattern_id);
             if(rule.getPatToDepth().get(this.pattern_id) >= 2){
                 int entireNum = AddSetSize + UpdSetSize;
                 int partialNum = PoolSize - DelSetSize - UpdSetSize;
@@ -332,10 +332,10 @@ public class FExists extends Formula{
     }
 
     @Override
-    public void CleanAffectedAndCanConcurrent() {
+    public void cleanAffectedAndCanConcurrent() {
         this.setAffected(false);
         this.setCanConcurrent(false);
-        this.subformula.CleanAffectedAndCanConcurrent();
+        this.subformula.cleanAffectedAndCanConcurrent();
     }
 
     //MG
@@ -354,8 +354,8 @@ public class FExists extends Formula{
                             ECC PCC
                          */
     @Override
-    public void CreateBranches_ECCPCC(String rule_id, RuntimeNode curNode, Formula originFormula, Checker checker) {
-        Set<Context> pool = checker.getContextPool().GetPoolSet(rule_id, this.pattern_id);
+    public void createBranches_ECCPCC(String rule_id, RuntimeNode curNode, Formula originFormula, Checker checker) {
+        Set<Context> pool = checker.getContextPool().getPoolSet(rule_id, this.pattern_id);
         for(Context context : pool){
             RuntimeNode runtimeNode = new RuntimeNode(((FExists)originFormula).getSubformula());
             runtimeNode.setDepth(curNode.getDepth() + 1);
@@ -363,7 +363,7 @@ public class FExists extends Formula{
             runtimeNode.getVarEnv().put(this.var, context);
             curNode.getChildren().add(runtimeNode);
             //递归调用
-            runtimeNode.getFormula().CreateBranches_ECCPCC(rule_id, runtimeNode, ((FExists) originFormula).getSubformula(), checker);
+            runtimeNode.getFormula().createBranches_ECCPCC(rule_id, runtimeNode, ((FExists) originFormula).getSubformula(), checker);
         }
     }
 
@@ -371,10 +371,10 @@ public class FExists extends Formula{
         ECC
      */
     @Override
-    public boolean TruthEvaluation_ECC(RuntimeNode curNode, Formula originFormula, Checker checker)  {
+    public boolean truthEvaluation_ECC(RuntimeNode curNode, Formula originFormula, Checker checker)  {
         boolean result = false;
         for(RuntimeNode child : curNode.getChildren()){
-            boolean tempresult = child.getFormula().TruthEvaluation_ECC(child, ((FExists)originFormula).getSubformula(), checker);
+            boolean tempresult = child.getFormula().truthEvaluation_ECC(child, ((FExists)originFormula).getSubformula(), checker);
             result = result || tempresult;
         }
         curNode.setTruth(result);
@@ -382,13 +382,13 @@ public class FExists extends Formula{
     }
 
     @Override
-    public Set<Link> LinksGeneration_ECC(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
+    public Set<Link> linksGeneration_ECC(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
         Set<Link> result = new HashSet<>();
         LGUtils lgUtils = new LGUtils();
         if(!checker.isMG()) {
             // case 1: !MG --> all
             for(RuntimeNode child : curNode.getChildren()){
-                Set<Link> childLink = child.getFormula().LinksGeneration_ECC(child,((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
+                Set<Link> childLink = child.getFormula().linksGeneration_ECC(child,((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
                 Set<Link> initialSet = new HashSet<>();
                 Link initialLink = new Link(Link.Link_Type.SATISFIED);
                 initialLink.AddVA(this.var, child.getVarEnv().get(this.var));
@@ -402,7 +402,7 @@ public class FExists extends Formula{
             // case 2: MG && true --> true
             for(RuntimeNode child : curNode.getChildren()){
                 if(!child.isTruth()) continue;
-                Set<Link> childLink = child.getFormula().LinksGeneration_ECC(child,((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
+                Set<Link> childLink = child.getFormula().linksGeneration_ECC(child,((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
                 Set<Link> initialSet = new HashSet<>();
                 Link initialLink = new Link(Link.Link_Type.SATISFIED);
                 initialLink.AddVA(this.var, child.getVarEnv().get(this.var));
@@ -440,7 +440,7 @@ public class FExists extends Formula{
     }
 
     @Override
-    public void ModifyBranch_PCC(String rule_id, RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
+    public void modifyBranch_PCC(String rule_id, RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
         if(contextChange.getPattern_id().equals(this.pattern_id)){
             //同一个pattern
             if(contextChange.getChange_type() == ContextChange.Change_Type.ADDITION){
@@ -450,7 +450,7 @@ public class FExists extends Formula{
                 runtimeNode.getVarEnv().put(this.var, contextChange.getContext());
                 curNode.getChildren().add(runtimeNode);
                 //创建下面的分支
-                runtimeNode.getFormula().CreateBranches_ECCPCC(rule_id, runtimeNode, ((FExists) originFormula).getSubformula(), checker);
+                runtimeNode.getFormula().createBranches_ECCPCC(rule_id, runtimeNode, ((FExists) originFormula).getSubformula(), checker);
                 //因为只有一个change，无需对更小的语法结构进行修改
             }
             else{
@@ -460,13 +460,13 @@ public class FExists extends Formula{
         else{
             //不是同一个pattern
             for(RuntimeNode child : curNode.getChildren()){
-                child.getFormula().ModifyBranch_PCC(rule_id, child, ((FExists)originFormula).getSubformula(), contextChange, checker);
+                child.getFormula().modifyBranch_PCC(rule_id, child, ((FExists)originFormula).getSubformula(), contextChange, checker);
             }
         }
     }
 
     @Override
-    public boolean TruthEvaluation_PCC(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
+    public boolean truthEvaluation_PCC(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
         if(!originFormula.isAffected()){
             //no change and affected == false
             return curNode.isTruth();
@@ -477,7 +477,7 @@ public class FExists extends Formula{
                     boolean result = curNode.isTruth();
                     RuntimeNode addchild = curNode.getChildren().get(
                             curNode.getChildren().size() - 1);
-                    boolean res = addchild.getFormula().TruthEvaluation_ECC(addchild, ((FExists)originFormula).getSubformula(), checker);
+                    boolean res = addchild.getFormula().truthEvaluation_ECC(addchild, ((FExists)originFormula).getSubformula(), checker);
                     result = result || res;
                     curNode.setTruth(result);
                     return result;
@@ -494,7 +494,7 @@ public class FExists extends Formula{
            else{
                boolean result = false;
                for(RuntimeNode child : curNode.getChildren()){
-                    boolean res = child.getFormula().TruthEvaluation_PCC(child, ((FExists)originFormula).getSubformula(), contextChange, checker);
+                    boolean res = child.getFormula().truthEvaluation_PCC(child, ((FExists)originFormula).getSubformula(), contextChange, checker);
                     result = result || res;
                }
                curNode.setTruth(result);
@@ -504,7 +504,7 @@ public class FExists extends Formula{
     }
 
     @Override
-    public Set<Link> LinksGeneration_PCC(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
+    public Set<Link> linksGeneration_PCC(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
         Set<Link> result = new HashSet<>();
         LGUtils lgUtils = new LGUtils();
 
@@ -519,7 +519,7 @@ public class FExists extends Formula{
                         if(curNode.getLinks() != null)
                             result.addAll(curNode.getLinks());
                         RuntimeNode addchild = curNode.getChildren().get(curNode.getChildren().size() - 1);
-                        Set<Link> childLink = addchild.getFormula().LinksGeneration_ECC(addchild, ((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
+                        Set<Link> childLink = addchild.getFormula().linksGeneration_ECC(addchild, ((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
                         Set<Link> initialSet = new HashSet<>();
                         Link initialLink = new Link(Link.Link_Type.SATISFIED);
                         initialLink.AddVA(this.var, addchild.getVarEnv().get(this.var));
@@ -542,7 +542,7 @@ public class FExists extends Formula{
                 }
                 else{
                     for(RuntimeNode child : curNode.getChildren()){
-                        Set<Link> childLink =  child.getFormula().LinksGeneration_PCC(child, ((FExists)originFormula).getSubformula(), contextChange, prevSubstantialNodes, checker);
+                        Set<Link> childLink =  child.getFormula().linksGeneration_PCC(child, ((FExists)originFormula).getSubformula(), contextChange, prevSubstantialNodes, checker);
                         Set<Link> initialSet = new HashSet<>();
                         Link initialLink = new Link(Link.Link_Type.SATISFIED);
                         initialLink.AddVA(this.var, child.getVarEnv().get(this.var));
@@ -564,7 +564,7 @@ public class FExists extends Formula{
                 else{
                     for(RuntimeNode child : curNode.getChildren()){
                         if(!child.isTruth()) continue;
-                        Set<Link> childLink =  child.getFormula().LinksGeneration_PCC(child, ((FExists)originFormula).getSubformula(), contextChange, prevSubstantialNodes, checker);
+                        Set<Link> childLink =  child.getFormula().linksGeneration_PCC(child, ((FExists)originFormula).getSubformula(), contextChange, prevSubstantialNodes, checker);
                         Set<Link> initialSet = new HashSet<>();
                         Link initialLink = new Link(Link.Link_Type.SATISFIED);
                         initialLink.AddVA(this.var, child.getVarEnv().get(this.var));
@@ -587,7 +587,7 @@ public class FExists extends Formula{
                                 for(int index = 0; index < curNode.getChildren().size() - 1; ++index){
                                     RuntimeNode child = curNode.getChildren().get(index);
                                     if(!child.isTruth()) continue;
-                                    Set<Link> childLink =  child.getFormula().LinksGeneration_PCC(child, ((FExists)originFormula).getSubformula(), contextChange, prevSubstantialNodes, checker);
+                                    Set<Link> childLink =  child.getFormula().linksGeneration_PCC(child, ((FExists)originFormula).getSubformula(), contextChange, prevSubstantialNodes, checker);
                                     Set<Link> initialSet = new HashSet<>();
                                     Link initialLink = new Link(Link.Link_Type.SATISFIED);
                                     initialLink.AddVA(this.var, child.getVarEnv().get(this.var));
@@ -599,7 +599,7 @@ public class FExists extends Formula{
                         }
                         RuntimeNode addchild = curNode.getChildren().get(curNode.getChildren().size() - 1);
                         if(addchild.isTruth()){
-                            Set<Link> childLink = addchild.getFormula().LinksGeneration_ECC(addchild, ((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
+                            Set<Link> childLink = addchild.getFormula().linksGeneration_ECC(addchild, ((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
                             Set<Link> initialSet = new HashSet<>();
                             Link initialLink = new Link(Link.Link_Type.SATISFIED);
                             initialLink.AddVA(this.var, addchild.getVarEnv().get(this.var));
@@ -620,7 +620,7 @@ public class FExists extends Formula{
                                 result.addAll(res);
                             }
                             else{
-                                Set<Link> childLink = child.getFormula().LinksGeneration_PCC(child, ((FExists) originFormula).getSubformula(), contextChange, prevSubstantialNodes, checker);
+                                Set<Link> childLink = child.getFormula().linksGeneration_PCC(child, ((FExists) originFormula).getSubformula(), contextChange, prevSubstantialNodes, checker);
                                 Set<Link> res = lgUtils.cartesianSet(initialSet, childLink);
                                 result.addAll(res);
                             }
@@ -630,7 +630,7 @@ public class FExists extends Formula{
                 else{
                     for(RuntimeNode child : curNode.getChildren()){
                         if(!child.isTruth()) continue;
-                        Set<Link> childLink =  child.getFormula().LinksGeneration_PCC(child, ((FExists)originFormula).getSubformula(), contextChange, prevSubstantialNodes, checker);
+                        Set<Link> childLink =  child.getFormula().linksGeneration_PCC(child, ((FExists)originFormula).getSubformula(), contextChange, prevSubstantialNodes, checker);
                         Set<Link> initialSet = new HashSet<>();
                         Link initialLink = new Link(Link.Link_Type.SATISFIED);
                         initialLink.AddVA(this.var, child.getVarEnv().get(this.var));
@@ -654,9 +654,9 @@ public class FExists extends Formula{
         ConC
      */
     @Override
-    public void CreateBranches_ConC(String rule_id, RuntimeNode curNode, Formula originFormula, boolean canConcurrent, Checker checker) {
+    public void createBranches_ConC(String rule_id, RuntimeNode curNode, Formula originFormula, boolean canConcurrent, Checker checker) {
         if(canConcurrent){
-            Set<Context> pool = checker.getContextPool().GetPoolSet(rule_id, this.pattern_id);
+            Set<Context> pool = checker.getContextPool().getPoolSet(rule_id, this.pattern_id);
             List<Future<RuntimeNode>> returnNodes = new ArrayList<>();
             for(Context context : pool){
                 assert checker instanceof ConC;
@@ -677,7 +677,7 @@ public class FExists extends Formula{
             }
         }
         else{
-            Set<Context> pool = checker.getContextPool().GetPoolSet(rule_id, this.pattern_id);
+            Set<Context> pool = checker.getContextPool().getPoolSet(rule_id, this.pattern_id);
             for(Context context : pool){
                 RuntimeNode runtimeNode = new RuntimeNode(((FExists)originFormula).getSubformula());
                 runtimeNode.setDepth(curNode.getDepth() + 1);
@@ -685,13 +685,13 @@ public class FExists extends Formula{
                 runtimeNode.getVarEnv().put(this.var, context);
                 curNode.getChildren().add(runtimeNode);
                 //递归调用
-                runtimeNode.getFormula().CreateBranches_ConC(rule_id, runtimeNode, ((FExists) originFormula).getSubformula(), false, checker);
+                runtimeNode.getFormula().createBranches_ConC(rule_id, runtimeNode, ((FExists) originFormula).getSubformula(), false, checker);
             }
         }
     }
 
     @Override
-    public boolean TruthEvaluation_ConC(RuntimeNode curNode, Formula originFormula, boolean canConcurrent, Checker checker) {
+    public boolean truthEvaluation_ConC(RuntimeNode curNode, Formula originFormula, boolean canConcurrent, Checker checker) {
         if(canConcurrent){
             List<Future<Boolean>> truthList = new ArrayList<>();
             for(RuntimeNode child : curNode.getChildren()){
@@ -718,7 +718,7 @@ public class FExists extends Formula{
         else{
             boolean result = false;
             for(RuntimeNode child : curNode.getChildren()){
-                boolean tempresult = child.getFormula().TruthEvaluation_ConC(child, ((FExists)originFormula).getSubformula(), false, checker);
+                boolean tempresult = child.getFormula().truthEvaluation_ConC(child, ((FExists)originFormula).getSubformula(), false, checker);
                 result = result || tempresult;
             }
             curNode.setTruth(result);
@@ -727,7 +727,7 @@ public class FExists extends Formula{
     }
 
     @Override
-    public Set<Link> LinksGeneration_ConC(RuntimeNode curNode, Formula originFormula, boolean canConcurrent, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
+    public Set<Link> linksGeneration_ConC(RuntimeNode curNode, Formula originFormula, boolean canConcurrent, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
         LGUtils lgUtils = new LGUtils();
         if(canConcurrent){
             Map<Integer, Future<Set<Link>>> LSMap = new HashMap<>();
@@ -786,7 +786,7 @@ public class FExists extends Formula{
             if(!checker.isMG()){
                 // case 1: !MG --> all
                 for(RuntimeNode child : curNode.getChildren()){
-                    Set<Link> childLink = child.getFormula().LinksGeneration_ConC(child,((FExists)originFormula).getSubformula(), false, prevSubstantialNodes, checker);
+                    Set<Link> childLink = child.getFormula().linksGeneration_ConC(child,((FExists)originFormula).getSubformula(), false, prevSubstantialNodes, checker);
                     Set<Link> initialSet = new HashSet<>();
                     Link initialLink = new Link(Link.Link_Type.SATISFIED);
                     initialLink.AddVA(this.var, child.getVarEnv().get(this.var));
@@ -800,7 +800,7 @@ public class FExists extends Formula{
                 // case 2: MG && true --> true
                 for(RuntimeNode child : curNode.getChildren()){
                     if(!child.isTruth()) continue;
-                    Set<Link> childLink = child.getFormula().LinksGeneration_ConC(child,((FExists)originFormula).getSubformula(), false, prevSubstantialNodes, checker);
+                    Set<Link> childLink = child.getFormula().linksGeneration_ConC(child,((FExists)originFormula).getSubformula(), false, prevSubstantialNodes, checker);
                     Set<Link> initialSet = new HashSet<>();
                     Link initialLink = new Link(Link.Link_Type.SATISFIED);
                     initialLink.AddVA(this.var, child.getVarEnv().get(this.var));
@@ -839,7 +839,7 @@ public class FExists extends Formula{
     }
 
     @Override
-    public void ModifyBranch_PCCM(String rule_id, RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
+    public void modifyBranch_PCCM(String rule_id, RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
 
         if(contextChange.getPattern_id().equals(this.pattern_id)){
             //同一个pattern
@@ -850,7 +850,7 @@ public class FExists extends Formula{
                 runtimeNode.getVarEnv().put(this.var, contextChange.getContext());
                 curNode.getChildren().add(runtimeNode);
                 //创建下面的分支
-                runtimeNode.getFormula().CreateBranches_ECCPCC(rule_id, runtimeNode, ((FExists) originFormula).getSubformula(), checker);
+                runtimeNode.getFormula().createBranches_ECCPCC(rule_id, runtimeNode, ((FExists) originFormula).getSubformula(), checker);
                 //因为只有一个change，无需对更小的语法结构进行修改
             }
             else{
@@ -860,43 +860,43 @@ public class FExists extends Formula{
         else{
             //不是同一个pattern
             for(RuntimeNode child : curNode.getChildren()){
-                child.getFormula().ModifyBranch_PCCM(rule_id, child, ((FExists)originFormula).getSubformula(), contextChange, checker);
+                child.getFormula().modifyBranch_PCCM(rule_id, child, ((FExists)originFormula).getSubformula(), contextChange, checker);
             }
         }
     }
 
     @Override
-    public boolean TruthEvaluation_PCCM(RuntimeNode curNode, Formula originFormula, Checker checker) {
+    public boolean truthEvaluation_PCCM(RuntimeNode curNode, Formula originFormula, Checker checker) {
         if(!originFormula.isAffected()){
             return curNode.isTruth();
         }
         else{
             if(((FExists)originFormula).getSubformula().isAffected()){
-                int AddSetSize = checker.getContextPool().GetAddSetSize(this.pattern_id);
-                int UpdSetSize = checker.getContextPool().GetUpdSetSize(this.pattern_id);
+                int AddSetSize = checker.getContextPool().getAddSetSize(this.pattern_id);
+                int UpdSetSize = checker.getContextPool().getUpdSetSize(this.pattern_id);
                 boolean result = false;
                 for(int i = 0; i < curNode.getChildren().size() - AddSetSize - UpdSetSize; ++i){
                     RuntimeNode child = curNode.getChildren().get(i);
-                    boolean tempresult = child.getFormula().TruthEvaluation_PCCM(child, ((FExists)originFormula).getSubformula(), checker);
+                    boolean tempresult = child.getFormula().truthEvaluation_PCCM(child, ((FExists)originFormula).getSubformula(), checker);
                     result = result || tempresult;
                 }
                 for(int i = curNode.getChildren().size() - AddSetSize - UpdSetSize; i < curNode.getChildren().size(); ++i){
                     RuntimeNode child = curNode.getChildren().get(i);
-                    boolean tempresult = child.getFormula().TruthEvaluation_ECC(child, ((FExists)originFormula).getSubformula(), checker);
+                    boolean tempresult = child.getFormula().truthEvaluation_ECC(child, ((FExists)originFormula).getSubformula(), checker);
                     result = result || tempresult;
                 }
                 curNode.setTruth(result);
                 return result;
             }
             else{
-                int AddSetSize = checker.getContextPool().GetAddSetSize(this.pattern_id);
-                int DelSetSize = checker.getContextPool().GetDelSetSize(this.pattern_id);
-                int UpdSetSize = checker.getContextPool().GetUpdSetSize(this.pattern_id);
+                int AddSetSize = checker.getContextPool().getAddSetSize(this.pattern_id);
+                int DelSetSize = checker.getContextPool().getDelSetSize(this.pattern_id);
+                int UpdSetSize = checker.getContextPool().getUpdSetSize(this.pattern_id);
                 if(DelSetSize == 0 && UpdSetSize == 0){
                     boolean result = curNode.isTruth();
                     for(int i = curNode.getChildren().size() - AddSetSize; i < curNode.getChildren().size(); ++i){
                         RuntimeNode child = curNode.getChildren().get(i);
-                        boolean tempresult = child.getFormula().TruthEvaluation_ECC(child, ((FExists)originFormula).getSubformula(), checker);
+                        boolean tempresult = child.getFormula().truthEvaluation_ECC(child, ((FExists)originFormula).getSubformula(), checker);
                         result = result || tempresult;
                     }
                     curNode.setTruth(result);
@@ -910,7 +910,7 @@ public class FExists extends Formula{
                     }
                     for(int i = curNode.getChildren().size() - AddSetSize - UpdSetSize; i < curNode.getChildren().size(); ++i){
                         RuntimeNode child = curNode.getChildren().get(i);
-                        boolean tempresult = child.getFormula().TruthEvaluation_ECC(child, ((FExists)originFormula).getSubformula(), checker);
+                        boolean tempresult = child.getFormula().truthEvaluation_ECC(child, ((FExists)originFormula).getSubformula(), checker);
                         result = result || tempresult;
                     }
                     curNode.setTruth(result);
@@ -921,7 +921,7 @@ public class FExists extends Formula{
     }
 
     @Override
-    public Set<Link> LinksGeneration_PCCM(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
+    public Set<Link> linksGeneration_PCCM(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
         Set<Link> result = new HashSet<>();
         LGUtils lgUtils = new LGUtils();
 
@@ -932,11 +932,11 @@ public class FExists extends Formula{
             }
             else{
                 if(((FExists)originFormula).getSubformula().isAffected()){
-                    int AddSetSize = checker.getContextPool().GetAddSetSize(this.pattern_id);
-                    int UpdSetSize = checker.getContextPool().GetUpdSetSize(this.pattern_id);
+                    int AddSetSize = checker.getContextPool().getAddSetSize(this.pattern_id);
+                    int UpdSetSize = checker.getContextPool().getUpdSetSize(this.pattern_id);
                     for(int i = 0; i < curNode.getChildren().size() - AddSetSize - UpdSetSize; ++i){
                         RuntimeNode child = curNode.getChildren().get(i);
-                        Set<Link> childLink = child.getFormula().LinksGeneration_PCCM(child,((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
+                        Set<Link> childLink = child.getFormula().linksGeneration_PCCM(child,((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
                         Set<Link> initialSet = new HashSet<>();
                         Link initialLink = new Link(Link.Link_Type.SATISFIED);
                         initialLink.AddVA(this.var, child.getVarEnv().get(this.var));
@@ -947,7 +947,7 @@ public class FExists extends Formula{
                     }
                     for(int i = curNode.getChildren().size() - AddSetSize - UpdSetSize; i < curNode.getChildren().size(); ++i){
                         RuntimeNode child = curNode.getChildren().get(i);
-                        Set<Link> childLink =  child.getFormula().LinksGeneration_ECC(child,((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
+                        Set<Link> childLink =  child.getFormula().linksGeneration_ECC(child,((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
                         Set<Link> initialSet = new HashSet<>();
                         Link initialLink = new Link(Link.Link_Type.SATISFIED);
                         initialLink.AddVA(this.var, child.getVarEnv().get(this.var));
@@ -958,15 +958,15 @@ public class FExists extends Formula{
                     }
                 }
                 else{
-                    int AddSetSize = checker.getContextPool().GetAddSetSize(this.pattern_id);
-                    int DelSetSize = checker.getContextPool().GetDelSetSize(this.pattern_id);
-                    int UpdSetSize = checker.getContextPool().GetUpdSetSize(this.pattern_id);
+                    int AddSetSize = checker.getContextPool().getAddSetSize(this.pattern_id);
+                    int DelSetSize = checker.getContextPool().getDelSetSize(this.pattern_id);
+                    int UpdSetSize = checker.getContextPool().getUpdSetSize(this.pattern_id);
                     if(DelSetSize == 0 && UpdSetSize == 0){
                         if(curNode.getLinks() != null)
                             result.addAll(curNode.getLinks());
                         for(int i = curNode.getChildren().size() - AddSetSize; i < curNode.getChildren().size(); ++i){
                             RuntimeNode child = curNode.getChildren().get(i);
-                            Set<Link> childLink = child.getFormula().LinksGeneration_ECC(child,((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
+                            Set<Link> childLink = child.getFormula().linksGeneration_ECC(child,((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
                             Set<Link> initialSet = new HashSet<>();
                             Link initialLink = new Link(Link.Link_Type.SATISFIED);
                             initialLink.AddVA(this.var, child.getVarEnv().get(this.var));
@@ -989,7 +989,7 @@ public class FExists extends Formula{
                         }
                         for(int i = curNode.getChildren().size() - AddSetSize - UpdSetSize; i < curNode.getChildren().size(); ++i){
                             RuntimeNode child = curNode.getChildren().get(i);
-                            Set<Link> childLink =  child.getFormula().LinksGeneration_ECC(child,((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
+                            Set<Link> childLink =  child.getFormula().linksGeneration_ECC(child,((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
                             Set<Link> initialSet = new HashSet<>();
                             Link initialLink = new Link(Link.Link_Type.SATISFIED);
                             initialLink.AddVA(this.var, child.getVarEnv().get(this.var));
@@ -1012,7 +1012,7 @@ public class FExists extends Formula{
                 else{
                     for(RuntimeNode child : curNode.getChildren()){
                         if(!child.isTruth()) continue;
-                        Set<Link> childLink = child.getFormula().LinksGeneration_PCCM(child,((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
+                        Set<Link> childLink = child.getFormula().linksGeneration_PCCM(child,((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
                         Set<Link> initialSet = new HashSet<>();
                         Link initialLink = new Link(Link.Link_Type.SATISFIED);
                         initialLink.AddVA(this.var, child.getVarEnv().get(this.var));
@@ -1024,12 +1024,12 @@ public class FExists extends Formula{
             }
             else{
                 if(((FExists)originFormula).getSubformula().isAffected()){
-                    int AddSetSize = checker.getContextPool().GetAddSetSize(this.pattern_id);
-                    int UpdSetSize = checker.getContextPool().GetUpdSetSize(this.pattern_id);
+                    int AddSetSize = checker.getContextPool().getAddSetSize(this.pattern_id);
+                    int UpdSetSize = checker.getContextPool().getUpdSetSize(this.pattern_id);
                     for(int i = 0; i < curNode.getChildren().size() - AddSetSize - UpdSetSize; ++i){
                         RuntimeNode child = curNode.getChildren().get(i);
                         if(!child.isTruth()) continue;
-                        Set<Link> childLink = child.getFormula().LinksGeneration_PCCM(child,((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
+                        Set<Link> childLink = child.getFormula().linksGeneration_PCCM(child,((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
                         Set<Link> initialSet = new HashSet<>();
                         Link initialLink = new Link(Link.Link_Type.SATISFIED);
                         initialLink.AddVA(this.var, child.getVarEnv().get(this.var));
@@ -1040,7 +1040,7 @@ public class FExists extends Formula{
                     for(int i = curNode.getChildren().size() - AddSetSize - UpdSetSize; i < curNode.getChildren().size(); ++i){
                         RuntimeNode child = curNode.getChildren().get(i);
                         if(!child.isTruth()) continue;
-                        Set<Link> childLink =  child.getFormula().LinksGeneration_ECC(child,((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
+                        Set<Link> childLink =  child.getFormula().linksGeneration_ECC(child,((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
                         Set<Link> initialSet = new HashSet<>();
                         Link initialLink = new Link(Link.Link_Type.SATISFIED);
                         initialLink.AddVA(this.var, child.getVarEnv().get(this.var));
@@ -1050,9 +1050,9 @@ public class FExists extends Formula{
                     }
                 }
                 else{
-                    int AddSetSize = checker.getContextPool().GetAddSetSize(this.pattern_id);
-                    int DelSetSize = checker.getContextPool().GetDelSetSize(this.pattern_id);
-                    int UpdSetSize = checker.getContextPool().GetUpdSetSize(this.pattern_id);
+                    int AddSetSize = checker.getContextPool().getAddSetSize(this.pattern_id);
+                    int DelSetSize = checker.getContextPool().getDelSetSize(this.pattern_id);
+                    int UpdSetSize = checker.getContextPool().getUpdSetSize(this.pattern_id);
                     if(DelSetSize == 0 && UpdSetSize == 0){
                         if(curNode.getLinks() != null){
                             // check whether curNode.links reusable
@@ -1063,7 +1063,7 @@ public class FExists extends Formula{
                                 for(int i = 0; i < curNode.getChildren().size() - AddSetSize; ++i){
                                     RuntimeNode child = curNode.getChildren().get(i);
                                     if(!child.isTruth()) continue;
-                                    Set<Link> childLink = child.getFormula().LinksGeneration_PCCM(child,((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
+                                    Set<Link> childLink = child.getFormula().linksGeneration_PCCM(child,((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
                                     Set<Link> initialSet = new HashSet<>();
                                     Link initialLink = new Link(Link.Link_Type.SATISFIED);
                                     initialLink.AddVA(this.var, child.getVarEnv().get(this.var));
@@ -1076,7 +1076,7 @@ public class FExists extends Formula{
                         for(int i = curNode.getChildren().size() - AddSetSize; i < curNode.getChildren().size(); ++i){
                             RuntimeNode child = curNode.getChildren().get(i);
                             if(!child.isTruth()) continue;
-                            Set<Link> childLink = child.getFormula().LinksGeneration_ECC(child,((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
+                            Set<Link> childLink = child.getFormula().linksGeneration_ECC(child,((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
                             Set<Link> initialSet = new HashSet<>();
                             Link initialLink = new Link(Link.Link_Type.SATISFIED);
                             initialLink.AddVA(this.var, child.getVarEnv().get(this.var));
@@ -1099,7 +1099,7 @@ public class FExists extends Formula{
                                 result.addAll(res);
                             }
                             else{
-                                Set<Link> childLink = child.getFormula().LinksGeneration_PCCM(child,((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
+                                Set<Link> childLink = child.getFormula().linksGeneration_PCCM(child,((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
                                 Set<Link> res = lgUtils.cartesianSet(initialSet, childLink);
                                 result.addAll(res);
                             }
@@ -1107,7 +1107,7 @@ public class FExists extends Formula{
                         for(int i = curNode.getChildren().size() - AddSetSize - UpdSetSize; i < curNode.getChildren().size(); ++i){
                             RuntimeNode child = curNode.getChildren().get(i);
                             if(!child.isTruth()) continue;
-                            Set<Link> childLink =  child.getFormula().LinksGeneration_ECC(child,((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
+                            Set<Link> childLink =  child.getFormula().linksGeneration_ECC(child,((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
                             Set<Link> initialSet = new HashSet<>();
                             Link initialLink = new Link(Link.Link_Type.SATISFIED);
                             initialLink.AddVA(this.var, child.getVarEnv().get(this.var));
@@ -1151,15 +1151,15 @@ public class FExists extends Formula{
     }
 
     @Override
-    public void CreateBranches_CPCC_NB(Rule rule, RuntimeNode curNode, Formula originFormula, Checker checker) {
+    public void createBranches_INFUSE(Rule rule, RuntimeNode curNode, Formula originFormula, Checker checker) {
         assert checker instanceof INFUSE_C;
         rule.getPatToRuntimeNode().get(this.pattern_id).add(curNode);
         if(((FExists)originFormula).isCanConcurrent()){
-            Set<Context> pool = checker.getContextPool().GetPoolSet(rule.getRule_id(), this.pattern_id);
+            Set<Context> pool = checker.getContextPool().getPoolSet(rule.getRule_id(), this.pattern_id);
             List<Future<RuntimeNode>> returnNodes = new ArrayList<>();
             for(Context context : pool){
                 Future<RuntimeNode> future = ((INFUSE_C) checker).ThreadPool.submit(
-                        new INFUSE_C.CreateBranchesTask_CPCC_NB(rule, curNode.getDepth(),
+                        new INFUSE_C.CreateBranchesTask_INFUSE(rule, curNode.getDepth(),
                                 curNode.getVarEnv(), context, originFormula, checker)
                 );
                 returnNodes.add(future);
@@ -1177,7 +1177,7 @@ public class FExists extends Formula{
             }
         }
         else{
-            Set<Context> pool = checker.getContextPool().GetPoolSet(rule.getRule_id(), this.pattern_id);
+            Set<Context> pool = checker.getContextPool().getPoolSet(rule.getRule_id(), this.pattern_id);
             for(Context context : pool){
                 RuntimeNode runtimeNode = new RuntimeNode(((FExists)originFormula).getSubformula());
                 runtimeNode.setDepth(curNode.getDepth() + 1);
@@ -1186,21 +1186,21 @@ public class FExists extends Formula{
                 runtimeNode.setParent(curNode);
                 curNode.getChildren().add(runtimeNode);
                 //递归调用
-                runtimeNode.getFormula().CreateBranches_CPCC_NB(rule, runtimeNode, ((FExists) originFormula).getSubformula(), checker);
+                runtimeNode.getFormula().createBranches_INFUSE(rule, runtimeNode, ((FExists) originFormula).getSubformula(), checker);
             }
         }
     }
 
     @Override
-    public void ModifyBranch_CPCC_NB(Rule rule, RuntimeNode curNode, Formula originFormula, Checker checker) {
+    public void modifyBranch_INFUSE(Rule rule, RuntimeNode curNode, Formula originFormula, Checker checker) {
         //Delset
-        Set<Context> DelSet = checker.getContextPool().GetDelSet(this.pattern_id);
+        Set<Context> DelSet = checker.getContextPool().getDelSet(this.pattern_id);
         for(Context context : DelSet){
             RemoveBranch_CPCC(rule, curNode, context, false);
         }
 
         //ModSet
-        Set<Context> ModSet = checker.getContextPool().GetUpdSet(this.pattern_id);
+        Set<Context> ModSet = checker.getContextPool().getUpdSet(this.pattern_id);
         for(Context context : ModSet){
             RuntimeNode ModNode = RemoveBranch_CPCC(rule, curNode, context, true);
             if(ModNode != null){
@@ -1210,12 +1210,12 @@ public class FExists extends Formula{
         }
 
         //AddSet
-        Set<Context> AddSet = checker.getContextPool().GetAddSet(this.pattern_id);
+        Set<Context> AddSet = checker.getContextPool().getAddSet(this.pattern_id);
         if(((FExists)originFormula).isCanConcurrent()){
             List<Future<RuntimeNode>> returnNodes = new ArrayList<>();
             for(Context context : AddSet){
                 Future<RuntimeNode> future = ((INFUSE_C) checker).ThreadPool.submit(
-                        new INFUSE_C.CreateBranchesTask_CPCC_NB(rule, curNode.getDepth(),
+                        new INFUSE_C.CreateBranchesTask_INFUSE(rule, curNode.getDepth(),
                                 curNode.getVarEnv(), context, originFormula, checker)
                 );
                 returnNodes.add(future);
@@ -1226,7 +1226,7 @@ public class FExists extends Formula{
             if(((FExists)originFormula).getSubformula().isAffected()){
                 for(RuntimeNode child : curNode.getChildren()){
                     Future<Void> future = ((INFUSE_C) checker).ThreadPool.submit(
-                            new INFUSE_C.ModifyBranchTask_CPCC_NB(rule, child, ((FExists)originFormula).getSubformula(), checker)
+                            new INFUSE_C.ModifyBranchTask_INFUSE(rule, child, ((FExists)originFormula).getSubformula(), checker)
                     );
                     voidlist.add(future);
                 }
@@ -1257,7 +1257,7 @@ public class FExists extends Formula{
         else{
             //递归调用Modify
             for(RuntimeNode child : curNode.getChildren()){
-                child.getFormula().ModifyBranch_CPCC_NB(rule, child, ((FExists)originFormula).getSubformula(), checker);
+                child.getFormula().modifyBranch_INFUSE(rule, child, ((FExists)originFormula).getSubformula(), checker);
             }
 
             for(Context context : AddSet){
@@ -1267,16 +1267,16 @@ public class FExists extends Formula{
                 runtimeNode.getVarEnv().put(this.var, context);
                 runtimeNode.setParent(curNode);
                 curNode.getChildren().add(runtimeNode);
-                runtimeNode.getFormula().CreateBranches_CPCC_NB(rule, runtimeNode, ((FExists)originFormula).getSubformula(), checker);
+                runtimeNode.getFormula().createBranches_INFUSE(rule, runtimeNode, ((FExists)originFormula).getSubformula(), checker);
             }
         }
     }
 
     @Override
-    public boolean TruthEvaluationCom_CPCC_NB(RuntimeNode curNode, Formula originFormula, Checker checker) {
+    public boolean truthEvaluationCom_INFUSE(RuntimeNode curNode, Formula originFormula, Checker checker) {
         boolean result = false;
         for(RuntimeNode child : curNode.getChildren()){
-            boolean tempresult = child.getFormula().TruthEvaluationCom_CPCC_NB(child, ((FExists)originFormula).getSubformula(), checker);
+            boolean tempresult = child.getFormula().truthEvaluationCom_INFUSE(child, ((FExists)originFormula).getSubformula(), checker);
             result = result || tempresult;
             //virtual truth
             curNode.getKidsVT().put(child.getVarEnv().get(this.var), child.getVirtualTruth());
@@ -1287,7 +1287,7 @@ public class FExists extends Formula{
     }
 
     @Override
-    public boolean TruthEvaluationPar_CPCC_NB(RuntimeNode curNode, Formula originFormula, Checker checker) {
+    public boolean truthEvaluationPar_INFUSE(RuntimeNode curNode, Formula originFormula, Checker checker) {
         //case 1
         if(!originFormula.isAffected()){
             return curNode.isTruth();
@@ -1295,22 +1295,22 @@ public class FExists extends Formula{
         else {
             //case 4,5
             if(((FExists)originFormula).getSubformula().isAffected()){
-                int AddSetSize = checker.getContextPool().GetAddSetSize(this.pattern_id);
-                int ModSetSize = checker.getContextPool().GetUpdSetSize(this.pattern_id);
+                int AddSetSize = checker.getContextPool().getAddSetSize(this.pattern_id);
+                int ModSetSize = checker.getContextPool().getUpdSetSize(this.pattern_id);
                 if(((FExists)originFormula).isCanConcurrent()){
                     boolean result = false;
                     List<Future<Boolean>> truthList = new ArrayList<>();
                     for(int i = 0; i < curNode.getChildren().size() - AddSetSize - ModSetSize; ++i){
                         RuntimeNode child = curNode.getChildren().get(i);
                         Future<Boolean> future = ((INFUSE_C) checker).ThreadPool.submit(
-                                new INFUSE_C.TruthEvaluationTaskPar_CPCC_NB(child, ((FExists)originFormula).getSubformula(), checker)
+                                new INFUSE_C.TruthEvaluationTaskPar_INFUSE(child, ((FExists)originFormula).getSubformula(), checker)
                         );
                         truthList.add(future);
                     }
                     for(int i = curNode.getChildren().size() - AddSetSize - ModSetSize; i < curNode.getChildren().size(); ++i){
                         RuntimeNode child = curNode.getChildren().get(i);
                         Future<Boolean> future = ((INFUSE_C) checker).ThreadPool.submit(
-                                new INFUSE_C.TruthEvaluationTaskCom_CPCC_NB(child, ((FExists)originFormula).getSubformula(), checker)
+                                new INFUSE_C.TruthEvaluationTaskCom_INFUSE(child, ((FExists)originFormula).getSubformula(), checker)
                         );
                         truthList.add(future);
                     }
@@ -1338,14 +1338,14 @@ public class FExists extends Formula{
                     boolean result = false;
                     for(int i = 0; i < curNode.getChildren().size() - AddSetSize - ModSetSize; ++i){
                         RuntimeNode child = curNode.getChildren().get(i);
-                        boolean tempresult = child.getFormula().TruthEvaluationPar_CPCC_NB(child, ((FExists)originFormula).getSubformula(), checker);
+                        boolean tempresult = child.getFormula().truthEvaluationPar_INFUSE(child, ((FExists)originFormula).getSubformula(), checker);
                         result = result || tempresult;
                         //virtual truth
                         curNode.getKidsVT().put(child.getVarEnv().get(this.var), child.getVirtualTruth());
                     }
                     for(int i = curNode.getChildren().size() - AddSetSize - ModSetSize; i < curNode.getChildren().size(); ++i){
                         RuntimeNode child = curNode.getChildren().get(i);
-                        boolean tempresult = child.getFormula().TruthEvaluationCom_CPCC_NB(child, ((FExists)originFormula).getSubformula(), checker);
+                        boolean tempresult = child.getFormula().truthEvaluationCom_INFUSE(child, ((FExists)originFormula).getSubformula(), checker);
                         result = result || tempresult;
                         //virtual truth
                         curNode.getKidsVT().put(child.getVarEnv().get(this.var), child.getVirtualTruth());
@@ -1356,9 +1356,9 @@ public class FExists extends Formula{
                 }
             }
             else{
-                int AddSetSize = checker.getContextPool().GetAddSetSize(this.pattern_id);
-                int DelSetSize = checker.getContextPool().GetDelSetSize(this.pattern_id);
-                int ModSetSize = checker.getContextPool().GetUpdSetSize(this.pattern_id);
+                int AddSetSize = checker.getContextPool().getAddSetSize(this.pattern_id);
+                int DelSetSize = checker.getContextPool().getDelSetSize(this.pattern_id);
+                int ModSetSize = checker.getContextPool().getUpdSetSize(this.pattern_id);
                 //case 2
                 if(DelSetSize == 0 && ModSetSize == 0){
                     if(((FExists)originFormula).isCanConcurrent()){
@@ -1368,7 +1368,7 @@ public class FExists extends Formula{
                         for(int i = curNode.getChildren().size() - AddSetSize; i < curNode.getChildren().size(); ++i){
                             RuntimeNode child = curNode.getChildren().get(i);
                             Future<Boolean> future = ((INFUSE_C) checker).ThreadPool.submit(
-                                    new INFUSE_C.TruthEvaluationTaskCom_CPCC_NB(child, ((FExists)originFormula).getSubformula(), checker)
+                                    new INFUSE_C.TruthEvaluationTaskCom_INFUSE(child, ((FExists)originFormula).getSubformula(), checker)
                             );
                             truthList.add(future);
                         }
@@ -1398,7 +1398,7 @@ public class FExists extends Formula{
                         //AddSet
                         for(int i = curNode.getChildren().size() - AddSetSize; i < curNode.getChildren().size(); ++i){
                             RuntimeNode child = curNode.getChildren().get(i);
-                            boolean tempresult = child.getFormula().TruthEvaluationCom_CPCC_NB(child, ((FExists)originFormula).getSubformula(), checker);
+                            boolean tempresult = child.getFormula().truthEvaluationCom_INFUSE(child, ((FExists)originFormula).getSubformula(), checker);
                             result = result || tempresult;
                             //virtual truth
                             curNode.getKidsVT().put(child.getVarEnv().get(this.var), child.getVirtualTruth());
@@ -1420,7 +1420,7 @@ public class FExists extends Formula{
                         for(int i = curNode.getChildren().size() - AddSetSize - ModSetSize; i < curNode.getChildren().size(); ++i){
                             RuntimeNode child = curNode.getChildren().get(i);
                             Future<Boolean> future = ((INFUSE_C) checker).ThreadPool.submit(
-                                    new INFUSE_C.TruthEvaluationTaskCom_CPCC_NB(child, ((FExists)originFormula).getSubformula(), checker)
+                                    new INFUSE_C.TruthEvaluationTaskCom_INFUSE(child, ((FExists)originFormula).getSubformula(), checker)
                             );
                             truthList.add(future);
                         }
@@ -1454,7 +1454,7 @@ public class FExists extends Formula{
                         }
                         for(int i = curNode.getChildren().size() - AddSetSize - ModSetSize; i < curNode.getChildren().size(); ++i){
                             RuntimeNode child = curNode.getChildren().get(i);
-                            boolean tempresult = child.getFormula().TruthEvaluationCom_CPCC_NB(child, ((FExists)originFormula).getSubformula(), checker);
+                            boolean tempresult = child.getFormula().truthEvaluationCom_INFUSE(child, ((FExists)originFormula).getSubformula(), checker);
                             result = result || tempresult;
                             //virtual truth
                             curNode.getKidsVT().put(child.getVarEnv().get(this.var), child.getVirtualTruth());
@@ -1469,7 +1469,7 @@ public class FExists extends Formula{
     }
 
     @Override
-    public Set<Link> LinksGeneration_CPCC_NB(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
+    public Set<Link> linksGeneration_INFUSE(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
         Set<Link> result = new HashSet<>();
         LGUtils lgUtils = new LGUtils();
 
@@ -1482,21 +1482,21 @@ public class FExists extends Formula{
             else{
                 if(((FExists)originFormula).getSubformula().isAffected()){
                     //case 4,5
-                    int AddSetSize = checker.getContextPool().GetAddSetSize(this.pattern_id);
-                    int ModSetSize = checker.getContextPool().GetUpdSetSize(this.pattern_id);
+                    int AddSetSize = checker.getContextPool().getAddSetSize(this.pattern_id);
+                    int ModSetSize = checker.getContextPool().getUpdSetSize(this.pattern_id);
                     if(((FExists)originFormula).isCanConcurrent()){
                         Map<Integer, Future<Set<Link>>> LSMap= new HashMap<>();
                         for(int i = 0; i < curNode.getChildren().size() - AddSetSize - ModSetSize; ++i){
                             RuntimeNode child = curNode.getChildren().get(i);
                             Future<Set<Link>> future = ((INFUSE_C) checker).ThreadPool.submit(
-                                    new INFUSE_C.LinksGenerationTaskPar_CPCC_NB(child, ((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker)
+                                    new INFUSE_C.LinksGenerationTaskPar_INFUSE(child, ((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker)
                             );
                             LSMap.put(i, future);
                         }
                         for(int i = curNode.getChildren().size() - AddSetSize - ModSetSize; i < curNode.getChildren().size(); ++i){
                             RuntimeNode child = curNode.getChildren().get(i);
                             Future<Set<Link>> future = ((INFUSE_C) checker).ThreadPool.submit(
-                                    new INFUSE_C.LinksGenerationTaskCom_CPCC_NB(child, ((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker)
+                                    new INFUSE_C.LinksGenerationTaskCom_INFUSE(child, ((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker)
                             );
                             LSMap.put(i, future);
                         }
@@ -1523,7 +1523,7 @@ public class FExists extends Formula{
                     else{
                         for(int i = 0; i < curNode.getChildren().size() - AddSetSize - ModSetSize; ++i){
                             RuntimeNode child = curNode.getChildren().get(i);
-                            Set<Link> childLink = child.getFormula().LinksGeneration_CPCC_NB(child, ((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
+                            Set<Link> childLink = child.getFormula().linksGeneration_INFUSE(child, ((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
                             Set<Link> initialSet = new HashSet<>();
                             Link initialLink = new Link(Link.Link_Type.SATISFIED);
                             initialLink.AddVA(this.var, child.getVarEnv().get(this.var));
@@ -1534,7 +1534,7 @@ public class FExists extends Formula{
                         }
                         for(int i = curNode.getChildren().size() - AddSetSize - ModSetSize; i < curNode.getChildren().size(); ++i){
                             RuntimeNode child = curNode.getChildren().get(i);
-                            Set<Link> childLink = child.getFormula().LinksGeneration_ECC(child, ((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
+                            Set<Link> childLink = child.getFormula().linksGeneration_ECC(child, ((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
                             Set<Link> initialSet = new HashSet<>();
                             Link initialLink = new Link(Link.Link_Type.SATISFIED);
                             initialLink.AddVA(this.var, child.getVarEnv().get(this.var));
@@ -1546,9 +1546,9 @@ public class FExists extends Formula{
                     }
                 }
                 else{
-                    int AddSetSize = checker.getContextPool().GetAddSetSize(this.pattern_id);
-                    int DelSetSize = checker.getContextPool().GetDelSetSize(this.pattern_id);
-                    int ModSetSize = checker.getContextPool().GetUpdSetSize(this.pattern_id);
+                    int AddSetSize = checker.getContextPool().getAddSetSize(this.pattern_id);
+                    int DelSetSize = checker.getContextPool().getDelSetSize(this.pattern_id);
+                    int ModSetSize = checker.getContextPool().getUpdSetSize(this.pattern_id);
                     //case 2
                     if(DelSetSize == 0 && ModSetSize == 0){
                         if(((FExists)originFormula).isCanConcurrent()){
@@ -1559,7 +1559,7 @@ public class FExists extends Formula{
                             for(int i = curNode.getChildren().size() - AddSetSize; i < curNode.getChildren().size(); ++i){
                                 RuntimeNode child = curNode.getChildren().get(i);
                                 Future<Set<Link>> future = ((INFUSE_C) checker).ThreadPool.submit(
-                                        new INFUSE_C.LinksGenerationTaskCom_CPCC_NB(child, ((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker)
+                                        new INFUSE_C.LinksGenerationTaskCom_INFUSE(child, ((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker)
                                 );
                                 LSMap.put(i, future);
                             }
@@ -1589,7 +1589,7 @@ public class FExists extends Formula{
                             //AddSet
                             for(int i = curNode.getChildren().size() - AddSetSize; i < curNode.getChildren().size(); ++i){
                                 RuntimeNode child = curNode.getChildren().get(i);
-                                Set<Link> childLink = child.getFormula().LinksGeneration_ECC(child, ((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
+                                Set<Link> childLink = child.getFormula().linksGeneration_ECC(child, ((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
                                 Set<Link> initialSet = new HashSet<>();
                                 Link initialLink = new Link(Link.Link_Type.SATISFIED);
                                 initialLink.AddVA(this.var, child.getVarEnv().get(this.var));
@@ -1617,7 +1617,7 @@ public class FExists extends Formula{
                             for(int i = curNode.getChildren().size() - AddSetSize - ModSetSize; i < curNode.getChildren().size(); ++i){
                                 RuntimeNode child = curNode.getChildren().get(i);
                                 Future<Set<Link>> future = ((INFUSE_C) checker).ThreadPool.submit(
-                                        new INFUSE_C.LinksGenerationTaskCom_CPCC_NB(child, ((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker)
+                                        new INFUSE_C.LinksGenerationTaskCom_INFUSE(child, ((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker)
                                 );
                                 LSMap.put(i, future);
                             }
@@ -1654,7 +1654,7 @@ public class FExists extends Formula{
                             }
                             for(int i = curNode.getChildren().size() - AddSetSize - ModSetSize; i < curNode.getChildren().size(); ++i){
                                 RuntimeNode child = curNode.getChildren().get(i);
-                                Set<Link> childLink =  child.getFormula().LinksGeneration_ECC(child, ((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
+                                Set<Link> childLink =  child.getFormula().linksGeneration_ECC(child, ((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
                                 Set<Link> initialSet = new HashSet<>();
                                 Link initialLink = new Link(Link.Link_Type.SATISFIED);
                                 initialLink.AddVA(this.var, child.getVarEnv().get(this.var));
@@ -1681,7 +1681,7 @@ public class FExists extends Formula{
                     assert !((FExists) originFormula).isCanConcurrent();
                     for(RuntimeNode child : curNode.getChildren()){
                         if(!child.isTruth()) continue;
-                        Set<Link> childLink = child.getFormula().LinksGeneration_CPCC_NB(child, ((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
+                        Set<Link> childLink = child.getFormula().linksGeneration_INFUSE(child, ((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
                         Set<Link> initialSet = new HashSet<>();
                         Link initialLink = new Link(Link.Link_Type.SATISFIED);
                         initialLink.AddVA(this.var, child.getVarEnv().get(this.var));
@@ -1694,15 +1694,15 @@ public class FExists extends Formula{
             else{
                 if(((FExists)originFormula).getSubformula().isAffected()){
                     //case 4,5
-                    int AddSetSize = checker.getContextPool().GetAddSetSize(this.pattern_id);
-                    int ModSetSize = checker.getContextPool().GetUpdSetSize(this.pattern_id);
+                    int AddSetSize = checker.getContextPool().getAddSetSize(this.pattern_id);
+                    int ModSetSize = checker.getContextPool().getUpdSetSize(this.pattern_id);
                     if(((FExists)originFormula).isCanConcurrent()){
                         Map<Integer, Future<Set<Link>>> LSMap= new HashMap<>();
                         for(int i = 0; i < curNode.getChildren().size() - AddSetSize - ModSetSize; ++i){
                             RuntimeNode child = curNode.getChildren().get(i);
                             if(!child.isTruth()) continue;
                             Future<Set<Link>> future = ((INFUSE_C) checker).ThreadPool.submit(
-                                    new INFUSE_C.LinksGenerationTaskPar_CPCC_NB(child, ((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker)
+                                    new INFUSE_C.LinksGenerationTaskPar_INFUSE(child, ((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker)
                             );
                             LSMap.put(i, future);
                         }
@@ -1710,7 +1710,7 @@ public class FExists extends Formula{
                             RuntimeNode child = curNode.getChildren().get(i);
                             if(!child.isTruth()) continue;
                             Future<Set<Link>> future = ((INFUSE_C) checker).ThreadPool.submit(
-                                    new INFUSE_C.LinksGenerationTaskCom_CPCC_NB(child, ((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker)
+                                    new INFUSE_C.LinksGenerationTaskCom_INFUSE(child, ((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker)
                             );
                             LSMap.put(i, future);
                         }
@@ -1737,7 +1737,7 @@ public class FExists extends Formula{
                         for(int i = 0; i < curNode.getChildren().size() - AddSetSize - ModSetSize; ++i){
                             RuntimeNode child = curNode.getChildren().get(i);
                             if(!child.isTruth()) continue;
-                            Set<Link> childLink = child.getFormula().LinksGeneration_CPCC_NB(child, ((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
+                            Set<Link> childLink = child.getFormula().linksGeneration_INFUSE(child, ((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
                             Set<Link> initialSet = new HashSet<>();
                             Link initialLink = new Link(Link.Link_Type.SATISFIED);
                             initialLink.AddVA(this.var, child.getVarEnv().get(this.var));
@@ -1748,7 +1748,7 @@ public class FExists extends Formula{
                         for(int i = curNode.getChildren().size() - AddSetSize - ModSetSize; i < curNode.getChildren().size(); ++i){
                             RuntimeNode child = curNode.getChildren().get(i);
                             if(!child.isTruth()) continue;
-                            Set<Link> childLink = child.getFormula().LinksGeneration_ECC(child, ((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
+                            Set<Link> childLink = child.getFormula().linksGeneration_ECC(child, ((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
                             Set<Link> initialSet = new HashSet<>();
                             Link initialLink = new Link(Link.Link_Type.SATISFIED);
                             initialLink.AddVA(this.var, child.getVarEnv().get(this.var));
@@ -1759,9 +1759,9 @@ public class FExists extends Formula{
                     }
                 }
                 else{
-                    int AddSetSize = checker.getContextPool().GetAddSetSize(this.pattern_id);
-                    int DelSetSize = checker.getContextPool().GetDelSetSize(this.pattern_id);
-                    int ModSetSize = checker.getContextPool().GetUpdSetSize(this.pattern_id);
+                    int AddSetSize = checker.getContextPool().getAddSetSize(this.pattern_id);
+                    int DelSetSize = checker.getContextPool().getDelSetSize(this.pattern_id);
+                    int ModSetSize = checker.getContextPool().getUpdSetSize(this.pattern_id);
                     //case 2
                     if(DelSetSize == 0 && ModSetSize == 0){
                         if(((FExists)originFormula).isCanConcurrent()){
@@ -1777,7 +1777,7 @@ public class FExists extends Formula{
                                         RuntimeNode child = curNode.getChildren().get(i);
                                         if(!child.isTruth()) continue;
                                         Future<Set<Link>> future = ((INFUSE_C) checker).ThreadPool.submit(
-                                                new INFUSE_C.LinksGenerationTaskPar_CPCC_NB(child, ((FExists) originFormula).getSubformula(), prevSubstantialNodes, checker)
+                                                new INFUSE_C.LinksGenerationTaskPar_INFUSE(child, ((FExists) originFormula).getSubformula(), prevSubstantialNodes, checker)
                                         );
                                         LSMap.put(i, future);
                                     }
@@ -1788,7 +1788,7 @@ public class FExists extends Formula{
                                 RuntimeNode child = curNode.getChildren().get(i);
                                 if(!child.isTruth()) continue;
                                 Future<Set<Link>> future = ((INFUSE_C) checker).ThreadPool.submit(
-                                        new INFUSE_C.LinksGenerationTaskCom_CPCC_NB(child, ((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker)
+                                        new INFUSE_C.LinksGenerationTaskCom_INFUSE(child, ((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker)
                                 );
                                 LSMap.put(i, future);
                             }
@@ -1822,7 +1822,7 @@ public class FExists extends Formula{
                                     for(int i = 0; i < curNode.getChildren().size() - AddSetSize; ++i){
                                         RuntimeNode child = curNode.getChildren().get(i);
                                         if(!child.isTruth()) continue;
-                                        Set<Link> childLink = child.getFormula().LinksGeneration_CPCC_NB(child, ((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
+                                        Set<Link> childLink = child.getFormula().linksGeneration_INFUSE(child, ((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
                                         Set<Link> initialSet = new HashSet<>();
                                         Link initialLink = new Link(Link.Link_Type.SATISFIED);
                                         initialLink.AddVA(this.var, child.getVarEnv().get(this.var));
@@ -1836,7 +1836,7 @@ public class FExists extends Formula{
                             for(int i = curNode.getChildren().size() - AddSetSize; i < curNode.getChildren().size(); ++i){
                                 RuntimeNode child = curNode.getChildren().get(i);
                                 if(!child.isTruth()) continue;
-                                Set<Link> childLink = child.getFormula().LinksGeneration_ECC(child, ((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
+                                Set<Link> childLink = child.getFormula().linksGeneration_ECC(child, ((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
                                 Set<Link> initialSet = new HashSet<>();
                                 Link initialLink = new Link(Link.Link_Type.SATISFIED);
                                 initialLink.AddVA(this.var, child.getVarEnv().get(this.var));
@@ -1864,7 +1864,7 @@ public class FExists extends Formula{
                                 }
                                 else{
                                     Future<Set<Link>> future = ((INFUSE_C) checker).ThreadPool.submit(
-                                            new INFUSE_C.LinksGenerationTaskPar_CPCC_NB(child, ((FExists) originFormula).getSubformula(), prevSubstantialNodes, checker)
+                                            new INFUSE_C.LinksGenerationTaskPar_INFUSE(child, ((FExists) originFormula).getSubformula(), prevSubstantialNodes, checker)
                                     );
                                     LSMap.put(i, future);
                                 }
@@ -1873,7 +1873,7 @@ public class FExists extends Formula{
                                 RuntimeNode child = curNode.getChildren().get(i);
                                 if(!child.isTruth()) continue;
                                 Future<Set<Link>> future = ((INFUSE_C) checker).ThreadPool.submit(
-                                        new INFUSE_C.LinksGenerationTaskCom_CPCC_NB(child, ((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker)
+                                        new INFUSE_C.LinksGenerationTaskCom_INFUSE(child, ((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker)
                                 );
                                 LSMap.put(i, future);
                             }
@@ -1914,7 +1914,7 @@ public class FExists extends Formula{
                                     Link initialLink = new Link(Link.Link_Type.SATISFIED);
                                     initialLink.AddVA(this.var, child.getVarEnv().get(this.var));
                                     initialSet.add(initialLink);
-                                    Set<Link> childLink = child.getFormula().LinksGeneration_CPCC_NB(child, ((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
+                                    Set<Link> childLink = child.getFormula().linksGeneration_INFUSE(child, ((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
                                     Set<Link> res = lgUtils.cartesianSet(initialSet, childLink);
                                     result.addAll(res);
                                 }
@@ -1922,7 +1922,7 @@ public class FExists extends Formula{
                             for(int i = curNode.getChildren().size() - AddSetSize - ModSetSize; i < curNode.getChildren().size(); ++i){
                                 RuntimeNode child = curNode.getChildren().get(i);
                                 if(!child.isTruth()) continue;
-                                Set<Link> childLink =  child.getFormula().LinksGeneration_ECC(child, ((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
+                                Set<Link> childLink =  child.getFormula().linksGeneration_ECC(child, ((FExists)originFormula).getSubformula(), prevSubstantialNodes, checker);
                                 Set<Link> initialSet = new HashSet<>();
                                 Link initialLink = new Link(Link.Link_Type.SATISFIED);
                                 initialLink.AddVA(this.var, child.getVarEnv().get(this.var));
@@ -1950,7 +1950,7 @@ public class FExists extends Formula{
      */
 
     @Override
-    public void ModifyBranch_BASE(String rule_id, RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
+    public void modifyBranch_BASE(String rule_id, RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
         if(contextChange.getPattern_id().equals(this.pattern_id)){
             //同一个pattern
             if(contextChange.getChange_type() == ContextChange.Change_Type.ADDITION){
@@ -1960,7 +1960,7 @@ public class FExists extends Formula{
                 runtimeNode.getVarEnv().put(this.var, contextChange.getContext());
                 curNode.getChildren().add(runtimeNode);
                 //创建下面的分支
-                runtimeNode.getFormula().CreateBranches_ConC(rule_id, runtimeNode, ((FExists) originFormula).getSubformula(), true, checker);
+                runtimeNode.getFormula().createBranches_ConC(rule_id, runtimeNode, ((FExists) originFormula).getSubformula(), true, checker);
                 //因为只有一个change，无需对更小的语法结构进行修改
             }
             else{
@@ -1970,13 +1970,13 @@ public class FExists extends Formula{
         else{
             //不是同一个pattern
             for(RuntimeNode child : curNode.getChildren()){
-                child.getFormula().ModifyBranch_BASE(rule_id, child, ((FExists)originFormula).getSubformula(), contextChange, checker);
+                child.getFormula().modifyBranch_BASE(rule_id, child, ((FExists)originFormula).getSubformula(), contextChange, checker);
             }
         }
     }
 
     @Override
-    public boolean TruthEvaluation_BASE(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
+    public boolean truthEvaluation_BASE(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
         if(!originFormula.isAffected()){
             //no change and affected == false
             return curNode.isTruth();
@@ -1987,7 +1987,7 @@ public class FExists extends Formula{
                     boolean result = curNode.isTruth();
                     RuntimeNode addchild = curNode.getChildren().get(
                             curNode.getChildren().size() - 1);
-                    boolean res = addchild.getFormula().TruthEvaluation_ConC(addchild, ((FExists)originFormula).getSubformula(), true, checker);
+                    boolean res = addchild.getFormula().truthEvaluation_ConC(addchild, ((FExists)originFormula).getSubformula(), true, checker);
                     result = result || res;
                     curNode.setTruth(result);
                     return result;
@@ -2004,7 +2004,7 @@ public class FExists extends Formula{
             else{
                 boolean result = false;
                 for(RuntimeNode child : curNode.getChildren()){
-                    boolean res = child.getFormula().TruthEvaluation_BASE(child, ((FExists)originFormula).getSubformula(), contextChange, checker);
+                    boolean res = child.getFormula().truthEvaluation_BASE(child, ((FExists)originFormula).getSubformula(), contextChange, checker);
                     result = result || res;
                 }
                 curNode.setTruth(result);
@@ -2014,7 +2014,7 @@ public class FExists extends Formula{
     }
 
     @Override
-    public Set<Link> LinksGeneration_BASE(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
+    public Set<Link> linksGeneration_BASE(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
         Set<Link> result = new HashSet<>();
         LGUtils lgUtils = new LGUtils();
 
@@ -2029,7 +2029,7 @@ public class FExists extends Formula{
                         if(curNode.getLinks() != null)
                             result.addAll(curNode.getLinks());
                         RuntimeNode addchild = curNode.getChildren().get(curNode.getChildren().size() - 1);
-                        Set<Link> childLink = addchild.getFormula().LinksGeneration_ConC(addchild, ((FExists)originFormula).getSubformula(), true, prevSubstantialNodes, checker);
+                        Set<Link> childLink = addchild.getFormula().linksGeneration_ConC(addchild, ((FExists)originFormula).getSubformula(), true, prevSubstantialNodes, checker);
                         Set<Link> initialSet = new HashSet<>();
                         Link initialLink = new Link(Link.Link_Type.SATISFIED);
                         initialLink.AddVA(this.var, addchild.getVarEnv().get(this.var));
@@ -2053,7 +2053,7 @@ public class FExists extends Formula{
                 }
                 else{
                     for(RuntimeNode child : curNode.getChildren()){
-                        Set<Link> childLink =  child.getFormula().LinksGeneration_BASE(child, ((FExists)originFormula).getSubformula(), contextChange, prevSubstantialNodes, checker);
+                        Set<Link> childLink =  child.getFormula().linksGeneration_BASE(child, ((FExists)originFormula).getSubformula(), contextChange, prevSubstantialNodes, checker);
                         Set<Link> initialSet = new HashSet<>();
                         Link initialLink = new Link(Link.Link_Type.SATISFIED);
                         initialLink.AddVA(this.var, child.getVarEnv().get(this.var));
@@ -2075,7 +2075,7 @@ public class FExists extends Formula{
                 else{
                     for(RuntimeNode child : curNode.getChildren()){
                         if(!child.isTruth()) continue;
-                        Set<Link> childLink =  child.getFormula().LinksGeneration_BASE(child, ((FExists)originFormula).getSubformula(), contextChange, prevSubstantialNodes, checker);
+                        Set<Link> childLink =  child.getFormula().linksGeneration_BASE(child, ((FExists)originFormula).getSubformula(), contextChange, prevSubstantialNodes, checker);
                         Set<Link> initialSet = new HashSet<>();
                         Link initialLink = new Link(Link.Link_Type.SATISFIED);
                         initialLink.AddVA(this.var, child.getVarEnv().get(this.var));
@@ -2098,7 +2098,7 @@ public class FExists extends Formula{
                                 for(int index = 0; index < curNode.getChildren().size() - 1; ++index){
                                     RuntimeNode child = curNode.getChildren().get(index);
                                     if(!child.isTruth()) continue;
-                                    Set<Link> childLink =  child.getFormula().LinksGeneration_BASE(child, ((FExists)originFormula).getSubformula(), contextChange, prevSubstantialNodes, checker);
+                                    Set<Link> childLink =  child.getFormula().linksGeneration_BASE(child, ((FExists)originFormula).getSubformula(), contextChange, prevSubstantialNodes, checker);
                                     Set<Link> initialSet = new HashSet<>();
                                     Link initialLink = new Link(Link.Link_Type.SATISFIED);
                                     initialLink.AddVA(this.var, child.getVarEnv().get(this.var));
@@ -2110,7 +2110,7 @@ public class FExists extends Formula{
                         }
                         RuntimeNode addchild = curNode.getChildren().get(curNode.getChildren().size() - 1);
                         if(addchild.isTruth()){
-                            Set<Link> childLink = addchild.getFormula().LinksGeneration_ConC(addchild, ((FExists)originFormula).getSubformula(), true, prevSubstantialNodes, checker);
+                            Set<Link> childLink = addchild.getFormula().linksGeneration_ConC(addchild, ((FExists)originFormula).getSubformula(), true, prevSubstantialNodes, checker);
                             Set<Link> initialSet = new HashSet<>();
                             Link initialLink = new Link(Link.Link_Type.SATISFIED);
                             initialLink.AddVA(this.var, addchild.getVarEnv().get(this.var));
@@ -2131,7 +2131,7 @@ public class FExists extends Formula{
                                 result.addAll(res);
                             }
                             else{
-                                Set<Link> childLink = child.getFormula().LinksGeneration_BASE(child, ((FExists) originFormula).getSubformula(), contextChange, prevSubstantialNodes, checker);
+                                Set<Link> childLink = child.getFormula().linksGeneration_BASE(child, ((FExists) originFormula).getSubformula(), contextChange, prevSubstantialNodes, checker);
                                 Set<Link> res = lgUtils.cartesianSet(initialSet, childLink);
                                 result.addAll(res);
                             }
@@ -2141,7 +2141,7 @@ public class FExists extends Formula{
                 else{
                     for(RuntimeNode child : curNode.getChildren()){
                         if(!child.isTruth()) continue;
-                        Set<Link> childLink =  child.getFormula().LinksGeneration_BASE(child, ((FExists)originFormula).getSubformula(), contextChange, prevSubstantialNodes, checker);
+                        Set<Link> childLink =  child.getFormula().linksGeneration_BASE(child, ((FExists)originFormula).getSubformula(), contextChange, prevSubstantialNodes, checker);
                         Set<Link> initialSet = new HashSet<>();
                         Link initialLink = new Link(Link.Link_Type.SATISFIED);
                         initialLink.AddVA(this.var, child.getVarEnv().get(this.var));

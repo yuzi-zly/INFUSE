@@ -24,24 +24,24 @@ public class PCC extends Checker{
         for(Rule rule : ruleHandler.getRuleMap().values()){
             if(rule.getVarPatternMap().containsValue(contextChange.getPattern_id())){
                 //apply changes
-                contextPool.ApplyChange(rule.getRule_id(), contextChange);
-                rule.UpdateAffectedWithOneChange(contextChange, this);
+                contextPool.applyChange(rule.getRule_id(), contextChange);
+                rule.updateAffectedWithOneChange(contextChange, this);
 
-                rule.ModifyCCT_PCC(contextChange, this);
+                rule.modifyCCT_PCC(contextChange, this);
                 //truth evaluation
-                rule.TruthEvaluation_PCC(contextChange, this);
+                rule.truthEvaluation_PCC(contextChange, this);
                 //taint SCCT
                 Set<RuntimeNode> prevSubstantialNodes = this.substantialNodes.getOrDefault(rule.getRule_id(),  new HashSet<>());
                 if(this.isMG){
                     this.substantialNodes.put(rule.getRule_id(), rule.taintSCCT());
                 }
                 //links generation
-                Set<Link> links = rule.LinksGeneration_PCC(contextChange, this, prevSubstantialNodes);
+                Set<Link> links = rule.linksGeneration_PCC(contextChange, this, prevSubstantialNodes);
                 if(links != null){
                     rule.addCriticalSet(links);
                     //rule.oracleCount(links, contextChange);
                 }
-                rule.CleanAffected();
+                rule.cleanAffected();
                 if(links != null){
                     storeLink(rule.getRule_id(), rule.getCCTRoot().isTruth(), links);
                 }
@@ -54,26 +54,26 @@ public class PCC extends Checker{
         //rule.intoFile(batch);
         //clean
         for(String pattern_id : rule.getVarPatternMap().values()){
-            contextPool.GetAddSet(pattern_id).clear();
-            contextPool.GetDelSet(pattern_id).clear();
-            contextPool.GetUpdSet(pattern_id).clear();
+            contextPool.getAddSet(pattern_id).clear();
+            contextPool.getDelSet(pattern_id).clear();
+            contextPool.getUpdSet(pattern_id).clear();
         }
         for(ContextChange contextChange : batch){
-            contextPool.ApplyChangeWithSets(rule.getRule_id(), contextChange);
-            rule.ModifyCCT_PCCM(contextChange, this);
+            contextPool.applyChangeWithSets(rule.getRule_id(), contextChange);
+            rule.modifyCCT_PCCM(contextChange, this);
         }
-        rule.UpdateAffectedWithChanges(this);
-        rule.TruthEvaluation_PCCM(this);
+        rule.updateAffectedWithChanges(this);
+        rule.truthEvaluation_PCCM(this);
         //taint SCCT
         Set<RuntimeNode> prevSubstantialNodes = this.substantialNodes.getOrDefault(rule.getRule_id(),  new HashSet<>());
         if(this.isMG){
             this.substantialNodes.put(rule.getRule_id(), rule.taintSCCT());
         }
-        Set<Link> links = rule.LinksGeneration_PCCM(this, prevSubstantialNodes);
+        Set<Link> links = rule.linksGeneration_PCCM(this, prevSubstantialNodes);
         if(links != null){
             rule.addCriticalSet(links);
         }
-        rule.CleanAffected();
+        rule.cleanAffected();
         if(links != null){
             storeLink(rule.getRule_id(), rule.getCCTRoot().isTruth(), links);
         }

@@ -7,7 +7,6 @@ import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 
-import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -16,11 +15,9 @@ import java.util.*;
 public class RuleHandler implements Loggable {
 
     private final Map<String, Rule> ruleMap;
-    private final Map<String, Resolver> resolverMap;
 
     public RuleHandler() {
         this.ruleMap = new HashMap<>();
-        this.resolverMap = new HashMap<>();
     }
 
     public void buildRules(String filename) throws Exception {
@@ -40,10 +37,6 @@ public class RuleHandler implements Loggable {
                 newRule.setFormula(resolveFormula(eFormula, newRule.getVarPatternMap(), newRule.getPatToFormula(), newRule.getPatToRuntimeNode(), 0));
                 setPatWithDepth(newRule.getFormula(), newRule.getPatToDepth(), newRule.getDepthToPat());
                 ruleMap.put(newRule.getRule_id(), newRule);
-                // resolver
-                if(eLabelList.size() == 3){
-                    resolverMap.put(newRule.getRule_id(), buildResolver(eLabelList.get(2).elements()));
-                }
             }
         }
     }
@@ -155,34 +148,9 @@ public class RuleHandler implements Loggable {
         }
     }
 
-    private Resolver buildResolver(List<Element> resolverElements){
-        Resolver resolver = new Resolver();
-        //type
-        assert resolverElements.get(0).getName().equals("type");
-        resolver.setResolverType(ResolverType.valueOf(resolverElements.get(0).getText()));
-        //variable
-        assert resolverElements.get(1).getName().equals("variable");
-        resolver.setVariable(resolverElements.get(1).getText());
-        //fixingPairList
-        if(resolverElements.size() == 3){
-            assert resolverElements.get(2).getName().equals("fixingPairList");
-            List<Element> fixingPairElements = resolverElements.get(2).elements();
-            for(Element fixingPairElement : fixingPairElements){
-                assert fixingPairElement.getName().equals("fixingPair");
-                assert fixingPairElement.elements().get(0).getName().equals("field");
-                assert fixingPairElement.elements().get(1).getName().equals("value");
-                resolver.addFixingPair(fixingPairElement.elements().get(0).getText(), fixingPairElement.elements().get(1).getText());
-            }
-        }
-        return resolver;
-    }
-
 
     public Map<String, Rule> getRuleMap() {
         return ruleMap;
     }
 
-    public Map<String, Resolver> getResolverMap() {
-        return resolverMap;
-    }
 }

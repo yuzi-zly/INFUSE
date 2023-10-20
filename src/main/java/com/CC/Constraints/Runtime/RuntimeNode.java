@@ -32,7 +32,7 @@ public class RuntimeNode {
     //constructor
     public RuntimeNode(Formula formula){
         //need to create a new formula
-        this.formula = formula.FormulaClone();
+        this.formula = formula.formulaClone();
         this.depth = -1;
         this.children = new ArrayList<>();
         this.varEnv = new HashMap<>();

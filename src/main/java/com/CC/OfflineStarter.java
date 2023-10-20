@@ -11,9 +11,6 @@ import com.CC.Middleware.Checkers.*;
 import com.CC.Middleware.Schedulers.*;
 import com.CC.Patterns.PatternHandler;
 import com.CC.Util.Loggable;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.JSONWriter;
 
 import java.io.*;
 import java.lang.reflect.Constructor;
@@ -40,10 +37,6 @@ public class OfflineStarter implements Loggable {
 
     private String dataFile;
     private String incOutFile;
-    private String dataOrCCTOutFile;
-
-    private String type;
-
 
     private RuleHandler ruleHandler;
     private PatternHandler patternHandler;
@@ -53,15 +46,13 @@ public class OfflineStarter implements Loggable {
 
     public OfflineStarter() {}
 
-    public void start(String approach, String ruleFile, String bfuncFile, String patternFile, String mfuncFile, String dataFile, String dataType, boolean isMG, String incOutFile, String dataOutFile, String type){
+    public void start(String approach, String ruleFile, String bfuncFile, String patternFile, String mfuncFile, String dataFile, String dataType, boolean isMG, String incOutFile){
         this.ruleFile = ruleFile;
         this.bfuncFile = bfuncFile;
         this.patternFile = patternFile;
         this.mfuncFile = mfuncFile;
         this.dataFile = dataFile;
         this.incOutFile = incOutFile;
-        this.dataOrCCTOutFile = dataOutFile;
-        this.type = type;
 
         this.ruleHandler = new RuleHandler();
         this.patternHandler = new PatternHandler();
@@ -146,18 +137,7 @@ public class OfflineStarter implements Loggable {
         try {
             logger.info("Start running......");
             run();
-            if(type.equals("test")){
-                testRunEnd(bfuncInstance);
-            }
             incsOutput();
-            if(type.equals("test")){
-                //output CCT
-                cctOutput();
-            }
-            else{
-                //output fixed data
-                //TODO()
-            }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -170,15 +150,15 @@ public class OfflineStarter implements Loggable {
         logger.info("Build patterns successfully.");
 
         for(Rule rule : ruleHandler.getRuleMap().values()){
-            contextPool.PoolInit(rule);
+            contextPool.poolInit(rule);
             //S-condition
-            rule.DeriveSConditions();
+            rule.deriveSConditions();
             //DIS
-            rule.DeriveRCRESets();
+            rule.deriveRCRESets();
         }
 
         for(String pattern_id : patternHandler.getPatternMap().keySet()){
-            contextPool.ThreeSetsInit(pattern_id);
+            contextPool.threeSetsInit(pattern_id);
         }
     }
 
@@ -223,135 +203,56 @@ public class OfflineStarter implements Loggable {
         }
     }
 
-    private void testRunEnd(Object bfuncInstance) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        bfuncInstance.getClass().getMethod("end").invoke(bfuncInstance);
-    }
-
     private void incsOutput() throws Exception {
-        if(type.equalsIgnoreCase("run")){
-            OutputStream outputStream = Files.newOutputStream(Paths.get(incOutFile));
-            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
-            BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
-            //对每个rule遍历
-            for(Map.Entry<String, List<Map.Entry<Boolean, Set<Link>>>> entry : this.checker.getRuleLinksMap().entrySet()){
-                StringBuilder stringBuilder = new StringBuilder();
-                stringBuilder.append(entry.getKey()).append('(');
-                //累计每一次的link，氛围violated和satisfied(and or implies 两种都可能会有)
-                Set<Link> accumVioLinks = new HashSet<>();
-                Set<Link> accumSatLinks = new HashSet<>();
-                for(Map.Entry<Boolean, Set<Link>> resultEntry : entry.getValue()){
-                    if(resultEntry.getKey()){
-                        accumSatLinks.addAll(resultEntry.getValue());
-                    }
-                    else{
-                        accumVioLinks.addAll(resultEntry.getValue());
-                    }
-                }
-                for(Link link : accumVioLinks){
-                    Link.Link_Type linkType = Link.Link_Type.VIOLATED;
-                    StringBuilder tmpBuilder = new StringBuilder(stringBuilder);
-                    tmpBuilder.append(linkType.name()).append(",{");
-                    //对当前每个link的变量赋值遍历
-                    for(Map.Entry<String, Context> va : link.getVaSet()){
-                        tmpBuilder.append("(").append(va.getKey()).append(",").append(Integer.parseInt(va.getValue().getCtx_id().substring(4)) + 1).append("),");
-                    }
-                    tmpBuilder.deleteCharAt(tmpBuilder.length() - 1);
-                    tmpBuilder.append("})");
-                    bufferedWriter.write(tmpBuilder.toString() + "\n");
-                    bufferedWriter.flush();
-                }
-                for(Link link : accumSatLinks){
-                    Link.Link_Type linkType = Link.Link_Type.SATISFIED;
-                    StringBuilder tmpBuilder = new StringBuilder(stringBuilder);
-                    tmpBuilder.append(linkType.name()).append(",{");
-                    //对当前每个link的变量赋值遍历
-                    for(Map.Entry<String, Context> va : link.getVaSet()){
-                        tmpBuilder.append("(").append(va.getKey()).append(",").append(Integer.parseInt(va.getValue().getCtx_id().substring(4)) + 1).append("),");
-                    }
-                    tmpBuilder.deleteCharAt(tmpBuilder.length() - 1);
-                    tmpBuilder.append("})");
-                    bufferedWriter.write(tmpBuilder.toString() + "\n");
-                    bufferedWriter.flush();
-                }
-            }
-
-            bufferedWriter.close();
-            outputStreamWriter.close();
-            outputStream.close();
-        }
-        else if (type.equalsIgnoreCase("test")){
-            JSONObject root = new JSONObject();
-            Map<String, List<Map.Entry<Boolean, Set<Link>>>> ruleLinksMap = this.checker.getRuleLinksMap();
-            for(Rule rule : this.ruleHandler.getRuleMap().values()){
-                String rule_id = rule.getRule_id();
-                if(ruleLinksMap.containsKey(rule_id)){
-                    JSONObject ruleJsonObj = new JSONObject();
-                    Map.Entry<Boolean, Set<Link>> latestResult = ruleLinksMap.get(rule_id).get(ruleLinksMap.get(rule_id).size() - 1);
-                    ruleJsonObj.put("truth", latestResult.getKey());
-                    JSONArray linksJsonArray = new JSONArray();
-                    //links foreach
-                    for(Link link : latestResult.getValue()){
-                        JSONArray linkJsonArray = new JSONArray();
-                        //vaSet foreach
-                        for(Map.Entry<String, Context> vaEntry : link.getVaSet()){
-                            JSONObject vaJsonObj = new JSONObject();
-                            //set var
-                            vaJsonObj.put("var", vaEntry.getKey());
-                            //set value
-                            Context context = vaEntry.getValue();
-                            JSONObject valueJsonObj = new JSONObject();
-                            valueJsonObj.put("ctx_id", context.getCtx_id());
-                            JSONObject fieldsJsonObj = new JSONObject();
-                            //context fields foreach
-                            for(String fieldName : context.getCtx_fields().keySet()){
-                                fieldsJsonObj.put(fieldName, context.getCtx_fields().get(fieldName));
-                            }
-                            valueJsonObj.put("fields", fieldsJsonObj);
-                            vaJsonObj.put("value", valueJsonObj);
-                            //store vaNode
-                            linkJsonArray.add(vaJsonObj);
-                        }
-                        //store linkNode
-                        linksJsonArray.add(linkJsonArray);
-                    }
-                    //store linksNode
-                    ruleJsonObj.put("links", linksJsonArray);
-                    //store ruleNode
-                    root.put(rule_id, ruleJsonObj);
+        OutputStream outputStream = Files.newOutputStream(Paths.get(incOutFile));
+        OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
+        BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
+        //对每个rule遍历
+        for(Map.Entry<String, List<Map.Entry<Boolean, Set<Link>>>> entry : this.checker.getRuleLinksMap().entrySet()){
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append(entry.getKey()).append('(');
+            //累计每一次的link，氛围violated和satisfied(and or implies 两种都可能会有)
+            Set<Link> accumVioLinks = new HashSet<>();
+            Set<Link> accumSatLinks = new HashSet<>();
+            for(Map.Entry<Boolean, Set<Link>> resultEntry : entry.getValue()){
+                if(resultEntry.getKey()){
+                    accumSatLinks.addAll(resultEntry.getValue());
                 }
                 else{
-                    JSONObject ruleJsonObj = new JSONObject();
-                    ruleJsonObj.put("truth", rule.getCCTRoot().isTruth());
-                    ruleJsonObj.put("links", new JSONArray());
-                    root.put(rule_id, ruleJsonObj);
+                    accumVioLinks.addAll(resultEntry.getValue());
                 }
             }
-
-            JSONWriter jsonWriter = new JSONWriter(new FileWriter(incOutFile));
-            jsonWriter.writeObject(root);
-            jsonWriter.close();
-        }
-        else{
-            assert false;
-        }
-    }
-
-    private void cctOutput() throws Exception {
-        try(OutputStream outputStream = Files.newOutputStream(Paths.get(dataOrCCTOutFile))){
-            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
-            BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
-            for(Rule rule : ruleHandler.getRuleMap().values()){
-                if(rule.getCCTRoot().isTruth()){
-                    bufferedWriter.write(rule.getCCTRoot().show(0, new HashSet<>(), null));
+            for(Link link : accumVioLinks){
+                Link.Link_Type linkType = Link.Link_Type.VIOLATED;
+                StringBuilder tmpBuilder = new StringBuilder(stringBuilder);
+                tmpBuilder.append(linkType.name()).append(",{");
+                //对当前每个link的变量赋值遍历
+                for(Map.Entry<String, Context> va : link.getVaSet()){
+                    tmpBuilder.append("(").append(va.getKey()).append(",").append(Integer.parseInt(va.getValue().getCtx_id().substring(4)) + 1).append("),");
                 }
-                else{
-                    bufferedWriter.write(rule.getCCTRoot().show(0, checker.getSubstantialNodes().get(rule.getRule_id()), null));
-                }
-                bufferedWriter.write("\n");
+                tmpBuilder.deleteCharAt(tmpBuilder.length() - 1);
+                tmpBuilder.append("})");
+                bufferedWriter.write(tmpBuilder.toString() + "\n");
                 bufferedWriter.flush();
             }
-            bufferedWriter.close();
-            outputStreamWriter.close();
+            for(Link link : accumSatLinks){
+                Link.Link_Type linkType = Link.Link_Type.SATISFIED;
+                StringBuilder tmpBuilder = new StringBuilder(stringBuilder);
+                tmpBuilder.append(linkType.name()).append(",{");
+                //对当前每个link的变量赋值遍历
+                for(Map.Entry<String, Context> va : link.getVaSet()){
+                    tmpBuilder.append("(").append(va.getKey()).append(",").append(Integer.parseInt(va.getValue().getCtx_id().substring(4)) + 1).append("),");
+                }
+                tmpBuilder.deleteCharAt(tmpBuilder.length() - 1);
+                tmpBuilder.append("})");
+                bufferedWriter.write(tmpBuilder.toString() + "\n");
+                bufferedWriter.flush();
+            }
         }
+
+        bufferedWriter.close();
+        outputStreamWriter.close();
+        outputStream.close();
     }
+
 }

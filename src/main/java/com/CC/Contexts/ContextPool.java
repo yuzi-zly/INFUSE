@@ -24,7 +24,7 @@ public class ContextPool {
         UpdSets = new HashMap<>();
     }
 
-    public void PoolInit(Rule rule){
+    public void poolInit(Rule rule){
             HashMap<String, Set<Context>> map = new HashMap<>();
             for(String pattern_id : rule.getVarPatternMap().values()){
                 map.put(pattern_id, new HashSet<>());
@@ -32,46 +32,46 @@ public class ContextPool {
             Pool.put(rule.getRule_id(), map);
     }
 
-    public void  ThreeSetsInit(String pattern_id){
+    public void threeSetsInit(String pattern_id){
         DelSets.put(pattern_id, new HashSet<>());
         AddSets.put(pattern_id, new HashSet<>());
         UpdSets.put(pattern_id, new HashSet<>());
     }
 
-    public Set<Context> GetAddSet(String pattern_id){
+    public Set<Context> getAddSet(String pattern_id){
         return AddSets.get(pattern_id);
     }
 
-    public Set<Context> GetDelSet(String pattern_id){
+    public Set<Context> getDelSet(String pattern_id){
         return DelSets.get(pattern_id);
     }
 
-    public Set<Context> GetUpdSet(String pattern_id){
+    public Set<Context> getUpdSet(String pattern_id){
         return UpdSets.get(pattern_id);
     }
 
-    public Set<Context> GetPoolSet(String rule_id, String pattern_id){
+    public Set<Context> getPoolSet(String rule_id, String pattern_id){
         return Pool.get(rule_id).get(pattern_id);
     }
 
-    public int GetAddSetSize(String pattern_id){
+    public int getAddSetSize(String pattern_id){
         return AddSets.get(pattern_id).size();
     }
 
-    public int GetDelSetSize(String pattern_id){
+    public int getDelSetSize(String pattern_id){
         return DelSets.get(pattern_id).size();
     }
 
-    public int GetUpdSetSize(String pattern_id){
+    public int getUpdSetSize(String pattern_id){
         return UpdSets.get(pattern_id).size();
     }
 
-    public int GetPoolSetSize(String rule_id, String pattern_id){
+    public int getPoolSetSize(String rule_id, String pattern_id){
         return Pool.get(rule_id).get(pattern_id).size();
     }
 
     //ECC PCC CON-C
-    public void ApplyChange(String rule_id, ContextChange contextChange){
+    public void applyChange(String rule_id, ContextChange contextChange){
         if(contextChange.getChange_type() == ContextChange.Change_Type.ADDITION){
             Pool.get(rule_id).get(contextChange.getPattern_id()).add(contextChange.getContext());
         }
@@ -81,7 +81,7 @@ public class ContextPool {
     }
 
     //CPCC method 2
-    public void ApplyChanges(Rule rule, List<ContextChange> batch) {
+    public void applyChanges(Rule rule, List<ContextChange> batch) {
         //init DelSet, AddSet, and ModSet
         for(String pattern_id : rule.getVarPatternMap().values()){
             DelSets.get(pattern_id).clear();
@@ -129,7 +129,7 @@ public class ContextPool {
     }
 
     //PCCM CPCC method 1
-    public void ApplyChangeWithSets(String rule_id, ContextChange contextChange){
+    public void applyChangeWithSets(String rule_id, ContextChange contextChange){
         Set<Context> DelS = DelSets.get(contextChange.getPattern_id());
         Set<Context> AddS = AddSets.get(contextChange.getPattern_id());
         Set<Context> ModS = UpdSets.get(contextChange.getPattern_id());

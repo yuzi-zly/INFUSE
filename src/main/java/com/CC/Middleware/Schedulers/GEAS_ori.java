@@ -20,7 +20,7 @@ public class GEAS_ori extends Scheduler{
 
     @Override
     public void doSchedule(ContextChange contextChange) throws Exception {
-        Batch_Form(contextChange);
+        batchForm(contextChange);
         for(Rule rule : ruleHandler.getRuleMap().values()){
             if(rule.getNewBatch() != null){
                 this.checker.ctxChangeCheckBatch(rule, rule.getBatch());
@@ -30,11 +30,11 @@ public class GEAS_ori extends Scheduler{
         }
     }
 
-    private void Batch_Form(ContextChange newChange){
+    private void batchForm(ContextChange newChange){
         for(Rule rule : ruleHandler.getRuleMap().values()){
             if(!rule.getVarPatternMap().containsValue(newChange.getPattern_id()))
                 continue;
-            if(S_Condition_Match(rule, newChange)){
+            if(sConditionMatch(rule, newChange)){
                 List<ContextChange> newBatch = new ArrayList<>();
                 newBatch.add(newChange);
                 rule.setNewBatch(newBatch);
@@ -52,7 +52,7 @@ public class GEAS_ori extends Scheduler{
         }
     }
 
-    protected boolean S_Condition_Match(Rule rule, ContextChange newChange) {
+    protected boolean sConditionMatch(Rule rule, ContextChange newChange) {
         boolean retflag = false;
         if(rule.getBatch() == null)
             return false;
@@ -72,7 +72,7 @@ public class GEAS_ori extends Scheduler{
     }
 
     public void checkEnds() throws NotSupportedException {
-        CleanUp();
+        cleanUp();
         switch (this.checker.getTechnique()) {
             case "ConC":
                 ((ConC) checker).ThreadPool.shutdown();
@@ -87,7 +87,7 @@ public class GEAS_ori extends Scheduler{
         }
     }
 
-    protected void CleanUp() throws NotSupportedException {
+    protected void cleanUp() throws NotSupportedException {
         //最后一次检测
         for(Rule rule : ruleHandler.getRuleMap().values()){
             if(rule.getBatch() != null){

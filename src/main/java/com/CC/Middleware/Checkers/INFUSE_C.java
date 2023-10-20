@@ -26,7 +26,7 @@ public class INFUSE_C extends Checker{
         this.technique = "CPCC_NB";
     }
 
-    public static class CreateBranchesTask_CPCC_NB implements Callable<RuntimeNode> {
+    public static class CreateBranchesTask_INFUSE implements Callable<RuntimeNode> {
         Rule rule;
         int depth;
         HashMap<String, Context> varEnv;
@@ -34,8 +34,8 @@ public class INFUSE_C extends Checker{
         Formula originFormula;//父结点的formula
         Checker checker;
 
-        public CreateBranchesTask_CPCC_NB(Rule rule, int depth, HashMap<String, Context> varEnv,
-                                       Context context, Formula originFormula, Checker checker){
+        public CreateBranchesTask_INFUSE(Rule rule, int depth, HashMap<String, Context> varEnv,
+                                         Context context, Formula originFormula, Checker checker){
             this.rule = rule;
             this.depth = depth;
             this.varEnv = varEnv;
@@ -52,26 +52,26 @@ public class INFUSE_C extends Checker{
                 returnNode.setDepth(this.depth + 1);
                 returnNode.getVarEnv().putAll(this.varEnv);
                 returnNode.getVarEnv().put(((FExists)originFormula).getVar(), context);
-                returnNode.getFormula().CreateBranches_CPCC_NB(rule, returnNode, ((FExists)originFormula).getSubformula(), checker);
+                returnNode.getFormula().createBranches_INFUSE(rule, returnNode, ((FExists)originFormula).getSubformula(), checker);
             }
             else{
                 returnNode = new RuntimeNode(((FForall)originFormula).getSubformula());
                 returnNode.setDepth(this.depth + 1);
                 returnNode.getVarEnv().putAll(this.varEnv);
                 returnNode.getVarEnv().put(((FForall)originFormula).getVar(), context);
-                returnNode.getFormula().CreateBranches_CPCC_NB(rule, returnNode, ((FForall)originFormula).getSubformula(), checker);
+                returnNode.getFormula().createBranches_INFUSE(rule, returnNode, ((FForall)originFormula).getSubformula(), checker);
             }
             return returnNode;
         }
     }
 
-    public static class ModifyBranchTask_CPCC_NB implements Callable<Void>{
+    public static class ModifyBranchTask_INFUSE implements Callable<Void>{
         Rule rule;
         RuntimeNode curNode;
         Formula originFormula;//curNode的formula
         Checker checker;
 
-        public ModifyBranchTask_CPCC_NB(Rule rule, RuntimeNode curNode, Formula originFormula, Checker checker){
+        public ModifyBranchTask_INFUSE(Rule rule, RuntimeNode curNode, Formula originFormula, Checker checker){
             this.rule = rule;
             this.curNode = curNode;
             this.originFormula = originFormula;
@@ -80,18 +80,18 @@ public class INFUSE_C extends Checker{
 
         @Override
         public Void call(){
-            curNode.getFormula().ModifyBranch_CPCC_NB(rule, curNode, originFormula, checker);
+            curNode.getFormula().modifyBranch_INFUSE(rule, curNode, originFormula, checker);
             return null;
         }
 
     }
 
-    public static class TruthEvaluationTaskCom_CPCC_NB implements Callable<Boolean>{
+    public static class TruthEvaluationTaskCom_INFUSE implements Callable<Boolean>{
         RuntimeNode curNode;
         Formula originFormula;
         Checker checker;
 
-        public TruthEvaluationTaskCom_CPCC_NB(RuntimeNode curNode, Formula originFormula, Checker checker){
+        public TruthEvaluationTaskCom_INFUSE(RuntimeNode curNode, Formula originFormula, Checker checker){
             this.curNode = curNode;
             this.originFormula = originFormula;
             this.checker = checker;
@@ -100,16 +100,16 @@ public class INFUSE_C extends Checker{
         @Override
         public Boolean call() {
             //must new
-            return curNode.getFormula().TruthEvaluationCom_CPCC_NB(curNode, originFormula, checker);
+            return curNode.getFormula().truthEvaluationCom_INFUSE(curNode, originFormula, checker);
         }
     }
 
-    public static class TruthEvaluationTaskPar_CPCC_NB implements Callable<Boolean>{
+    public static class TruthEvaluationTaskPar_INFUSE implements Callable<Boolean>{
         RuntimeNode curNode;
         Formula originFormula;
         Checker checker;
 
-        public TruthEvaluationTaskPar_CPCC_NB(RuntimeNode curNode, Formula originFormula, Checker checker){
+        public TruthEvaluationTaskPar_INFUSE(RuntimeNode curNode, Formula originFormula, Checker checker){
             this.curNode = curNode;
             this.originFormula = originFormula;
             this.checker = checker;
@@ -118,17 +118,17 @@ public class INFUSE_C extends Checker{
         @Override
         public Boolean call() {
             //must new
-            return curNode.getFormula().TruthEvaluationPar_CPCC_NB(curNode, originFormula, checker);
+            return curNode.getFormula().truthEvaluationPar_INFUSE(curNode, originFormula, checker);
         }
     }
 
-    public static class LinksGenerationTaskCom_CPCC_NB implements Callable<Set<Link>>{
+    public static class LinksGenerationTaskCom_INFUSE implements Callable<Set<Link>>{
         RuntimeNode curNode;
         Formula originFormula;
         final Set<RuntimeNode> prevSubstantialNodes;
         Checker checker;
 
-        public LinksGenerationTaskCom_CPCC_NB(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker){
+        public LinksGenerationTaskCom_INFUSE(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker){
             this.curNode = curNode;
             this.originFormula = originFormula;
             this.prevSubstantialNodes = prevSubstantialNodes;
@@ -137,17 +137,17 @@ public class INFUSE_C extends Checker{
 
         @Override
         public Set<Link> call() {
-            return curNode.getFormula().LinksGeneration_ECC(curNode, originFormula, prevSubstantialNodes, checker);
+            return curNode.getFormula().linksGeneration_ECC(curNode, originFormula, prevSubstantialNodes, checker);
         }
     }
 
-    public static class LinksGenerationTaskPar_CPCC_NB implements Callable<Set<Link>>{
+    public static class LinksGenerationTaskPar_INFUSE implements Callable<Set<Link>>{
         RuntimeNode curNode;
         Formula originFormula;
         final Set<RuntimeNode> prevSubstantialNodes;
         Checker checker;
 
-        public LinksGenerationTaskPar_CPCC_NB(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker){
+        public LinksGenerationTaskPar_INFUSE(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker){
             this.curNode = curNode;
             this.originFormula = originFormula;
             this.prevSubstantialNodes = prevSubstantialNodes;
@@ -156,21 +156,21 @@ public class INFUSE_C extends Checker{
 
         @Override
         public Set<Link> call() {
-            return curNode.getFormula().LinksGeneration_CPCC_NB(curNode, originFormula, prevSubstantialNodes, checker);
+            return curNode.getFormula().linksGeneration_INFUSE(curNode, originFormula, prevSubstantialNodes, checker);
         }
     }
 
     @Override
     public void checkInit() {
         for(Rule rule : this.ruleHandler.getRuleMap().values()){
-            rule.BuildCCT_CPCC_NB(this);
-            rule.TruthEvaluation_CPCC_NB(this, true);
+            rule.buildCCT_INFUSE(this);
+            rule.truthEvaluation_INFUSE(this, true);
             //taint SCCT
             Set<RuntimeNode> prevSubstantialNodes = this.substantialNodes.getOrDefault(rule.getRule_id(),  new HashSet<>());
             if(this.isMG){
                 this.substantialNodes.put(rule.getRule_id(), rule.taintSCCT());
             }
-            rule.LinksGeneration_CPCC_NB(this, prevSubstantialNodes);
+            rule.linksGeneration_INFUSE(this, prevSubstantialNodes);
         }
     }
 
@@ -178,22 +178,22 @@ public class INFUSE_C extends Checker{
     public void ctxChangeCheckBatch(Rule rule, List<ContextChange> batch) throws NotSupportedException {
         //rule.intoFile(batch);
 
-        contextPool.ApplyChanges(rule, batch);
-        rule.UpdateAffectedWithChanges(this);
-        rule.UpdateCanConcurrent_CPCC_NB(this);
+        contextPool.applyChanges(rule, batch);
+        rule.updateAffectedWithChanges(this);
+        rule.updateCanConcurrent_INFUSE(this);
 
-        rule.ModifyCCT_CPCC_NB(this);
-        rule.TruthEvaluation_CPCC_NB(this, false);
+        rule.modifyCCT_INFUSE(this);
+        rule.truthEvaluation_INFUSE(this, false);
         //taint SCCT
         Set<RuntimeNode> prevSubstantialNodes = this.substantialNodes.getOrDefault(rule.getRule_id(),  new HashSet<>());
         if(this.isMG){
             this.substantialNodes.put(rule.getRule_id(), rule.taintSCCT());
         }
-        Set<Link> links2 = rule.LinksGeneration_CPCC_NB(this, prevSubstantialNodes);
+        Set<Link> links2 = rule.linksGeneration_INFUSE(this, prevSubstantialNodes);
         if(links2 != null){
             rule.addCriticalSet(links2);
         }
-        rule.CleanAffectedAndCanConcurrent();
+        rule.cleanAffectedAndCanConcurrent();
         if(links2 != null){
             storeLink(rule.getRule_id(), rule.getCCTRoot().isTruth(), links2);
         }
@@ -206,23 +206,23 @@ public class INFUSE_C extends Checker{
                 List<ContextChange> batch = new ArrayList<>();
                 batch.add(contextChange);
 
-                contextPool.ApplyChanges(rule, batch);
-                rule.UpdateAffectedWithChanges(this);
-                rule.UpdateCanConcurrent_CPCC_NB(this);
+                contextPool.applyChanges(rule, batch);
+                rule.updateAffectedWithChanges(this);
+                rule.updateCanConcurrent_INFUSE(this);
 
-                rule.ModifyCCT_CPCC_NB(this);
-                rule.TruthEvaluation_CPCC_NB(this,false);
+                rule.modifyCCT_INFUSE(this);
+                rule.truthEvaluation_INFUSE(this,false);
                 //taint SCCT
                 Set<RuntimeNode> prevSubstantialNodes = this.substantialNodes.getOrDefault(rule.getRule_id(),  new HashSet<>());
                 if(this.isMG){
                     this.substantialNodes.put(rule.getRule_id(), rule.taintSCCT());
                 }
-                Set<Link> links2 = rule.LinksGeneration_CPCC_NB(this, prevSubstantialNodes);
+                Set<Link> links2 = rule.linksGeneration_INFUSE(this, prevSubstantialNodes);
                 if (links2 != null) {
                     rule.addCriticalSet(links2);
                    // rule.oracleCount(links2, contextChange);
                 }
-                rule.CleanAffectedAndCanConcurrent();
+                rule.cleanAffectedAndCanConcurrent();
                 if(links2 != null){
                     storeLink(rule.getRule_id(), rule.getCCTRoot().isTruth(), links2);
                 }

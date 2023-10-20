@@ -26,7 +26,7 @@ public class INFUSE_S extends Scheduler{
 
     @Override
     public void doSchedule(ContextChange contextChange) throws Exception {
-        Batch_Form_DIS(contextChange);
+        batchFormINFUSE(contextChange);
         for(Rule rule : ruleHandler.getRuleMap().values()){
             if(rule.getNewBatch() != null){
                 this.checker.ctxChangeCheckBatch(rule, rule.getBatch());
@@ -37,7 +37,7 @@ public class INFUSE_S extends Scheduler{
         }
     }
 
-    private void Batch_Form_DIS(ContextChange newChange){
+    private void batchFormINFUSE(ContextChange newChange){
         for(Rule rule : ruleHandler.getRuleMap().values()){
             if(!rule.getVarPatternMap().containsValue(newChange.getPattern_id()))
                 continue;

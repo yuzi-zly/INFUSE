@@ -20,12 +20,12 @@ public class Rule {
     // Related patterns
     private final Map<String,String> varPatternMap;
 
-    //for CPCC_NB
+    //for INFUSE
     //pat to maxUnderDepth
     private final Map<String, Integer> patToDepth;
     private final TreeMap<Integer, String> depthToPat;
 
-    //for DIS
+    //for INFUSE
     private boolean riskAlready;
     private final Map<String, Formula> patToFormula;
     private final Map<String, Set<RuntimeNode>> patToRuntimeNode;
@@ -63,7 +63,7 @@ public class Rule {
     }
 
     //functional methods
-    public void Output(){
+    public void output(){
         System.out.println("rule id: " + this.rule_id);
         System.out.println("varPatternMap: " + this.varPatternMap);
         System.out.println("incPlusSet: " + incPlusSet);
@@ -72,9 +72,9 @@ public class Rule {
     }
 
     //S-condition
-    public void DeriveSConditions(){
-        this.formula.DeriveIncPlusSet(this.incPlusSet);
-        this.formula.DeriveIncMinusSet(this.incMinusSet);
+    public void deriveSConditions(){
+        this.formula.deriveIncPlusSet(this.incPlusSet);
+        this.formula.deriveIncMinusSet(this.incMinusSet);
     }
 
     public String getIncType(ContextChange contextChange) {
@@ -104,30 +104,30 @@ public class Rule {
     }
 
     //DIS
-    public void DeriveRCRESets(){
-        this.formula.DeriveRCRESets(true);
+    public void deriveRCRESets(){
+        this.formula.deriveRCRESets(true);
     }
 
     //PCC
-    public void UpdateAffectedWithOneChange(ContextChange contextChange, Checker checker){
-        this.formula.UpdateAffectedWithOneChange(contextChange, checker);
+    public void updateAffectedWithOneChange(ContextChange contextChange, Checker checker){
+        this.formula.updateAffectedWithOneChange(contextChange, checker);
     }
-    public void CleanAffected(){
-        this.formula.CleanAffected();
+    public void cleanAffected(){
+        this.formula.cleanAffected();
     }
 
     //PCCM && CPCC
-    public void UpdateAffectedWithChanges(Checker checker){
-        this.formula.UpdateAffectedWithChanges(checker);
+    public void updateAffectedWithChanges(Checker checker){
+        this.formula.updateAffectedWithChanges(checker);
     }
 
     //CPCC
-    public void UpdateCanConcurrent_CPCC_NB(Checker checker){
-        this.formula.UpdateCanConcurrent_CPCC_NB(true, this, checker);
+    public void updateCanConcurrent_INFUSE(Checker checker){
+        this.formula.updateCanConcurrent_INFUSE(true, this, checker);
     }
 
-    public void CleanAffectedAndCanConcurrent(){
-        this.formula.CleanAffectedAndCanConcurrent();
+    public void cleanAffectedAndCanConcurrent(){
+        this.formula.cleanAffectedAndCanConcurrent();
     }
 
     //MG
@@ -138,129 +138,129 @@ public class Rule {
     }
 
     //ECC && PCC
-    public void BuildCCT_ECCPCC(Checker checker){
+    public void buildCCT_ECCPCC(Checker checker){
         this.CCTRoot = new RuntimeNode(this.formula);
         this.CCTRoot.setDepth(0);
-        this.CCTRoot.getFormula().CreateBranches_ECCPCC(this.rule_id, this.CCTRoot, this.formula, checker);
+        this.CCTRoot.getFormula().createBranches_ECCPCC(this.rule_id, this.CCTRoot, this.formula, checker);
         this.CCTAlready = true;
     }
 
-    public void ModifyCCT_PCC(ContextChange contextChange, Checker checker){
-        this.CCTRoot.getFormula().ModifyBranch_PCC(this.rule_id, this.CCTRoot, this.formula, contextChange, checker);
+    public void modifyCCT_PCC(ContextChange contextChange, Checker checker){
+        this.CCTRoot.getFormula().modifyBranch_PCC(this.rule_id, this.CCTRoot, this.formula, contextChange, checker);
     }
 
 
     //ConC
-    public void BuildCCT_CONC(Checker checker){
+    public void buildCCT_CONC(Checker checker){
         this.CCTRoot = new RuntimeNode(this.formula);
         this.CCTRoot.setDepth(0);
-        this.CCTRoot.getFormula().CreateBranches_ConC(this.rule_id, this.CCTRoot, this.formula, true, checker);
+        this.CCTRoot.getFormula().createBranches_ConC(this.rule_id, this.CCTRoot, this.formula, true, checker);
         this.CCTAlready = true;
     }
 
     //PCCM
-    public void ModifyCCT_PCCM(ContextChange contextChange, Checker checker){
-        this.CCTRoot.getFormula().ModifyBranch_PCCM(this.rule_id, this.CCTRoot, this.formula, contextChange, checker);
+    public void modifyCCT_PCCM(ContextChange contextChange, Checker checker){
+        this.CCTRoot.getFormula().modifyBranch_PCCM(this.rule_id, this.CCTRoot, this.formula, contextChange, checker);
     }
 
-    //CPCC_NB
-    public void BuildCCT_CPCC_NB(Checker checker){
+    //INFUSE
+    public void buildCCT_INFUSE(Checker checker){
         this.CCTRoot = new RuntimeNode(this.formula);
         this.CCTRoot.setDepth(0);
-        this.CCTRoot.getFormula().CreateBranches_CPCC_NB(this, this.CCTRoot, this.formula, checker);
+        this.CCTRoot.getFormula().createBranches_INFUSE(this, this.CCTRoot, this.formula, checker);
         this.CCTAlready = true;
     }
 
-    public void ModifyCCT_CPCC_NB(Checker checker){
-        this.CCTRoot.getFormula().ModifyBranch_CPCC_NB(this, this.CCTRoot, this.formula, checker);
+    public void modifyCCT_INFUSE(Checker checker){
+        this.CCTRoot.getFormula().modifyBranch_INFUSE(this, this.CCTRoot, this.formula, checker);
     }
 
     //CPCC_BASE
-    public void ModifyCCT_BASE(ContextChange contextChange, Checker checker){
-        this.CCTRoot.getFormula().ModifyBranch_BASE(this.rule_id, this.CCTRoot, this.formula, contextChange, checker);
+    public void modifyCCT_BASE(ContextChange contextChange, Checker checker){
+        this.CCTRoot.getFormula().modifyBranch_BASE(this.rule_id, this.CCTRoot, this.formula, contextChange, checker);
     }
 
     //ECC check
-    public boolean TruthEvaluation_ECC(Checker checker) {
-        boolean result = this.CCTRoot.getFormula().TruthEvaluation_ECC(this.CCTRoot, this.formula, checker);
+    public boolean truthEvaluation_ECC(Checker checker) {
+        boolean result = this.CCTRoot.getFormula().truthEvaluation_ECC(this.CCTRoot, this.formula, checker);
         this.CCTRoot.setTruth(result);
         return result;
     }
 
-    public Set<Link> LinksGeneration_ECC(Checker checker, final Set<RuntimeNode> prevSubstantialNodes){
-        Set<Link> result = this.CCTRoot.getFormula().LinksGeneration_ECC(this.CCTRoot, this.formula, prevSubstantialNodes, checker);
+    public Set<Link> linksGeneration_ECC(Checker checker, final Set<RuntimeNode> prevSubstantialNodes){
+        Set<Link> result = this.CCTRoot.getFormula().linksGeneration_ECC(this.CCTRoot, this.formula, prevSubstantialNodes, checker);
         this.CCTRoot.setLinks(result);
         return result;
     }
 
     //PCC check
-    public boolean TruthEvaluation_PCC(ContextChange contextChange, Checker checker){
-        boolean result = this.CCTRoot.getFormula().TruthEvaluation_PCC(this.CCTRoot, this.formula, contextChange, checker);
+    public boolean truthEvaluation_PCC(ContextChange contextChange, Checker checker){
+        boolean result = this.CCTRoot.getFormula().truthEvaluation_PCC(this.CCTRoot, this.formula, contextChange, checker);
         this.CCTRoot.setTruth(result);
         return result;
     }
 
-    public Set<Link> LinksGeneration_PCC(ContextChange contextChange, Checker checker, final Set<RuntimeNode> prevSubstantialNodes){
-        Set<Link> result = this.CCTRoot.getFormula().LinksGeneration_PCC(this.CCTRoot, this.formula, contextChange, prevSubstantialNodes, checker);
+    public Set<Link> linksGeneration_PCC(ContextChange contextChange, Checker checker, final Set<RuntimeNode> prevSubstantialNodes){
+        Set<Link> result = this.CCTRoot.getFormula().linksGeneration_PCC(this.CCTRoot, this.formula, contextChange, prevSubstantialNodes, checker);
         this.CCTRoot.setLinks(result);
         return result;
     }
 
     //ConC check
-    public boolean TruthEvaluation_ConC(Checker checker){
-        boolean result = this.CCTRoot.getFormula().TruthEvaluation_ConC(this.CCTRoot, this.formula, true, checker);
+    public boolean truthEvaluation_ConC(Checker checker){
+        boolean result = this.CCTRoot.getFormula().truthEvaluation_ConC(this.CCTRoot, this.formula, true, checker);
         this.CCTRoot.setTruth(result);
         return result;
     }
 
-    public Set<Link> LinksGeneration_ConC(Checker checker, final Set<RuntimeNode> prevSubstantialNodes){
-        Set<Link> result = this.CCTRoot.getFormula().LinksGeneration_ConC(this.CCTRoot, this.formula, true, prevSubstantialNodes, checker);
+    public Set<Link> linksGeneration_ConC(Checker checker, final Set<RuntimeNode> prevSubstantialNodes){
+        Set<Link> result = this.CCTRoot.getFormula().linksGeneration_ConC(this.CCTRoot, this.formula, true, prevSubstantialNodes, checker);
         this.CCTRoot.setLinks(result);
         return result;
     }
 
     //PCCM check
-    public boolean TruthEvaluation_PCCM(Checker checker){
-        boolean result = this.CCTRoot.getFormula().TruthEvaluation_PCCM(this.CCTRoot, this.formula, checker);
+    public boolean truthEvaluation_PCCM(Checker checker){
+        boolean result = this.CCTRoot.getFormula().truthEvaluation_PCCM(this.CCTRoot, this.formula, checker);
         this.CCTRoot.setTruth(result);
         return result;
     }
 
-    public Set<Link> LinksGeneration_PCCM(Checker checker, final Set<RuntimeNode> prevSubstantialNodes){
-        Set<Link> result = this.CCTRoot.getFormula().LinksGeneration_PCCM(this.CCTRoot, this.formula, prevSubstantialNodes, checker);
+    public Set<Link> linksGeneration_PCCM(Checker checker, final Set<RuntimeNode> prevSubstantialNodes){
+        Set<Link> result = this.CCTRoot.getFormula().linksGeneration_PCCM(this.CCTRoot, this.formula, prevSubstantialNodes, checker);
         this.CCTRoot.setLinks(result);
         return result;
     }
 
-    //CPCC_NB check
-    public boolean TruthEvaluation_CPCC_NB(Checker checker, boolean initial){
+    //INFUSE check
+    public boolean truthEvaluation_INFUSE(Checker checker, boolean initial){
         boolean result = false;
         if(initial){
-            result = this.CCTRoot.getFormula().TruthEvaluationCom_CPCC_NB(this.CCTRoot, this.formula, checker);
+            result = this.CCTRoot.getFormula().truthEvaluationCom_INFUSE(this.CCTRoot, this.formula, checker);
         }
         else{
-            result = this.CCTRoot.getFormula().TruthEvaluationPar_CPCC_NB(this.CCTRoot, this.formula, checker);
+            result = this.CCTRoot.getFormula().truthEvaluationPar_INFUSE(this.CCTRoot, this.formula, checker);
         }
         this.CCTRoot.setTruth(result);
         return result;
     }
 
-    public Set<Link> LinksGeneration_CPCC_NB(Checker checker, final Set<RuntimeNode> prevSubstantialNodes){
-        Set<Link> result = this.CCTRoot.getFormula().LinksGeneration_CPCC_NB(this.CCTRoot, this.formula, prevSubstantialNodes, checker);
+    public Set<Link> linksGeneration_INFUSE(Checker checker, final Set<RuntimeNode> prevSubstantialNodes){
+        Set<Link> result = this.CCTRoot.getFormula().linksGeneration_INFUSE(this.CCTRoot, this.formula, prevSubstantialNodes, checker);
         this.CCTRoot.setLinks(result);
         return result;
     }
 
 
     //CPCC_BASE check
-    public boolean TruthEvaluation_BASE(ContextChange contextChange, Checker checker){
-        boolean result = this.CCTRoot.getFormula().TruthEvaluation_BASE(this.CCTRoot, this.formula, contextChange, checker);
+    public boolean truthEvaluation_BASE(ContextChange contextChange, Checker checker){
+        boolean result = this.CCTRoot.getFormula().truthEvaluation_BASE(this.CCTRoot, this.formula, contextChange, checker);
         this.CCTRoot.setTruth(result);
         return result;
     }
 
-    public Set<Link> LinksGeneration_BASE(ContextChange contextChange, Checker checker, final Set<RuntimeNode> prevSubstantialNodes){
-        Set<Link> result = this.CCTRoot.getFormula().LinksGeneration_BASE(this.CCTRoot, this.formula, contextChange, prevSubstantialNodes, checker);
+    public Set<Link> linksGeneration_BASE(ContextChange contextChange, Checker checker, final Set<RuntimeNode> prevSubstantialNodes){
+        Set<Link> result = this.CCTRoot.getFormula().linksGeneration_BASE(this.CCTRoot, this.formula, contextChange, prevSubstantialNodes, checker);
         this.CCTRoot.setLinks(result);
         return result;
     }

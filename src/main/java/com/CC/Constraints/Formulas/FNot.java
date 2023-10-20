@@ -51,24 +51,24 @@ public class FNot extends Formula{
     }
 
     @Override
-    public Formula FormulaClone() {
+    public Formula formulaClone() {
         return new FNot();
     }
 
     //S-condition
     @Override
-    public void DeriveIncPlusSet(Set<Map.Entry<ContextChange.Change_Type, String>> incPlusSet) {
-        this.subformula.DeriveIncMinusSet(incPlusSet);
+    public void deriveIncPlusSet(Set<Map.Entry<ContextChange.Change_Type, String>> incPlusSet) {
+        this.subformula.deriveIncMinusSet(incPlusSet);
     }
 
     @Override
-    public void DeriveIncMinusSet(Set<Map.Entry<ContextChange.Change_Type, String>> incMinusSet) {
-        this.subformula.DeriveIncPlusSet(incMinusSet);
+    public void deriveIncMinusSet(Set<Map.Entry<ContextChange.Change_Type, String>> incMinusSet) {
+        this.subformula.deriveIncPlusSet(incMinusSet);
     }
 
     //C-condition
     @Override
-    public boolean EvaluationAndEqualSideEffect(RuntimeNode curNode, Formula originFormula, String var, ContextChange delChange, ContextChange addChange, boolean canConcurrent, Scheduler scheduler) {
+    public boolean evaluationAndEqualSideEffect(RuntimeNode curNode, Formula originFormula, String var, ContextChange delChange, ContextChange addChange, boolean canConcurrent, Scheduler scheduler) {
         if(var != null){
             curNode.getVarEnv().remove(var);
             curNode.getVarEnv().put(var, addChange.getContext());
@@ -76,7 +76,7 @@ public class FNot extends Formula{
 
         boolean result;
         RuntimeNode runtimeNode = curNode.getChildren().get(0);
-        result = runtimeNode.getFormula().EvaluationAndEqualSideEffect(runtimeNode, ((FNot)originFormula).getSubformula(), var, delChange, addChange, canConcurrent, scheduler);
+        result = runtimeNode.getFormula().evaluationAndEqualSideEffect(runtimeNode, ((FNot)originFormula).getSubformula(), var, delChange, addChange, canConcurrent, scheduler);
         boolean newTruth = !runtimeNode.isTruth();
         curNode.setOptTruth(curNode.isTruth());
         curNode.setTruth(newTruth);
@@ -85,7 +85,7 @@ public class FNot extends Formula{
     }
 
     @Override
-    public void sideEffectResolution(RuntimeNode curNode, Formula originFormula, String var, ContextChange delChange, ContextChange addChange, boolean canConcurrent, Scheduler scheduler) {
+    public void sideeffectresolution(RuntimeNode curNode, Formula originFormula, String var, ContextChange delChange, ContextChange addChange, boolean canConcurrent, Scheduler scheduler) {
         if(var != null){
             curNode.setTruth(curNode.isOptTruth());
             curNode.setOptTruth(false);
@@ -93,48 +93,48 @@ public class FNot extends Formula{
             curNode.getVarEnv().put(var, delChange.getContext());
         }
         RuntimeNode runtimeNode = curNode.getChildren().get(0);
-        runtimeNode.getFormula().sideEffectResolution(runtimeNode, ((FNot)originFormula).getSubformula(), var, delChange, addChange, canConcurrent, scheduler);
+        runtimeNode.getFormula().sideeffectresolution(runtimeNode, ((FNot)originFormula).getSubformula(), var, delChange, addChange, canConcurrent, scheduler);
     }
 
     //DIS
     @Override
-    public void DeriveRCRESets(boolean from) {
-        this.subformula.DeriveRCRESets(!from);
+    public void deriveRCRESets(boolean from) {
+        this.subformula.deriveRCRESets(!from);
     }
 
     //PCC
     @Override
-    public boolean UpdateAffectedWithOneChange(ContextChange contextChange, Checker checker) {
-        boolean result = this.subformula.UpdateAffectedWithOneChange(contextChange, checker);
+    public boolean updateAffectedWithOneChange(ContextChange contextChange, Checker checker) {
+        boolean result = this.subformula.updateAffectedWithOneChange(contextChange, checker);
         this.setAffected(result);
         return result;
     }
 
     //PCCM &&  CPCC
     @Override
-    public boolean UpdateAffectedWithChanges(Checker checker) {
-        boolean result = this.subformula.UpdateAffectedWithChanges(checker);
+    public boolean updateAffectedWithChanges(Checker checker) {
+        boolean result = this.subformula.updateAffectedWithChanges(checker);
         this.setAffected(result);
         return result;
     }
     @Override
-    public void CleanAffected() {
+    public void cleanAffected() {
         this.setAffected(false);
-        this.subformula.CleanAffected();
+        this.subformula.cleanAffected();
     }
 
     //CPCC_NB
     @Override
-    public void UpdateCanConcurrent_CPCC_NB(boolean canConcurrent, Rule rule, Checker checker) {
+    public void updateCanConcurrent_INFUSE(boolean canConcurrent, Rule rule, Checker checker) {
         if(canConcurrent){
-            this.subformula.UpdateCanConcurrent_CPCC_NB(true, rule, checker);
+            this.subformula.updateCanConcurrent_INFUSE(true, rule, checker);
         }
     }
 
     @Override
-    public void CleanAffectedAndCanConcurrent() {
+    public void cleanAffectedAndCanConcurrent() {
         this.setAffected(false);
-        this.subformula.CleanAffectedAndCanConcurrent();
+        this.subformula.cleanAffectedAndCanConcurrent();
     }
 
     //MG
@@ -149,33 +149,33 @@ public class FNot extends Formula{
                                             ECC PCC
                                          */
     @Override
-    public void CreateBranches_ECCPCC(String rule_id, RuntimeNode curNode, Formula originFormula, Checker checker) {
+    public void createBranches_ECCPCC(String rule_id, RuntimeNode curNode, Formula originFormula, Checker checker) {
         //分支1
         RuntimeNode runtimeNode = new RuntimeNode(((FNot)originFormula).getSubformula());
         runtimeNode.setDepth(curNode.getDepth() + 1);
         runtimeNode.getVarEnv().putAll(curNode.getVarEnv());
         curNode.getChildren().add(runtimeNode);
         //递归调用
-        runtimeNode.getFormula().CreateBranches_ECCPCC(rule_id, runtimeNode, ((FNot) originFormula).getSubformula(), checker);
+        runtimeNode.getFormula().createBranches_ECCPCC(rule_id, runtimeNode, ((FNot) originFormula).getSubformula(), checker);
     }
 
     /*
         ECC
      */
     @Override
-    public boolean TruthEvaluation_ECC(RuntimeNode curNode, Formula originFormula, Checker checker){
+    public boolean truthEvaluation_ECC(RuntimeNode curNode, Formula originFormula, Checker checker){
         RuntimeNode runtimeNode = curNode.getChildren().get(0);
-        boolean result = !runtimeNode.getFormula().TruthEvaluation_ECC(runtimeNode, ((FNot)originFormula).getSubformula(), checker);
+        boolean result = !runtimeNode.getFormula().truthEvaluation_ECC(runtimeNode, ((FNot)originFormula).getSubformula(), checker);
         curNode.setTruth(result);
         return  result;
     }
 
     @Override
-    public Set<Link> LinksGeneration_ECC(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
+    public Set<Link> linksGeneration_ECC(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
         RuntimeNode runtimeNode = curNode.getChildren().get(0);
         LGUtils lgUtils = new LGUtils();
         // only one case: all
-        Set<Link> ret = runtimeNode.getFormula().LinksGeneration_ECC(runtimeNode, ((FNot)originFormula).getSubformula(), prevSubstantialNodes, checker);
+        Set<Link> ret = runtimeNode.getFormula().linksGeneration_ECC(runtimeNode, ((FNot)originFormula).getSubformula(), prevSubstantialNodes, checker);
         Set<Link> result = lgUtils.flipSet(ret);
         curNode.setLinks(result);
         return curNode.getLinks();
@@ -186,16 +186,16 @@ public class FNot extends Formula{
      */
 
     @Override
-    public void ModifyBranch_PCC(String rule_id, RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
+    public void modifyBranch_PCC(String rule_id, RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
         RuntimeNode runtimeNode = curNode.getChildren().get(0);
-        runtimeNode.getFormula().ModifyBranch_PCC(rule_id, runtimeNode, ((FNot)originFormula).getSubformula(), contextChange, checker);
+        runtimeNode.getFormula().modifyBranch_PCC(rule_id, runtimeNode, ((FNot)originFormula).getSubformula(), contextChange, checker);
     }
 
     @Override
-    public boolean TruthEvaluation_PCC(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
+    public boolean truthEvaluation_PCC(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
         if(originFormula.isAffected()){
             RuntimeNode runtimeNode = curNode.getChildren().get(0);
-            boolean result = runtimeNode.getFormula().TruthEvaluation_PCC(runtimeNode, ((FNot)originFormula).getSubformula(), contextChange, checker);
+            boolean result = runtimeNode.getFormula().truthEvaluation_PCC(runtimeNode, ((FNot)originFormula).getSubformula(), contextChange, checker);
             curNode.setTruth(!result);
             return !result;
         }
@@ -205,13 +205,13 @@ public class FNot extends Formula{
     }
 
     @Override
-    public Set<Link> LinksGeneration_PCC(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
+    public Set<Link> linksGeneration_PCC(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
         Set<Link> result = new HashSet<>();
         RuntimeNode runtimeNode = curNode.getChildren().get(0);
         LGUtils lgUtils = new LGUtils();
         // only one case
         if(originFormula.isAffected()){
-            Set<Link> ret = runtimeNode.getFormula().LinksGeneration_PCC(runtimeNode, ((FNot)originFormula).getSubformula(), contextChange, prevSubstantialNodes, checker);
+            Set<Link> ret = runtimeNode.getFormula().linksGeneration_PCC(runtimeNode, ((FNot)originFormula).getSubformula(), contextChange, prevSubstantialNodes, checker);
             result.addAll(lgUtils.flipSet(ret));
         }
         else{
@@ -221,7 +221,7 @@ public class FNot extends Formula{
                     return curNode.getLinks();
                 }
                 else{
-                    Set<Link> ret = runtimeNode.getFormula().LinksGeneration_PCC(runtimeNode, ((FNot)originFormula).getSubformula(), contextChange, prevSubstantialNodes, checker);
+                    Set<Link> ret = runtimeNode.getFormula().linksGeneration_PCC(runtimeNode, ((FNot)originFormula).getSubformula(), contextChange, prevSubstantialNodes, checker);
                     result.addAll(lgUtils.flipSet(ret));
                 }
             }
@@ -238,30 +238,30 @@ public class FNot extends Formula{
         ConC
      */
     @Override
-    public void CreateBranches_ConC(String  rule_id, RuntimeNode curNode, Formula originFormula, boolean canConcurrent, Checker checker) {
+    public void createBranches_ConC(String  rule_id, RuntimeNode curNode, Formula originFormula, boolean canConcurrent, Checker checker) {
         //分支1
         RuntimeNode runtimeNode = new RuntimeNode(((FNot)originFormula).getSubformula());
         runtimeNode.setDepth(curNode.getDepth() + 1);
         runtimeNode.getVarEnv().putAll(curNode.getVarEnv());
         curNode.getChildren().add(runtimeNode);
         //递归调用
-        runtimeNode.getFormula().CreateBranches_ConC(rule_id, runtimeNode, ((FNot) originFormula).getSubformula(), canConcurrent, checker);
+        runtimeNode.getFormula().createBranches_ConC(rule_id, runtimeNode, ((FNot) originFormula).getSubformula(), canConcurrent, checker);
     }
 
     @Override
-    public boolean TruthEvaluation_ConC(RuntimeNode curNode, Formula originFormula, boolean canConcurrent, Checker checker) {
+    public boolean truthEvaluation_ConC(RuntimeNode curNode, Formula originFormula, boolean canConcurrent, Checker checker) {
         RuntimeNode runtimeNode = curNode.getChildren().get(0);
-        boolean result = !runtimeNode.getFormula().TruthEvaluation_ConC(runtimeNode, ((FNot)originFormula).getSubformula(), canConcurrent, checker);
+        boolean result = !runtimeNode.getFormula().truthEvaluation_ConC(runtimeNode, ((FNot)originFormula).getSubformula(), canConcurrent, checker);
         curNode.setTruth(result);
         return  result;
     }
 
     @Override
-    public Set<Link> LinksGeneration_ConC(RuntimeNode curNode, Formula originFormula, boolean canConcurrent, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
+    public Set<Link> linksGeneration_ConC(RuntimeNode curNode, Formula originFormula, boolean canConcurrent, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
         RuntimeNode runtimeNode = curNode.getChildren().get(0);
         LGUtils lgUtils = new LGUtils();
         // only one case: all
-        Set<Link> ret = runtimeNode.getFormula().LinksGeneration_ConC(runtimeNode, ((FNot)originFormula).getSubformula(), canConcurrent, prevSubstantialNodes, checker);
+        Set<Link> ret = runtimeNode.getFormula().linksGeneration_ConC(runtimeNode, ((FNot)originFormula).getSubformula(), canConcurrent, prevSubstantialNodes, checker);
         Set<Link> result = lgUtils.flipSet(ret);;
         curNode.setLinks(result);
         return curNode.getLinks();
@@ -273,32 +273,32 @@ public class FNot extends Formula{
      */
 
     @Override
-    public void ModifyBranch_PCCM(String rule_id, RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
+    public void modifyBranch_PCCM(String rule_id, RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
         RuntimeNode runtimeNode = curNode.getChildren().get(0);
-        runtimeNode.getFormula().ModifyBranch_PCCM(rule_id, runtimeNode, ((FNot)originFormula).getSubformula(), contextChange, checker);
+        runtimeNode.getFormula().modifyBranch_PCCM(rule_id, runtimeNode, ((FNot)originFormula).getSubformula(), contextChange, checker);
     }
 
     @Override
-    public boolean TruthEvaluation_PCCM(RuntimeNode curNode, Formula originFormula, Checker checker) {
+    public boolean truthEvaluation_PCCM(RuntimeNode curNode, Formula originFormula, Checker checker) {
         RuntimeNode runtimeNode = curNode.getChildren().get(0);
         if(!originFormula.isAffected()){
             return curNode.isTruth();
         }
         else{
-            boolean result = runtimeNode.getFormula().TruthEvaluation_PCCM(runtimeNode, ((FNot)originFormula).getSubformula(), checker);
+            boolean result = runtimeNode.getFormula().truthEvaluation_PCCM(runtimeNode, ((FNot)originFormula).getSubformula(), checker);
             curNode.setTruth(!result);
             return !result;
         }
     }
 
     @Override
-    public Set<Link> LinksGeneration_PCCM(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
+    public Set<Link> linksGeneration_PCCM(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
         Set<Link> result = new HashSet<>();
         RuntimeNode runtimeNode = curNode.getChildren().get(0);
         LGUtils lgUtils = new LGUtils();
         // only one case
         if(originFormula.isAffected()){
-            Set<Link> ret = runtimeNode.getFormula().LinksGeneration_PCCM(runtimeNode, ((FNot)originFormula).getSubformula(), prevSubstantialNodes, checker);
+            Set<Link> ret = runtimeNode.getFormula().linksGeneration_PCCM(runtimeNode, ((FNot)originFormula).getSubformula(), prevSubstantialNodes, checker);
             result.addAll(lgUtils.flipSet(ret));
         }
         else{
@@ -308,7 +308,7 @@ public class FNot extends Formula{
                     return curNode.getLinks();
                 }
                 else{
-                    Set<Link> ret = runtimeNode.getFormula().LinksGeneration_PCCM(runtimeNode, ((FNot)originFormula).getSubformula(), prevSubstantialNodes, checker);
+                    Set<Link> ret = runtimeNode.getFormula().linksGeneration_PCCM(runtimeNode, ((FNot)originFormula).getSubformula(), prevSubstantialNodes, checker);
                     result.addAll(lgUtils.flipSet(ret));
                 }
             }
@@ -325,7 +325,7 @@ public class FNot extends Formula{
         CPCC_NB
      */
     @Override
-    public void CreateBranches_CPCC_NB(Rule rule, RuntimeNode curNode, Formula originFormula, Checker checker) {
+    public void createBranches_INFUSE(Rule rule, RuntimeNode curNode, Formula originFormula, Checker checker) {
         //分支1
         RuntimeNode runtimeNode = new RuntimeNode(((FNot)originFormula).getSubformula());
         runtimeNode.setDepth(curNode.getDepth() + 1);
@@ -333,34 +333,34 @@ public class FNot extends Formula{
         runtimeNode.setParent(curNode);
         curNode.getChildren().add(runtimeNode);
         //递归调用
-        runtimeNode.getFormula().CreateBranches_CPCC_NB(rule, runtimeNode, ((FNot) originFormula).getSubformula(), checker);
+        runtimeNode.getFormula().createBranches_INFUSE(rule, runtimeNode, ((FNot) originFormula).getSubformula(), checker);
 
     }
 
     @Override
-    public void ModifyBranch_CPCC_NB(Rule rule, RuntimeNode curNode, Formula originFormula, Checker checker) {
+    public void modifyBranch_INFUSE(Rule rule, RuntimeNode curNode, Formula originFormula, Checker checker) {
         RuntimeNode runtimeNode = curNode.getChildren().get(0);
-        runtimeNode.getFormula().ModifyBranch_CPCC_NB(rule, runtimeNode, ((FNot)originFormula).getSubformula(), checker);
+        runtimeNode.getFormula().modifyBranch_INFUSE(rule, runtimeNode, ((FNot)originFormula).getSubformula(), checker);
 
     }
 
     @Override
-    public boolean TruthEvaluationCom_CPCC_NB(RuntimeNode curNode, Formula originFormula, Checker checker) {
+    public boolean truthEvaluationCom_INFUSE(RuntimeNode curNode, Formula originFormula, Checker checker) {
         RuntimeNode runtimeNode = curNode.getChildren().get(0);
-        boolean result = !runtimeNode.getFormula().TruthEvaluationCom_CPCC_NB(runtimeNode, ((FNot)originFormula).getSubformula(), checker);
+        boolean result = !runtimeNode.getFormula().truthEvaluationCom_INFUSE(runtimeNode, ((FNot)originFormula).getSubformula(), checker);
         curNode.setTruth(result);
         curNode.setVirtualTruth(result ? RuntimeNode.Virtual_Truth_Type.TRUE : RuntimeNode.Virtual_Truth_Type.FALSE);
         return  result;
     }
 
     @Override
-    public boolean TruthEvaluationPar_CPCC_NB(RuntimeNode curNode, Formula originFormula, Checker checker) {
+    public boolean truthEvaluationPar_INFUSE(RuntimeNode curNode, Formula originFormula, Checker checker) {
         RuntimeNode runtimeNode = curNode.getChildren().get(0);
         if(!originFormula.isAffected()){
             return curNode.isTruth();
         }
         else{
-            boolean result = !runtimeNode.getFormula().TruthEvaluationPar_CPCC_NB(runtimeNode, ((FNot)originFormula).getSubformula(), checker);
+            boolean result = !runtimeNode.getFormula().truthEvaluationPar_INFUSE(runtimeNode, ((FNot)originFormula).getSubformula(), checker);
             curNode.setTruth(result);
             curNode.setVirtualTruth(result ? RuntimeNode.Virtual_Truth_Type.TRUE : RuntimeNode.Virtual_Truth_Type.FALSE);
             return result;
@@ -368,13 +368,13 @@ public class FNot extends Formula{
     }
 
     @Override
-    public Set<Link> LinksGeneration_CPCC_NB(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
+    public Set<Link> linksGeneration_INFUSE(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
         Set<Link> result = new HashSet<>();
         RuntimeNode runtimeNode = curNode.getChildren().get(0);
         LGUtils lgUtils = new LGUtils();
         // only one case
         if(originFormula.isAffected()){
-            Set<Link> ret = runtimeNode.getFormula().LinksGeneration_CPCC_NB(runtimeNode, ((FNot)originFormula).getSubformula(), prevSubstantialNodes, checker);
+            Set<Link> ret = runtimeNode.getFormula().linksGeneration_INFUSE(runtimeNode, ((FNot)originFormula).getSubformula(), prevSubstantialNodes, checker);
             result.addAll(lgUtils.flipSet(ret));
         }
         else{
@@ -384,7 +384,7 @@ public class FNot extends Formula{
                     return curNode.getLinks();
                 }
                 else{
-                    Set<Link> ret = runtimeNode.getFormula().LinksGeneration_CPCC_NB(runtimeNode, ((FNot)originFormula).getSubformula(), prevSubstantialNodes, checker);
+                    Set<Link> ret = runtimeNode.getFormula().linksGeneration_INFUSE(runtimeNode, ((FNot)originFormula).getSubformula(), prevSubstantialNodes, checker);
                     result.addAll(lgUtils.flipSet(ret));
                 }
             }
@@ -402,16 +402,16 @@ public class FNot extends Formula{
      */
 
     @Override
-    public void ModifyBranch_BASE(String rule_id, RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
+    public void modifyBranch_BASE(String rule_id, RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
         RuntimeNode runtimeNode = curNode.getChildren().get(0);
-        runtimeNode.getFormula().ModifyBranch_BASE(rule_id, runtimeNode, ((FNot)originFormula).getSubformula(), contextChange, checker);
+        runtimeNode.getFormula().modifyBranch_BASE(rule_id, runtimeNode, ((FNot)originFormula).getSubformula(), contextChange, checker);
     }
 
     @Override
-    public boolean TruthEvaluation_BASE(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
+    public boolean truthEvaluation_BASE(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
         if(originFormula.isAffected()){
             RuntimeNode runtimeNode = curNode.getChildren().get(0);
-            boolean result = runtimeNode.getFormula().TruthEvaluation_BASE(runtimeNode, ((FNot)originFormula).getSubformula(), contextChange, checker);
+            boolean result = runtimeNode.getFormula().truthEvaluation_BASE(runtimeNode, ((FNot)originFormula).getSubformula(), contextChange, checker);
             curNode.setTruth(!result);
             return !result;
         }
@@ -421,13 +421,13 @@ public class FNot extends Formula{
     }
 
     @Override
-    public Set<Link> LinksGeneration_BASE(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
+    public Set<Link> linksGeneration_BASE(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
         Set<Link> result = new HashSet<>();
         RuntimeNode runtimeNode = curNode.getChildren().get(0);
         LGUtils lgUtils = new LGUtils();
         // only one case
         if(originFormula.isAffected()){
-            Set<Link> ret = runtimeNode.getFormula().LinksGeneration_BASE(runtimeNode, ((FNot)originFormula).getSubformula(), contextChange, prevSubstantialNodes, checker);
+            Set<Link> ret = runtimeNode.getFormula().linksGeneration_BASE(runtimeNode, ((FNot)originFormula).getSubformula(), contextChange, prevSubstantialNodes, checker);
             result.addAll(lgUtils.flipSet(ret));
         }
         else{
@@ -437,7 +437,7 @@ public class FNot extends Formula{
                     return curNode.getLinks();
                 }
                 else{
-                    Set<Link> ret = runtimeNode.getFormula().LinksGeneration_BASE(runtimeNode, ((FNot)originFormula).getSubformula(), contextChange, prevSubstantialNodes, checker);
+                    Set<Link> ret = runtimeNode.getFormula().linksGeneration_BASE(runtimeNode, ((FNot)originFormula).getSubformula(), contextChange, prevSubstantialNodes, checker);
                     result.addAll(lgUtils.flipSet(ret));
                 }
             }

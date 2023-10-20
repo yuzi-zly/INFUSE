@@ -114,7 +114,6 @@ public class ContextHandler implements Loggable{
             //context pattern match
             boolean matched = false;
             for(Pattern pattern : patternHandler.getPatternMap().values()){
-                //TODO: inducing from-pattern changes
                 if(pattern.getMatcher() == null || match(pattern, context)){
                     matched = true;
                     changeList.addAll(generate(pattern, context));

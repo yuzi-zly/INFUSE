@@ -54,26 +54,26 @@ public class FOr extends Formula {
     }
 
     @Override
-    public Formula FormulaClone() {
+    public Formula formulaClone() {
         return new FOr();
     }
 
     //S-condition
     @Override
-    public void DeriveIncPlusSet(Set<Map.Entry<ContextChange.Change_Type, String>> incPlusSet) {
-        this.subformulas[0].DeriveIncPlusSet(incPlusSet);
-        this.subformulas[1].DeriveIncPlusSet(incPlusSet);
+    public void deriveIncPlusSet(Set<Map.Entry<ContextChange.Change_Type, String>> incPlusSet) {
+        this.subformulas[0].deriveIncPlusSet(incPlusSet);
+        this.subformulas[1].deriveIncPlusSet(incPlusSet);
     }
 
     @Override
-    public void DeriveIncMinusSet(Set<Map.Entry<ContextChange.Change_Type, String>> incMinusSet) {
-        this.subformulas[0].DeriveIncMinusSet(incMinusSet);
-        this.subformulas[1].DeriveIncMinusSet(incMinusSet);
+    public void deriveIncMinusSet(Set<Map.Entry<ContextChange.Change_Type, String>> incMinusSet) {
+        this.subformulas[0].deriveIncMinusSet(incMinusSet);
+        this.subformulas[1].deriveIncMinusSet(incMinusSet);
     }
 
     //C-condition
     @Override
-    public boolean EvaluationAndEqualSideEffect(RuntimeNode curNode, Formula originFormula, String var, ContextChange delChange, ContextChange addChange, boolean canConcurrent, Scheduler scheduler) {
+    public boolean evaluationAndEqualSideEffect(RuntimeNode curNode, Formula originFormula, String var, ContextChange delChange, ContextChange addChange, boolean canConcurrent, Scheduler scheduler) {
         if(var != null){
             curNode.getVarEnv().remove(var);
             curNode.getVarEnv().put(var, addChange.getContext());
@@ -81,11 +81,11 @@ public class FOr extends Formula {
 
         boolean result;
         RuntimeNode runtimeNode1 = curNode.getChildren().get(0);
-        boolean tempresult = runtimeNode1.getFormula().EvaluationAndEqualSideEffect(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], var, delChange, addChange, canConcurrent, scheduler);
+        boolean tempresult = runtimeNode1.getFormula().evaluationAndEqualSideEffect(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], var, delChange, addChange, canConcurrent, scheduler);
         result = tempresult;
 
         RuntimeNode runtimeNode2 = curNode.getChildren().get(1);
-        tempresult = runtimeNode2.getFormula().EvaluationAndEqualSideEffect(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], var, delChange, addChange, canConcurrent, scheduler);
+        tempresult = runtimeNode2.getFormula().evaluationAndEqualSideEffect(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], var, delChange, addChange, canConcurrent, scheduler);
         result = result && tempresult;
 
         boolean newTruth = runtimeNode1.isTruth() || runtimeNode2.isTruth();
@@ -96,7 +96,7 @@ public class FOr extends Formula {
     }
 
     @Override
-    public void sideEffectResolution(RuntimeNode curNode, Formula originFormula, String var, ContextChange delChange, ContextChange addChange, boolean canConcurrent, Scheduler scheduler) {
+    public void sideeffectresolution(RuntimeNode curNode, Formula originFormula, String var, ContextChange delChange, ContextChange addChange, boolean canConcurrent, Scheduler scheduler) {
         if(var != null){
             curNode.setTruth(curNode.isOptTruth());
             curNode.setOptTruth(false);
@@ -104,23 +104,23 @@ public class FOr extends Formula {
             curNode.getVarEnv().put(var, delChange.getContext());
         }
         RuntimeNode runtimeNode1 = curNode.getChildren().get(0);
-        runtimeNode1.getFormula().sideEffectResolution(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], var, delChange, addChange, canConcurrent, scheduler);
+        runtimeNode1.getFormula().sideeffectresolution(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], var, delChange, addChange, canConcurrent, scheduler);
         RuntimeNode runtimeNode2 = curNode.getChildren().get(1);
-        runtimeNode2.getFormula().sideEffectResolution(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], var, delChange, addChange, canConcurrent, scheduler);
+        runtimeNode2.getFormula().sideeffectresolution(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], var, delChange, addChange, canConcurrent, scheduler);
     }
 
     //DIS
     @Override
-    public void DeriveRCRESets(boolean from) {
-        this.subformulas[0].DeriveRCRESets(from);
-        this.subformulas[1].DeriveRCRESets(from);
+    public void deriveRCRESets(boolean from) {
+        this.subformulas[0].deriveRCRESets(from);
+        this.subformulas[1].deriveRCRESets(from);
     }
 
     //PCC
     @Override
-    public boolean UpdateAffectedWithOneChange(ContextChange contextChange, Checker checker) {
-        boolean result0 = this.subformulas[0].UpdateAffectedWithOneChange(contextChange, checker);
-        boolean result1 = this.subformulas[1].UpdateAffectedWithOneChange(contextChange, checker);
+    public boolean updateAffectedWithOneChange(ContextChange contextChange, Checker checker) {
+        boolean result0 = this.subformulas[0].updateAffectedWithOneChange(contextChange, checker);
+        boolean result1 = this.subformulas[1].updateAffectedWithOneChange(contextChange, checker);
         result0 = result0 || result1;
         this.setAffected(result0);
         return result0;
@@ -128,34 +128,34 @@ public class FOr extends Formula {
 
     //PCCM && CPCC
     @Override
-    public boolean UpdateAffectedWithChanges(Checker checker) {
-        boolean result0 = this.subformulas[0].UpdateAffectedWithChanges(checker);
-        boolean result1 = this.subformulas[1].UpdateAffectedWithChanges(checker);
+    public boolean updateAffectedWithChanges(Checker checker) {
+        boolean result0 = this.subformulas[0].updateAffectedWithChanges(checker);
+        boolean result1 = this.subformulas[1].updateAffectedWithChanges(checker);
         result0 = result0 || result1;
         this.setAffected(result0);
         return result0;
     }
     @Override
-    public void CleanAffected() {
+    public void cleanAffected() {
         this.setAffected(false);
-        this.subformulas[0].CleanAffected();
-        this.subformulas[1].CleanAffected();
+        this.subformulas[0].cleanAffected();
+        this.subformulas[1].cleanAffected();
     }
 
     //CPCC_NB
     @Override
-    public void UpdateCanConcurrent_CPCC_NB(boolean canConcurrent, Rule rule, Checker checker) {
+    public void updateCanConcurrent_INFUSE(boolean canConcurrent, Rule rule, Checker checker) {
         if(canConcurrent){
-            this.subformulas[0].UpdateCanConcurrent_CPCC_NB(true, rule, checker);
-            this.subformulas[1].UpdateCanConcurrent_CPCC_NB(true, rule, checker);
+            this.subformulas[0].updateCanConcurrent_INFUSE(true, rule, checker);
+            this.subformulas[1].updateCanConcurrent_INFUSE(true, rule, checker);
         }
     }
 
     @Override
-    public void CleanAffectedAndCanConcurrent() {
+    public void cleanAffectedAndCanConcurrent() {
         this.setAffected(false);
-        this.subformulas[0].CleanAffectedAndCanConcurrent();
-        this.subformulas[1].CleanAffectedAndCanConcurrent();
+        this.subformulas[0].cleanAffectedAndCanConcurrent();
+        this.subformulas[1].cleanAffectedAndCanConcurrent();
     }
 
     //MG
@@ -182,39 +182,39 @@ public class FOr extends Formula {
                                             ECC PCC
                                          */
     @Override
-    public void CreateBranches_ECCPCC(String rule_id, RuntimeNode curNode, Formula originFormula, Checker checker) {
+    public void createBranches_ECCPCC(String rule_id, RuntimeNode curNode, Formula originFormula, Checker checker) {
         //分支1
         RuntimeNode runtimeNode1 = new RuntimeNode(((FOr)originFormula).getSubformulas()[0]);
         runtimeNode1.setDepth(curNode.getDepth() + 1);
         runtimeNode1.getVarEnv().putAll(curNode.getVarEnv());
         curNode.getChildren().add(runtimeNode1);
         //递归调用
-        runtimeNode1.getFormula().CreateBranches_ECCPCC(rule_id, runtimeNode1, ((FOr) originFormula).getSubformulas()[0], checker);
+        runtimeNode1.getFormula().createBranches_ECCPCC(rule_id, runtimeNode1, ((FOr) originFormula).getSubformulas()[0], checker);
         //分支2
         RuntimeNode runtimeNode2 = new RuntimeNode(((FOr) originFormula).getSubformulas()[1]);
         runtimeNode2.setDepth(curNode.getDepth() + 1);
         runtimeNode2.getVarEnv().putAll(curNode.getVarEnv());
         curNode.getChildren().add(runtimeNode2);
         //递归调用
-        runtimeNode2.getFormula().CreateBranches_ECCPCC(rule_id, runtimeNode2, ((FOr) originFormula).getSubformulas()[1], checker);
+        runtimeNode2.getFormula().createBranches_ECCPCC(rule_id, runtimeNode2, ((FOr) originFormula).getSubformulas()[1], checker);
     }
 
     /*
         ECC
      */
     @Override
-    public boolean TruthEvaluation_ECC(RuntimeNode curNode, Formula originFormula, Checker checker) {
+    public boolean truthEvaluation_ECC(RuntimeNode curNode, Formula originFormula, Checker checker) {
         RuntimeNode runtimeNode1 = curNode.getChildren().get(0);
-        boolean result = runtimeNode1.getFormula().TruthEvaluation_ECC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], checker);
+        boolean result = runtimeNode1.getFormula().truthEvaluation_ECC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], checker);
         RuntimeNode runtimeNode2 = curNode.getChildren().get(1);
-        boolean tempresult = runtimeNode2.getFormula().TruthEvaluation_ECC(runtimeNode2, ((FOr) originFormula).getSubformulas()[1], checker);
+        boolean tempresult = runtimeNode2.getFormula().truthEvaluation_ECC(runtimeNode2, ((FOr) originFormula).getSubformulas()[1], checker);
         result = result || tempresult;
         curNode.setTruth(result);
         return result;
     }
 
     @Override
-    public Set<Link> LinksGeneration_ECC(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
+    public Set<Link> linksGeneration_ECC(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
         Set<Link> result = new HashSet<>();
         RuntimeNode runtimeNode1 = curNode.getChildren().get(0);
         RuntimeNode runtimeNode2 = curNode.getChildren().get(1);
@@ -225,24 +225,24 @@ public class FOr extends Formula {
             // case 3: MG && false --> all
             if(runtimeNode1.isTruth()){
                 if(runtimeNode2.isTruth()){
-                    Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_ECC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
-                    Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_ECC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
+                    Set<Link> ret1 = runtimeNode1.getFormula().linksGeneration_ECC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
+                    Set<Link> ret2 = runtimeNode2.getFormula().linksGeneration_ECC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
                     result.addAll(ret1);
                     result.addAll(ret2);
                 }
                 else{
-                    result = runtimeNode1.getFormula().LinksGeneration_ECC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
-                    runtimeNode2.getFormula().LinksGeneration_ECC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
+                    result = runtimeNode1.getFormula().linksGeneration_ECC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
+                    runtimeNode2.getFormula().linksGeneration_ECC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
                 }
             }
             else{
                 if(runtimeNode2.isTruth()) {
-                    runtimeNode1.getFormula().LinksGeneration_ECC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
-                    result = runtimeNode2.getFormula().LinksGeneration_ECC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
+                    runtimeNode1.getFormula().linksGeneration_ECC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
+                    result = runtimeNode2.getFormula().linksGeneration_ECC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
                 }
                 else{
-                    Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_ECC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
-                    Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_ECC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
+                    Set<Link> ret1 = runtimeNode1.getFormula().linksGeneration_ECC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
+                    Set<Link> ret2 = runtimeNode2.getFormula().linksGeneration_ECC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
                     result = lgUtils.cartesianSet(ret1, ret2);
                 }
             }
@@ -250,16 +250,16 @@ public class FOr extends Formula {
         else{
             // case 2: MG && true --> true
             if(runtimeNode1.isTruth() && runtimeNode2.isTruth()){
-                Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_ECC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
-                Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_ECC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
+                Set<Link> ret1 = runtimeNode1.getFormula().linksGeneration_ECC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
+                Set<Link> ret2 = runtimeNode2.getFormula().linksGeneration_ECC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
                 result.addAll(ret1);
                 result.addAll(ret2);
             }
             else if(runtimeNode1.isTruth() && !runtimeNode2.isTruth()){
-                result = runtimeNode1.getFormula().LinksGeneration_ECC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
+                result = runtimeNode1.getFormula().linksGeneration_ECC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
             }
             else{
-                result = runtimeNode2.getFormula().LinksGeneration_ECC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
+                result = runtimeNode2.getFormula().linksGeneration_ECC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
             }
         }
         curNode.setLinks(result);
@@ -271,17 +271,17 @@ public class FOr extends Formula {
      */
 
     @Override
-    public void ModifyBranch_PCC(String rule_id, RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
+    public void modifyBranch_PCC(String rule_id, RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
         //分支1
         RuntimeNode runtimeNode1 = curNode.getChildren().get(0);
-        runtimeNode1.getFormula().ModifyBranch_PCC(rule_id, runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, checker);
+        runtimeNode1.getFormula().modifyBranch_PCC(rule_id, runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, checker);
         //分支2
         RuntimeNode runtimeNode2 = curNode.getChildren().get(1);
-        runtimeNode2.getFormula().ModifyBranch_PCC(rule_id, runtimeNode2, ((FOr) originFormula).getSubformulas()[1], contextChange, checker);
+        runtimeNode2.getFormula().modifyBranch_PCC(rule_id, runtimeNode2, ((FOr) originFormula).getSubformulas()[1], contextChange, checker);
     }
 
     @Override
-    public boolean TruthEvaluation_PCC(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
+    public boolean truthEvaluation_PCC(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
         RuntimeNode runtimeNode1 = curNode.getChildren().get(0);
         RuntimeNode runtimeNode2 = curNode.getChildren().get(1);
         //curNode.update == fasle
@@ -289,13 +289,13 @@ public class FOr extends Formula {
             return curNode.isTruth();
         }
         else if(((FOr)originFormula).getSubformulas()[0].isAffected()){
-            boolean result = runtimeNode1.getFormula().TruthEvaluation_PCC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, checker);
+            boolean result = runtimeNode1.getFormula().truthEvaluation_PCC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, checker);
             result = result || runtimeNode2.isTruth();
             curNode.setTruth(result);
             return result;
         }
         else{
-            boolean result = runtimeNode2.getFormula().TruthEvaluation_PCC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], contextChange, checker);
+            boolean result = runtimeNode2.getFormula().truthEvaluation_PCC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], contextChange, checker);
             result = runtimeNode1.isTruth() || result;
             curNode.setTruth(result);
             return result;
@@ -303,7 +303,7 @@ public class FOr extends Formula {
     }
 
     @Override
-    public Set<Link> LinksGeneration_PCC(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
+    public Set<Link> linksGeneration_PCC(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
         Set<Link> result = new HashSet<>();
         RuntimeNode runtimeNode1 = curNode.getChildren().get(0);
         RuntimeNode runtimeNode2 = curNode.getChildren().get(1);
@@ -315,7 +315,7 @@ public class FOr extends Formula {
                 return curNode.getLinks();
             }
             else if(((FOr)originFormula).getSubformulas()[0].isAffected()){
-                Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_PCC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, prevSubstantialNodes, checker);
+                Set<Link> ret1 = runtimeNode1.getFormula().linksGeneration_PCC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, prevSubstantialNodes, checker);
                 if(runtimeNode1.isTruth()){
                     if(runtimeNode2.isTruth()){
                         result.addAll(ret1);
@@ -335,7 +335,7 @@ public class FOr extends Formula {
                 }
             }
             else{
-                Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_PCC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], contextChange, prevSubstantialNodes, checker);
+                Set<Link> ret2 = runtimeNode2.getFormula().linksGeneration_PCC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], contextChange, prevSubstantialNodes, checker);
                 if(runtimeNode1.isTruth()){
                     if(runtimeNode2.isTruth()){
                         result.addAll(ret2);
@@ -364,37 +364,37 @@ public class FOr extends Formula {
                 }
                 else{
                     if(runtimeNode1.isTruth() && runtimeNode2.isTruth()){
-                        Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_PCC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, prevSubstantialNodes, checker);
-                        Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_PCC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], contextChange, prevSubstantialNodes, checker);
+                        Set<Link> ret1 = runtimeNode1.getFormula().linksGeneration_PCC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, prevSubstantialNodes, checker);
+                        Set<Link> ret2 = runtimeNode2.getFormula().linksGeneration_PCC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], contextChange, prevSubstantialNodes, checker);
                         result.addAll(ret1);
                         result.addAll(ret2);
                     }
                     else if(runtimeNode1.isTruth() && !runtimeNode2.isTruth()){
-                        Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_PCC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, prevSubstantialNodes, checker);
+                        Set<Link> ret1 = runtimeNode1.getFormula().linksGeneration_PCC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, prevSubstantialNodes, checker);
                         result.addAll(ret1);
                     }
                     else{
-                        Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_PCC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], contextChange, prevSubstantialNodes, checker);
+                        Set<Link> ret2 = runtimeNode2.getFormula().linksGeneration_PCC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], contextChange, prevSubstantialNodes, checker);
                         result.addAll(ret2);
                     }
                 }
             }
             else if(((FOr)originFormula).getSubformulas()[0].isAffected()){
                 if(runtimeNode1.isTruth() && runtimeNode2.isTruth()){
-                    Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_PCC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, prevSubstantialNodes, checker);
+                    Set<Link> ret1 = runtimeNode1.getFormula().linksGeneration_PCC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, prevSubstantialNodes, checker);
                     // check whether runtimeNode2.links reusable
                     Set<Link> ret2;
                     if(prevSubstantialNodes.contains(runtimeNode2)){
                         ret2 = runtimeNode2.getLinks();
                     }
                     else{
-                        ret2 = runtimeNode2.getFormula().LinksGeneration_PCC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], contextChange, prevSubstantialNodes, checker);
+                        ret2 = runtimeNode2.getFormula().linksGeneration_PCC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], contextChange, prevSubstantialNodes, checker);
                     }
                     result.addAll(ret1);
                     result.addAll(ret2);
                 }
                 else if(runtimeNode1.isTruth() && !runtimeNode2.isTruth()){
-                    Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_PCC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, prevSubstantialNodes, checker);
+                    Set<Link> ret1 = runtimeNode1.getFormula().linksGeneration_PCC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, prevSubstantialNodes, checker);
                     result.addAll(ret1);
                 }
                 else{
@@ -404,21 +404,21 @@ public class FOr extends Formula {
                         ret2 = runtimeNode2.getLinks();
                     }
                     else{
-                        ret2 = runtimeNode2.getFormula().LinksGeneration_PCC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], contextChange, prevSubstantialNodes, checker);
+                        ret2 = runtimeNode2.getFormula().linksGeneration_PCC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], contextChange, prevSubstantialNodes, checker);
                     }
                     result.addAll(ret2);
                 }
             }
             else{
                 if(runtimeNode1.isTruth() && runtimeNode2.isTruth()){
-                    Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_PCC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], contextChange, prevSubstantialNodes, checker);
+                    Set<Link> ret2 = runtimeNode2.getFormula().linksGeneration_PCC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], contextChange, prevSubstantialNodes, checker);
                     // check whether runtimeNode1.links reusable
                     Set<Link> ret1;
                     if (prevSubstantialNodes.contains(runtimeNode1)) {
                         ret1 = runtimeNode1.getLinks();
                     }
                     else{
-                        ret1 = runtimeNode1.getFormula().LinksGeneration_PCC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, prevSubstantialNodes, checker);
+                        ret1 = runtimeNode1.getFormula().linksGeneration_PCC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, prevSubstantialNodes, checker);
                     }
                     result.addAll(ret1);
                     result.addAll(ret2);
@@ -430,12 +430,12 @@ public class FOr extends Formula {
                         ret1 = runtimeNode1.getLinks();
                     }
                     else{
-                        ret1 = runtimeNode1.getFormula().LinksGeneration_PCC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, prevSubstantialNodes, checker);
+                        ret1 = runtimeNode1.getFormula().linksGeneration_PCC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, prevSubstantialNodes, checker);
                     }
                     result.addAll(ret1);
                 }
                 else{
-                    Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_PCC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], contextChange, prevSubstantialNodes, checker);
+                    Set<Link> ret2 = runtimeNode2.getFormula().linksGeneration_PCC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], contextChange, prevSubstantialNodes, checker);
                     result.addAll(ret2);
                 }
             }
@@ -449,32 +449,32 @@ public class FOr extends Formula {
                     return curNode.getLinks();
                 }
                 else{
-                    Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_PCC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, prevSubstantialNodes, checker);
-                    Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_PCC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], contextChange, prevSubstantialNodes, checker);
+                    Set<Link> ret1 = runtimeNode1.getFormula().linksGeneration_PCC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, prevSubstantialNodes, checker);
+                    Set<Link> ret2 = runtimeNode2.getFormula().linksGeneration_PCC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], contextChange, prevSubstantialNodes, checker);
                     result.addAll(lgUtils.cartesianSet(ret1, ret2));
                 }
             }
             else if(((FOr)originFormula).getSubformulas()[0].isAffected()){
-                Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_PCC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, prevSubstantialNodes, checker);
+                Set<Link> ret1 = runtimeNode1.getFormula().linksGeneration_PCC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, prevSubstantialNodes, checker);
                 // check whether runtimeNode2.links reusable
                 Set<Link> ret2;
                 if(prevSubstantialNodes.contains(runtimeNode2)){
                     ret2 = runtimeNode2.getLinks();
                 }
                 else{
-                    ret2 = runtimeNode2.getFormula().LinksGeneration_PCC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], contextChange, prevSubstantialNodes, checker);
+                    ret2 = runtimeNode2.getFormula().linksGeneration_PCC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], contextChange, prevSubstantialNodes, checker);
                 }
                 result.addAll(lgUtils.cartesianSet(ret1, ret2));
             }
             else{
-                Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_PCC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], contextChange, prevSubstantialNodes, checker);
+                Set<Link> ret2 = runtimeNode2.getFormula().linksGeneration_PCC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], contextChange, prevSubstantialNodes, checker);
                 // check whether runtimeNode1.links reusable
                 Set<Link> ret1;
                 if (prevSubstantialNodes.contains(runtimeNode1)) {
                     ret1 = runtimeNode1.getLinks();
                 }
                 else{
-                    ret1 = runtimeNode1.getFormula().LinksGeneration_PCC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, prevSubstantialNodes, checker);
+                    ret1 = runtimeNode1.getFormula().linksGeneration_PCC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, prevSubstantialNodes, checker);
                 }
                 result.addAll(lgUtils.cartesianSet(ret1, ret2));
             }
@@ -488,36 +488,36 @@ public class FOr extends Formula {
         ConC
      */
     @Override
-    public void CreateBranches_ConC(String rule_id, RuntimeNode curNode, Formula originFormula, boolean canConcurrent, Checker checker) {
+    public void createBranches_ConC(String rule_id, RuntimeNode curNode, Formula originFormula, boolean canConcurrent, Checker checker) {
         //分支1
         RuntimeNode runtimeNode1 = new RuntimeNode(((FOr)originFormula).getSubformulas()[0]);
         runtimeNode1.setDepth(curNode.getDepth() + 1);
         runtimeNode1.getVarEnv().putAll(curNode.getVarEnv());
         curNode.getChildren().add(runtimeNode1);
         //递归调用
-        runtimeNode1.getFormula().CreateBranches_ConC(rule_id, runtimeNode1, ((FOr) originFormula).getSubformulas()[0], canConcurrent, checker);
+        runtimeNode1.getFormula().createBranches_ConC(rule_id, runtimeNode1, ((FOr) originFormula).getSubformulas()[0], canConcurrent, checker);
         //分支2
         RuntimeNode runtimeNode2 = new RuntimeNode(((FOr) originFormula).getSubformulas()[1]);
         runtimeNode2.setDepth(curNode.getDepth() + 1);
         runtimeNode2.getVarEnv().putAll(curNode.getVarEnv());
         curNode.getChildren().add(runtimeNode2);
         //递归调用
-        runtimeNode2.getFormula().CreateBranches_ConC(rule_id, runtimeNode2, ((FOr) originFormula).getSubformulas()[1], canConcurrent, checker);
+        runtimeNode2.getFormula().createBranches_ConC(rule_id, runtimeNode2, ((FOr) originFormula).getSubformulas()[1], canConcurrent, checker);
     }
 
     @Override
-    public boolean TruthEvaluation_ConC(RuntimeNode curNode, Formula originFormula, boolean canConcurrent, Checker checker) {
+    public boolean truthEvaluation_ConC(RuntimeNode curNode, Formula originFormula, boolean canConcurrent, Checker checker) {
         RuntimeNode runtimeNode1 = curNode.getChildren().get(0);
-        boolean result = runtimeNode1.getFormula().TruthEvaluation_ConC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], canConcurrent, checker);
+        boolean result = runtimeNode1.getFormula().truthEvaluation_ConC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], canConcurrent, checker);
         RuntimeNode runtimeNode2 = curNode.getChildren().get(1);
-        boolean tempresult = runtimeNode2.getFormula().TruthEvaluation_ConC(runtimeNode2, ((FOr) originFormula).getSubformulas()[1], canConcurrent, checker);
+        boolean tempresult = runtimeNode2.getFormula().truthEvaluation_ConC(runtimeNode2, ((FOr) originFormula).getSubformulas()[1], canConcurrent, checker);
         result = result || tempresult;
         curNode.setTruth(result);
         return result;
     }
 
     @Override
-    public Set<Link> LinksGeneration_ConC(RuntimeNode curNode, Formula originFormula, boolean canConcurrent, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
+    public Set<Link> linksGeneration_ConC(RuntimeNode curNode, Formula originFormula, boolean canConcurrent, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
         Set<Link> result = new HashSet<>();
         RuntimeNode runtimeNode1 = curNode.getChildren().get(0);
         RuntimeNode runtimeNode2 = curNode.getChildren().get(1);
@@ -527,24 +527,24 @@ public class FOr extends Formula {
             // case 3: MG && false --> all
             if(runtimeNode1.isTruth()){
                 if(runtimeNode2.isTruth()){
-                    Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_ConC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], canConcurrent, prevSubstantialNodes, checker);
-                    Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_ConC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], canConcurrent, prevSubstantialNodes, checker);
+                    Set<Link> ret1 = runtimeNode1.getFormula().linksGeneration_ConC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], canConcurrent, prevSubstantialNodes, checker);
+                    Set<Link> ret2 = runtimeNode2.getFormula().linksGeneration_ConC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], canConcurrent, prevSubstantialNodes, checker);
                     result.addAll(ret1);
                     result.addAll(ret2);
                 }
                 else{
-                    result = runtimeNode1.getFormula().LinksGeneration_ConC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], canConcurrent, prevSubstantialNodes, checker);
-                    runtimeNode2.getFormula().LinksGeneration_ConC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], canConcurrent, prevSubstantialNodes, checker);
+                    result = runtimeNode1.getFormula().linksGeneration_ConC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], canConcurrent, prevSubstantialNodes, checker);
+                    runtimeNode2.getFormula().linksGeneration_ConC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], canConcurrent, prevSubstantialNodes, checker);
                 }
             }
             else{
                 if(runtimeNode2.isTruth()){
-                    runtimeNode1.getFormula().LinksGeneration_ConC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], canConcurrent, prevSubstantialNodes, checker);
-                    result = runtimeNode2.getFormula().LinksGeneration_ConC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], canConcurrent, prevSubstantialNodes, checker);
+                    runtimeNode1.getFormula().linksGeneration_ConC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], canConcurrent, prevSubstantialNodes, checker);
+                    result = runtimeNode2.getFormula().linksGeneration_ConC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], canConcurrent, prevSubstantialNodes, checker);
                 }
                 else{
-                    Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_ConC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], canConcurrent, prevSubstantialNodes, checker);
-                    Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_ConC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], canConcurrent, prevSubstantialNodes, checker);
+                    Set<Link> ret1 = runtimeNode1.getFormula().linksGeneration_ConC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], canConcurrent, prevSubstantialNodes, checker);
+                    Set<Link> ret2 = runtimeNode2.getFormula().linksGeneration_ConC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], canConcurrent, prevSubstantialNodes, checker);
                     result = lgUtils.cartesianSet(ret1, ret2);
                 }
             }
@@ -552,16 +552,16 @@ public class FOr extends Formula {
         else{
             // case 2: MG && true --> true
             if(runtimeNode1.isTruth() && runtimeNode2.isTruth()){
-                Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_ConC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], canConcurrent, prevSubstantialNodes, checker);
-                Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_ConC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], canConcurrent, prevSubstantialNodes, checker);
+                Set<Link> ret1 = runtimeNode1.getFormula().linksGeneration_ConC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], canConcurrent, prevSubstantialNodes, checker);
+                Set<Link> ret2 = runtimeNode2.getFormula().linksGeneration_ConC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], canConcurrent, prevSubstantialNodes, checker);
                 result.addAll(ret1);
                 result.addAll(ret2);
             }
             else if(runtimeNode1.isTruth() && !runtimeNode2.isTruth()){
-                result = runtimeNode1.getFormula().LinksGeneration_ConC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], canConcurrent, prevSubstantialNodes, checker);
+                result = runtimeNode1.getFormula().linksGeneration_ConC(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], canConcurrent, prevSubstantialNodes, checker);
             }
             else{
-                result = runtimeNode2.getFormula().LinksGeneration_ConC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], canConcurrent, prevSubstantialNodes, checker);
+                result = runtimeNode2.getFormula().linksGeneration_ConC(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], canConcurrent, prevSubstantialNodes, checker);
             }
         }
         curNode.setLinks(result);
@@ -573,37 +573,37 @@ public class FOr extends Formula {
      */
 
     @Override
-    public void ModifyBranch_PCCM(String rule_id, RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
+    public void modifyBranch_PCCM(String rule_id, RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
         //分支1
         RuntimeNode runtimeNode1 = curNode.getChildren().get(0);
-        runtimeNode1.getFormula().ModifyBranch_PCCM(rule_id, runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, checker);
+        runtimeNode1.getFormula().modifyBranch_PCCM(rule_id, runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, checker);
         //分支2
         RuntimeNode runtimeNode2 = curNode.getChildren().get(1);
-        runtimeNode2.getFormula().ModifyBranch_PCCM(rule_id, runtimeNode2, ((FOr) originFormula).getSubformulas()[1], contextChange, checker);
+        runtimeNode2.getFormula().modifyBranch_PCCM(rule_id, runtimeNode2, ((FOr) originFormula).getSubformulas()[1], contextChange, checker);
     }
 
     @Override
-    public boolean TruthEvaluation_PCCM(RuntimeNode curNode, Formula originFormula, Checker checker) {
+    public boolean truthEvaluation_PCCM(RuntimeNode curNode, Formula originFormula, Checker checker) {
         RuntimeNode runtimeNode1 = curNode.getChildren().get(0);
         RuntimeNode runtimeNode2 = curNode.getChildren().get(1);
         if(!originFormula.isAffected()){
             return curNode.isTruth();
         }
         else if(((FOr)originFormula).getSubformulas()[0].isAffected() && !((FOr)originFormula).getSubformulas()[1].isAffected()){
-            boolean result = runtimeNode1.getFormula().TruthEvaluation_PCCM(runtimeNode1, ((FOr)originFormula).getSubformulas()[0],checker);
+            boolean result = runtimeNode1.getFormula().truthEvaluation_PCCM(runtimeNode1, ((FOr)originFormula).getSubformulas()[0],checker);
             result = result || runtimeNode2.isTruth();
             curNode.setTruth(result);
             return result;
         }
         else if(!((FOr)originFormula).getSubformulas()[0].isAffected() && ((FOr)originFormula).getSubformulas()[1].isAffected()){
-            boolean result = runtimeNode2.getFormula().TruthEvaluation_PCCM(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], checker);
+            boolean result = runtimeNode2.getFormula().truthEvaluation_PCCM(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], checker);
             result = runtimeNode1.isTruth() || result;
             curNode.setTruth(result);
             return result;
         }
         else{
-            boolean result = runtimeNode1.getFormula().TruthEvaluation_PCCM(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], checker);
-            boolean tempresult = runtimeNode2.getFormula().TruthEvaluation_PCCM(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], checker);
+            boolean result = runtimeNode1.getFormula().truthEvaluation_PCCM(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], checker);
+            boolean tempresult = runtimeNode2.getFormula().truthEvaluation_PCCM(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], checker);
             result = result || tempresult;
             curNode.setTruth(result);
             return result;
@@ -611,7 +611,7 @@ public class FOr extends Formula {
     }
 
     @Override
-    public Set<Link> LinksGeneration_PCCM(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
+    public Set<Link> linksGeneration_PCCM(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
         Set<Link> result = new HashSet<>();
         RuntimeNode runtimeNode1 = curNode.getChildren().get(0);
         RuntimeNode runtimeNode2 = curNode.getChildren().get(1);
@@ -623,7 +623,7 @@ public class FOr extends Formula {
                 return curNode.getLinks();
             }
             else if(((FOr)originFormula).getSubformulas()[0].isAffected() && !((FOr)originFormula).getSubformulas()[1].isAffected()){
-                Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_PCCM(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
+                Set<Link> ret1 = runtimeNode1.getFormula().linksGeneration_PCCM(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
                 if(runtimeNode1.isTruth()){
                     if(runtimeNode2.isTruth()){
                         result.addAll(ret1);
@@ -643,7 +643,7 @@ public class FOr extends Formula {
                 }
             }
             else if(!((FOr)originFormula).getSubformulas()[0].isAffected() && ((FOr)originFormula).getSubformulas()[1].isAffected()){
-                Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_PCCM(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
+                Set<Link> ret2 = runtimeNode2.getFormula().linksGeneration_PCCM(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
                 if(runtimeNode1.isTruth()){
                     if(runtimeNode2.isTruth()){
                         result.addAll(ret2);
@@ -663,8 +663,8 @@ public class FOr extends Formula {
                 }
             }
             else{
-                Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_PCCM(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
-                Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_PCCM(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
+                Set<Link> ret1 = runtimeNode1.getFormula().linksGeneration_PCCM(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
+                Set<Link> ret2 = runtimeNode2.getFormula().linksGeneration_PCCM(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
                 if(runtimeNode1.isTruth()){
                     if(runtimeNode2.isTruth()){
                         result.addAll(ret1);
@@ -693,37 +693,37 @@ public class FOr extends Formula {
                 }
                 else{
                     if(runtimeNode1.isTruth() && runtimeNode2.isTruth()){
-                        Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_PCCM(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
-                        Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_PCCM(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
+                        Set<Link> ret1 = runtimeNode1.getFormula().linksGeneration_PCCM(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
+                        Set<Link> ret2 = runtimeNode2.getFormula().linksGeneration_PCCM(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
                         result.addAll(ret1);
                         result.addAll(ret2);
                     }
                     else if(runtimeNode1.isTruth() && !runtimeNode2.isTruth()){
-                        Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_PCCM(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
+                        Set<Link> ret1 = runtimeNode1.getFormula().linksGeneration_PCCM(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
                         result.addAll(ret1);
                     }
                     else{
-                        Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_PCCM(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
+                        Set<Link> ret2 = runtimeNode2.getFormula().linksGeneration_PCCM(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
                         result.addAll(ret2);
                     }
                 }
             }
             else if(((FOr)originFormula).getSubformulas()[0].isAffected() && !((FOr)originFormula).getSubformulas()[1].isAffected()){
                 if(runtimeNode1.isTruth() && runtimeNode2.isTruth()){
-                    Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_PCCM(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
+                    Set<Link> ret1 = runtimeNode1.getFormula().linksGeneration_PCCM(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
                     // check whether runtimeNode2.links reusable
                     Set<Link> ret2;
                     if(prevSubstantialNodes.contains(runtimeNode2)){
                         ret2 = runtimeNode2.getLinks();
                     }
                     else {
-                        ret2 = runtimeNode2.getFormula().LinksGeneration_PCCM(runtimeNode2, ((FOr) originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
+                        ret2 = runtimeNode2.getFormula().linksGeneration_PCCM(runtimeNode2, ((FOr) originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
                     }
                     result.addAll(ret1);
                     result.addAll(ret2);
                 }
                 else if(runtimeNode1.isTruth() && !runtimeNode2.isTruth()){
-                    Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_PCCM(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
+                    Set<Link> ret1 = runtimeNode1.getFormula().linksGeneration_PCCM(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
                     result.addAll(ret1);
                 }
                 else{
@@ -733,7 +733,7 @@ public class FOr extends Formula {
                         ret2 = runtimeNode2.getLinks();
                     }
                     else {
-                        ret2 = runtimeNode2.getFormula().LinksGeneration_PCCM(runtimeNode2, ((FOr) originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
+                        ret2 = runtimeNode2.getFormula().linksGeneration_PCCM(runtimeNode2, ((FOr) originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
                     }
                     result.addAll(ret2);
                 }
@@ -746,9 +746,9 @@ public class FOr extends Formula {
                         ret1 = runtimeNode1.getLinks();
                     }
                     else {
-                        ret1 = runtimeNode1.getFormula().LinksGeneration_PCCM(runtimeNode1, ((FOr) originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
+                        ret1 = runtimeNode1.getFormula().linksGeneration_PCCM(runtimeNode1, ((FOr) originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
                     }
-                    Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_PCCM(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
+                    Set<Link> ret2 = runtimeNode2.getFormula().linksGeneration_PCCM(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
                     result.addAll(ret1);
                     result.addAll(ret2);
                 }
@@ -759,28 +759,28 @@ public class FOr extends Formula {
                         ret1 = runtimeNode1.getLinks();
                     }
                     else {
-                        ret1 = runtimeNode1.getFormula().LinksGeneration_PCCM(runtimeNode1, ((FOr) originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
+                        ret1 = runtimeNode1.getFormula().linksGeneration_PCCM(runtimeNode1, ((FOr) originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
                     }
                     result.addAll(ret1);
                 }
                 else{
-                    Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_PCCM(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
+                    Set<Link> ret2 = runtimeNode2.getFormula().linksGeneration_PCCM(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
                     result.addAll(ret2);
                 }
             }
             else{
                 if(runtimeNode1.isTruth() && runtimeNode2.isTruth()){
-                    Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_PCCM(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
-                    Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_PCCM(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
+                    Set<Link> ret1 = runtimeNode1.getFormula().linksGeneration_PCCM(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
+                    Set<Link> ret2 = runtimeNode2.getFormula().linksGeneration_PCCM(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
                     result.addAll(ret1);
                     result.addAll(ret2);
                 }
                 else if(runtimeNode1.isTruth() && !runtimeNode2.isTruth()){
-                    Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_PCCM(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
+                    Set<Link> ret1 = runtimeNode1.getFormula().linksGeneration_PCCM(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
                     result.addAll(ret1);
                 }
                 else{
-                    Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_PCCM(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
+                    Set<Link> ret2 = runtimeNode2.getFormula().linksGeneration_PCCM(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
                     result.addAll(ret2);
                 }
             }
@@ -794,20 +794,20 @@ public class FOr extends Formula {
                     return curNode.getLinks();
                 }
                 else{
-                    Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_PCCM(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
-                    Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_PCCM(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
+                    Set<Link> ret1 = runtimeNode1.getFormula().linksGeneration_PCCM(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
+                    Set<Link> ret2 = runtimeNode2.getFormula().linksGeneration_PCCM(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
                     result.addAll(lgUtils.cartesianSet(ret1, ret2));
                 }
             }
             else if(((FOr)originFormula).getSubformulas()[0].isAffected() && !((FOr)originFormula).getSubformulas()[1].isAffected()){
-                Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_PCCM(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
+                Set<Link> ret1 = runtimeNode1.getFormula().linksGeneration_PCCM(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
                 // check whether runtimeNode2.links reusable
                 Set<Link> ret2;
                 if (prevSubstantialNodes.contains(runtimeNode2)) {
                     ret2 = runtimeNode2.getLinks();
                 }
                 else {
-                    ret2 = runtimeNode2.getFormula().LinksGeneration_PCCM(runtimeNode2, ((FOr) originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
+                    ret2 = runtimeNode2.getFormula().linksGeneration_PCCM(runtimeNode2, ((FOr) originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
                 }
                 result.addAll(lgUtils.cartesianSet(ret1, ret2));
             }
@@ -818,14 +818,14 @@ public class FOr extends Formula {
                     ret1 = runtimeNode1.getLinks();
                 }
                 else {
-                    ret1 = runtimeNode1.getFormula().LinksGeneration_PCCM(runtimeNode1, ((FOr) originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
+                    ret1 = runtimeNode1.getFormula().linksGeneration_PCCM(runtimeNode1, ((FOr) originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
                 }
-                Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_PCCM(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
+                Set<Link> ret2 = runtimeNode2.getFormula().linksGeneration_PCCM(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
                 result.addAll(lgUtils.cartesianSet(ret1, ret2));
             }
             else{
-                Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_PCCM(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
-                Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_PCCM(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
+                Set<Link> ret1 = runtimeNode1.getFormula().linksGeneration_PCCM(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
+                Set<Link> ret2 = runtimeNode2.getFormula().linksGeneration_PCCM(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
                 result.addAll(lgUtils.cartesianSet(ret1, ret2));
             }
         }
@@ -839,7 +839,7 @@ public class FOr extends Formula {
      */
 
     @Override
-    public void CreateBranches_CPCC_NB(Rule rule, RuntimeNode curNode, Formula originFormula, Checker checker) {
+    public void createBranches_INFUSE(Rule rule, RuntimeNode curNode, Formula originFormula, Checker checker) {
         //分支1
         RuntimeNode runtimeNode1 = new RuntimeNode(((FOr)originFormula).getSubformulas()[0]);
         runtimeNode1.setDepth(curNode.getDepth() + 1);
@@ -847,7 +847,7 @@ public class FOr extends Formula {
         runtimeNode1.setParent(curNode);
         curNode.getChildren().add(runtimeNode1);
         //递归调用
-        runtimeNode1.getFormula().CreateBranches_CPCC_NB(rule, runtimeNode1, ((FOr) originFormula).getSubformulas()[0], checker);
+        runtimeNode1.getFormula().createBranches_INFUSE(rule, runtimeNode1, ((FOr) originFormula).getSubformulas()[0], checker);
         //分支2
         RuntimeNode runtimeNode2 = new RuntimeNode(((FOr) originFormula).getSubformulas()[1]);
         runtimeNode2.setDepth(curNode.getDepth() + 1);
@@ -855,27 +855,27 @@ public class FOr extends Formula {
         runtimeNode2.setParent(curNode);
         curNode.getChildren().add(runtimeNode2);
         //递归调用
-        runtimeNode2.getFormula().CreateBranches_CPCC_NB(rule, runtimeNode2, ((FOr) originFormula).getSubformulas()[1], checker);
+        runtimeNode2.getFormula().createBranches_INFUSE(rule, runtimeNode2, ((FOr) originFormula).getSubformulas()[1], checker);
 
     }
 
     @Override
-    public void ModifyBranch_CPCC_NB(Rule rule, RuntimeNode curNode, Formula originFormula, Checker checker) {
+    public void modifyBranch_INFUSE(Rule rule, RuntimeNode curNode, Formula originFormula, Checker checker) {
         //分支1
         RuntimeNode runtimeNode1 = curNode.getChildren().get(0);
-        runtimeNode1.getFormula().ModifyBranch_CPCC_NB(rule, runtimeNode1, ((FOr)originFormula).getSubformulas()[0], checker);
+        runtimeNode1.getFormula().modifyBranch_INFUSE(rule, runtimeNode1, ((FOr)originFormula).getSubformulas()[0], checker);
         //分支2
         RuntimeNode runtimeNode2 = curNode.getChildren().get(1);
-        runtimeNode2.getFormula().ModifyBranch_CPCC_NB(rule, runtimeNode2, ((FOr) originFormula).getSubformulas()[1], checker);
+        runtimeNode2.getFormula().modifyBranch_INFUSE(rule, runtimeNode2, ((FOr) originFormula).getSubformulas()[1], checker);
 
     }
 
     @Override
-    public boolean TruthEvaluationCom_CPCC_NB(RuntimeNode curNode, Formula originFormula, Checker checker) {
+    public boolean truthEvaluationCom_INFUSE(RuntimeNode curNode, Formula originFormula, Checker checker) {
         RuntimeNode runtimeNode1 = curNode.getChildren().get(0);
-        boolean result = runtimeNode1.getFormula().TruthEvaluationCom_CPCC_NB(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], checker);
+        boolean result = runtimeNode1.getFormula().truthEvaluationCom_INFUSE(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], checker);
         RuntimeNode runtimeNode2 = curNode.getChildren().get(1);
-        boolean tempresult = runtimeNode2.getFormula().TruthEvaluationCom_CPCC_NB(runtimeNode2, ((FOr) originFormula).getSubformulas()[1], checker);
+        boolean tempresult = runtimeNode2.getFormula().truthEvaluationCom_INFUSE(runtimeNode2, ((FOr) originFormula).getSubformulas()[1], checker);
         result = result || tempresult;
         curNode.setTruth(result);
         curNode.setVirtualTruth(result ? RuntimeNode.Virtual_Truth_Type.TRUE : RuntimeNode.Virtual_Truth_Type.FALSE);
@@ -883,29 +883,29 @@ public class FOr extends Formula {
     }
 
     @Override
-    public boolean TruthEvaluationPar_CPCC_NB(RuntimeNode curNode, Formula originFormula, Checker checker) {
+    public boolean truthEvaluationPar_INFUSE(RuntimeNode curNode, Formula originFormula, Checker checker) {
         RuntimeNode runtimeNode1 = curNode.getChildren().get(0);
         RuntimeNode runtimeNode2 = curNode.getChildren().get(1);
         if(!originFormula.isAffected()){
             return curNode.isTruth();
         }
         else if(((FOr)originFormula).getSubformulas()[0].isAffected() && !((FOr)originFormula).getSubformulas()[1].isAffected()){
-            boolean result = runtimeNode1.getFormula().TruthEvaluationPar_CPCC_NB(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], checker);
+            boolean result = runtimeNode1.getFormula().truthEvaluationPar_INFUSE(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], checker);
             result = result || runtimeNode2.isTruth();
             curNode.setTruth(result);
             curNode.setVirtualTruth(result ? RuntimeNode.Virtual_Truth_Type.TRUE : RuntimeNode.Virtual_Truth_Type.FALSE);
             return result;
         }
         else if(!((FOr)originFormula).getSubformulas()[0].isAffected() && ((FOr)originFormula).getSubformulas()[1].isAffected()){
-            boolean result = runtimeNode2.getFormula().TruthEvaluationPar_CPCC_NB(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], checker);
+            boolean result = runtimeNode2.getFormula().truthEvaluationPar_INFUSE(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], checker);
             result = runtimeNode1.isTruth() || result;
             curNode.setTruth(result);
             curNode.setVirtualTruth(result ? RuntimeNode.Virtual_Truth_Type.TRUE : RuntimeNode.Virtual_Truth_Type.FALSE);
             return result;
         }
         else{
-            boolean result = runtimeNode1.getFormula().TruthEvaluationPar_CPCC_NB(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], checker);
-            boolean tempresult = runtimeNode2.getFormula().TruthEvaluationPar_CPCC_NB(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], checker);
+            boolean result = runtimeNode1.getFormula().truthEvaluationPar_INFUSE(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], checker);
+            boolean tempresult = runtimeNode2.getFormula().truthEvaluationPar_INFUSE(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], checker);
             result = result || tempresult;
             curNode.setTruth(result);
             curNode.setVirtualTruth(result ? RuntimeNode.Virtual_Truth_Type.TRUE : RuntimeNode.Virtual_Truth_Type.FALSE);
@@ -914,7 +914,7 @@ public class FOr extends Formula {
     }
 
     @Override
-    public Set<Link> LinksGeneration_CPCC_NB(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
+    public Set<Link> linksGeneration_INFUSE(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
         Set<Link> result = new HashSet<>();
         RuntimeNode runtimeNode1 = curNode.getChildren().get(0);
         RuntimeNode runtimeNode2 = curNode.getChildren().get(1);
@@ -926,7 +926,7 @@ public class FOr extends Formula {
                 return curNode.getLinks();
             }
             else if(((FOr)originFormula).getSubformulas()[0].isAffected() && !((FOr)originFormula).getSubformulas()[1].isAffected()){
-                Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_CPCC_NB(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
+                Set<Link> ret1 = runtimeNode1.getFormula().linksGeneration_INFUSE(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
                 if(runtimeNode1.isTruth()){
                     if(runtimeNode2.isTruth()){
                         result.addAll(ret1);
@@ -946,7 +946,7 @@ public class FOr extends Formula {
                 }
             }
             else if(!((FOr)originFormula).getSubformulas()[0].isAffected() && ((FOr)originFormula).getSubformulas()[1].isAffected()){
-                Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_CPCC_NB(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
+                Set<Link> ret2 = runtimeNode2.getFormula().linksGeneration_INFUSE(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
                 if(runtimeNode1.isTruth()){
                     if(runtimeNode2.isTruth()){
                         result.addAll(ret2);
@@ -966,8 +966,8 @@ public class FOr extends Formula {
                 }
             }
             else{
-                Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_CPCC_NB(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
-                Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_CPCC_NB(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
+                Set<Link> ret1 = runtimeNode1.getFormula().linksGeneration_INFUSE(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
+                Set<Link> ret2 = runtimeNode2.getFormula().linksGeneration_INFUSE(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
                 if(runtimeNode1.isTruth()){
                     if(runtimeNode2.isTruth()){
                         result.addAll(ret1);
@@ -996,37 +996,37 @@ public class FOr extends Formula {
                 }
                 else{
                     if(runtimeNode1.isTruth() && runtimeNode2.isTruth()){
-                        Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_CPCC_NB(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
-                        Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_CPCC_NB(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
+                        Set<Link> ret1 = runtimeNode1.getFormula().linksGeneration_INFUSE(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
+                        Set<Link> ret2 = runtimeNode2.getFormula().linksGeneration_INFUSE(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
                         result.addAll(ret1);
                         result.addAll(ret2);
                     }
                     else if(runtimeNode1.isTruth() && !runtimeNode2.isTruth()){
-                        Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_CPCC_NB(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
+                        Set<Link> ret1 = runtimeNode1.getFormula().linksGeneration_INFUSE(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
                         result.addAll(ret1);
                     }
                     else{
-                        Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_CPCC_NB(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
+                        Set<Link> ret2 = runtimeNode2.getFormula().linksGeneration_INFUSE(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
                         result.addAll(ret2);
                     }
                 }
             }
             else if(((FOr)originFormula).getSubformulas()[0].isAffected() && !((FOr)originFormula).getSubformulas()[1].isAffected()){
                 if(runtimeNode1.isTruth() && runtimeNode2.isTruth()){
-                    Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_CPCC_NB(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
+                    Set<Link> ret1 = runtimeNode1.getFormula().linksGeneration_INFUSE(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
                     // check whether runtimeNode2.links reusable
                     Set<Link> ret2;
                     if(prevSubstantialNodes.contains(runtimeNode2)){
                         ret2 = runtimeNode2.getLinks();
                     }
                     else {
-                        ret2 = runtimeNode2.getFormula().LinksGeneration_CPCC_NB(runtimeNode2, ((FOr) originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
+                        ret2 = runtimeNode2.getFormula().linksGeneration_INFUSE(runtimeNode2, ((FOr) originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
                     }
                     result.addAll(ret1);
                     result.addAll(ret2);
                 }
                 else if(runtimeNode1.isTruth() && !runtimeNode2.isTruth()){
-                    Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_CPCC_NB(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
+                    Set<Link> ret1 = runtimeNode1.getFormula().linksGeneration_INFUSE(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
                     result.addAll(ret1);
                 }
                 else{
@@ -1036,7 +1036,7 @@ public class FOr extends Formula {
                         ret2 = runtimeNode2.getLinks();
                     }
                     else {
-                        ret2 = runtimeNode2.getFormula().LinksGeneration_CPCC_NB(runtimeNode2, ((FOr) originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
+                        ret2 = runtimeNode2.getFormula().linksGeneration_INFUSE(runtimeNode2, ((FOr) originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
                     }
                     result.addAll(ret2);
                 }
@@ -1049,9 +1049,9 @@ public class FOr extends Formula {
                         ret1 = runtimeNode1.getLinks();
                     }
                     else {
-                        ret1 = runtimeNode1.getFormula().LinksGeneration_CPCC_NB(runtimeNode1, ((FOr) originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
+                        ret1 = runtimeNode1.getFormula().linksGeneration_INFUSE(runtimeNode1, ((FOr) originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
                     }
-                    Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_CPCC_NB(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
+                    Set<Link> ret2 = runtimeNode2.getFormula().linksGeneration_INFUSE(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
                     result.addAll(ret1);
                     result.addAll(ret2);
                 }
@@ -1062,28 +1062,28 @@ public class FOr extends Formula {
                         ret1 = runtimeNode1.getLinks();
                     }
                     else {
-                        ret1 = runtimeNode1.getFormula().LinksGeneration_CPCC_NB(runtimeNode1, ((FOr) originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
+                        ret1 = runtimeNode1.getFormula().linksGeneration_INFUSE(runtimeNode1, ((FOr) originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
                     }
                     result.addAll(ret1);
                 }
                 else{
-                    Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_CPCC_NB(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
+                    Set<Link> ret2 = runtimeNode2.getFormula().linksGeneration_INFUSE(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
                     result.addAll(ret2);
                 }
             }
             else{
                 if(runtimeNode1.isTruth() && runtimeNode2.isTruth()){
-                    Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_CPCC_NB(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
-                    Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_CPCC_NB(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
+                    Set<Link> ret1 = runtimeNode1.getFormula().linksGeneration_INFUSE(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
+                    Set<Link> ret2 = runtimeNode2.getFormula().linksGeneration_INFUSE(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
                     result.addAll(ret1);
                     result.addAll(ret2);
                 }
                 else if(runtimeNode1.isTruth() && !runtimeNode2.isTruth()){
-                    Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_CPCC_NB(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
+                    Set<Link> ret1 = runtimeNode1.getFormula().linksGeneration_INFUSE(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
                     result.addAll(ret1);
                 }
                 else{
-                    Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_CPCC_NB(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
+                    Set<Link> ret2 = runtimeNode2.getFormula().linksGeneration_INFUSE(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
                     result.addAll(ret2);
                 }
             }
@@ -1097,20 +1097,20 @@ public class FOr extends Formula {
                     return curNode.getLinks();
                 }
                 else{
-                    Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_CPCC_NB(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
-                    Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_CPCC_NB(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
+                    Set<Link> ret1 = runtimeNode1.getFormula().linksGeneration_INFUSE(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
+                    Set<Link> ret2 = runtimeNode2.getFormula().linksGeneration_INFUSE(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
                     result.addAll(lgUtils.cartesianSet(ret1, ret2));
                 }
             }
             else if(((FOr)originFormula).getSubformulas()[0].isAffected() && !((FOr)originFormula).getSubformulas()[1].isAffected()){
-                Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_CPCC_NB(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
+                Set<Link> ret1 = runtimeNode1.getFormula().linksGeneration_INFUSE(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
                 // check whether runtimeNode2.links reusable
                 Set<Link> ret2;
                 if (prevSubstantialNodes.contains(runtimeNode2)) {
                     ret2 = runtimeNode2.getLinks();
                 }
                 else {
-                    ret2 = runtimeNode2.getFormula().LinksGeneration_CPCC_NB(runtimeNode2, ((FOr) originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
+                    ret2 = runtimeNode2.getFormula().linksGeneration_INFUSE(runtimeNode2, ((FOr) originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
                 }
                 result.addAll(lgUtils.cartesianSet(ret1, ret2));
             }
@@ -1121,14 +1121,14 @@ public class FOr extends Formula {
                     ret1 = runtimeNode1.getLinks();
                 }
                 else {
-                    ret1 = runtimeNode1.getFormula().LinksGeneration_CPCC_NB(runtimeNode1, ((FOr) originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
+                    ret1 = runtimeNode1.getFormula().linksGeneration_INFUSE(runtimeNode1, ((FOr) originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
                 }
-                Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_CPCC_NB(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
+                Set<Link> ret2 = runtimeNode2.getFormula().linksGeneration_INFUSE(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
                 result.addAll(lgUtils.cartesianSet(ret1, ret2));
             }
             else{
-                Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_CPCC_NB(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
-                Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_CPCC_NB(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
+                Set<Link> ret1 = runtimeNode1.getFormula().linksGeneration_INFUSE(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], prevSubstantialNodes, checker);
+                Set<Link> ret2 = runtimeNode2.getFormula().linksGeneration_INFUSE(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], prevSubstantialNodes, checker);
                 result.addAll(lgUtils.cartesianSet(ret1, ret2));
             }
         }
@@ -1142,17 +1142,17 @@ public class FOr extends Formula {
      */
 
     @Override
-    public void ModifyBranch_BASE(String rule_id, RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
+    public void modifyBranch_BASE(String rule_id, RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
         //分支1
         RuntimeNode runtimeNode1 = curNode.getChildren().get(0);
-        runtimeNode1.getFormula().ModifyBranch_BASE(rule_id, runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, checker);
+        runtimeNode1.getFormula().modifyBranch_BASE(rule_id, runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, checker);
         //分支2
         RuntimeNode runtimeNode2 = curNode.getChildren().get(1);
-        runtimeNode2.getFormula().ModifyBranch_BASE(rule_id, runtimeNode2, ((FOr) originFormula).getSubformulas()[1], contextChange, checker);
+        runtimeNode2.getFormula().modifyBranch_BASE(rule_id, runtimeNode2, ((FOr) originFormula).getSubformulas()[1], contextChange, checker);
     }
 
     @Override
-    public boolean TruthEvaluation_BASE(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
+    public boolean truthEvaluation_BASE(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
         RuntimeNode runtimeNode1 = curNode.getChildren().get(0);
         RuntimeNode runtimeNode2 = curNode.getChildren().get(1);
         //curNode.update == fasle
@@ -1160,13 +1160,13 @@ public class FOr extends Formula {
             return curNode.isTruth();
         }
         else if(((FOr)originFormula).getSubformulas()[0].isAffected()){
-            boolean result = runtimeNode1.getFormula().TruthEvaluation_BASE(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, checker);
+            boolean result = runtimeNode1.getFormula().truthEvaluation_BASE(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, checker);
             result = result || runtimeNode2.isTruth();
             curNode.setTruth(result);
             return result;
         }
         else{
-            boolean result = runtimeNode2.getFormula().TruthEvaluation_BASE(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], contextChange, checker);
+            boolean result = runtimeNode2.getFormula().truthEvaluation_BASE(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], contextChange, checker);
             result = runtimeNode1.isTruth() || result;
             curNode.setTruth(result);
             return result;
@@ -1174,7 +1174,7 @@ public class FOr extends Formula {
     }
 
     @Override
-    public Set<Link> LinksGeneration_BASE(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
+    public Set<Link> linksGeneration_BASE(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
         Set<Link> result = new HashSet<>();
         RuntimeNode runtimeNode1 = curNode.getChildren().get(0);
         RuntimeNode runtimeNode2 = curNode.getChildren().get(1);
@@ -1186,7 +1186,7 @@ public class FOr extends Formula {
                 return curNode.getLinks();
             }
             else if(((FOr)originFormula).getSubformulas()[0].isAffected()){
-                Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_BASE(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, prevSubstantialNodes, checker);
+                Set<Link> ret1 = runtimeNode1.getFormula().linksGeneration_BASE(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, prevSubstantialNodes, checker);
                 if(runtimeNode1.isTruth()){
                     if(runtimeNode2.isTruth()){
                         result.addAll(ret1);
@@ -1206,7 +1206,7 @@ public class FOr extends Formula {
                 }
             }
             else{
-                Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_BASE(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], contextChange, prevSubstantialNodes, checker);
+                Set<Link> ret2 = runtimeNode2.getFormula().linksGeneration_BASE(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], contextChange, prevSubstantialNodes, checker);
                 if(runtimeNode1.isTruth()){
                     if(runtimeNode2.isTruth()){
                         result.addAll(ret2);
@@ -1235,37 +1235,37 @@ public class FOr extends Formula {
                 }
                 else{
                     if(runtimeNode1.isTruth() && runtimeNode2.isTruth()){
-                        Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_BASE(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, prevSubstantialNodes, checker);
-                        Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_BASE(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], contextChange, prevSubstantialNodes, checker);
+                        Set<Link> ret1 = runtimeNode1.getFormula().linksGeneration_BASE(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, prevSubstantialNodes, checker);
+                        Set<Link> ret2 = runtimeNode2.getFormula().linksGeneration_BASE(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], contextChange, prevSubstantialNodes, checker);
                         result.addAll(ret1);
                         result.addAll(ret2);
                     }
                     else if(runtimeNode1.isTruth() && !runtimeNode2.isTruth()){
-                        Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_BASE(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, prevSubstantialNodes, checker);
+                        Set<Link> ret1 = runtimeNode1.getFormula().linksGeneration_BASE(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, prevSubstantialNodes, checker);
                         result.addAll(ret1);
                     }
                     else{
-                        Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_BASE(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], contextChange, prevSubstantialNodes, checker);
+                        Set<Link> ret2 = runtimeNode2.getFormula().linksGeneration_BASE(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], contextChange, prevSubstantialNodes, checker);
                         result.addAll(ret2);
                     }
                 }
             }
             else if(((FOr)originFormula).getSubformulas()[0].isAffected()){
                 if(runtimeNode1.isTruth() && runtimeNode2.isTruth()){
-                    Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_BASE(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, prevSubstantialNodes, checker);
+                    Set<Link> ret1 = runtimeNode1.getFormula().linksGeneration_BASE(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, prevSubstantialNodes, checker);
                     // check whether runtimeNode2.links reusable
                     Set<Link> ret2;
                     if(prevSubstantialNodes.contains(runtimeNode2)){
                         ret2 = runtimeNode2.getLinks();
                     }
                     else{
-                        ret2 = runtimeNode2.getFormula().LinksGeneration_BASE(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], contextChange, prevSubstantialNodes, checker);
+                        ret2 = runtimeNode2.getFormula().linksGeneration_BASE(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], contextChange, prevSubstantialNodes, checker);
                     }
                     result.addAll(ret1);
                     result.addAll(ret2);
                 }
                 else if(runtimeNode1.isTruth() && !runtimeNode2.isTruth()){
-                    Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_BASE(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, prevSubstantialNodes, checker);
+                    Set<Link> ret1 = runtimeNode1.getFormula().linksGeneration_BASE(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, prevSubstantialNodes, checker);
                     result.addAll(ret1);
                 }
                 else{
@@ -1275,21 +1275,21 @@ public class FOr extends Formula {
                         ret2 = runtimeNode2.getLinks();
                     }
                     else{
-                        ret2 = runtimeNode2.getFormula().LinksGeneration_BASE(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], contextChange, prevSubstantialNodes, checker);
+                        ret2 = runtimeNode2.getFormula().linksGeneration_BASE(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], contextChange, prevSubstantialNodes, checker);
                     }
                     result.addAll(ret2);
                 }
             }
             else{
                 if(runtimeNode1.isTruth() && runtimeNode2.isTruth()){
-                    Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_BASE(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], contextChange, prevSubstantialNodes, checker);
+                    Set<Link> ret2 = runtimeNode2.getFormula().linksGeneration_BASE(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], contextChange, prevSubstantialNodes, checker);
                     // check whether runtimeNode1.links reusable
                     Set<Link> ret1;
                     if (prevSubstantialNodes.contains(runtimeNode1)) {
                         ret1 = runtimeNode1.getLinks();
                     }
                     else{
-                        ret1 = runtimeNode1.getFormula().LinksGeneration_BASE(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, prevSubstantialNodes, checker);
+                        ret1 = runtimeNode1.getFormula().linksGeneration_BASE(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, prevSubstantialNodes, checker);
                     }
                     result.addAll(ret1);
                     result.addAll(ret2);
@@ -1301,12 +1301,12 @@ public class FOr extends Formula {
                         ret1 = runtimeNode1.getLinks();
                     }
                     else{
-                        ret1 = runtimeNode1.getFormula().LinksGeneration_BASE(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, prevSubstantialNodes, checker);
+                        ret1 = runtimeNode1.getFormula().linksGeneration_BASE(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, prevSubstantialNodes, checker);
                     }
                     result.addAll(ret1);
                 }
                 else{
-                    Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_BASE(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], contextChange, prevSubstantialNodes, checker);
+                    Set<Link> ret2 = runtimeNode2.getFormula().linksGeneration_BASE(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], contextChange, prevSubstantialNodes, checker);
                     result.addAll(ret2);
                 }
             }
@@ -1320,32 +1320,32 @@ public class FOr extends Formula {
                     return curNode.getLinks();
                 }
                 else{
-                    Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_BASE(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, prevSubstantialNodes, checker);
-                    Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_BASE(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], contextChange, prevSubstantialNodes, checker);
+                    Set<Link> ret1 = runtimeNode1.getFormula().linksGeneration_BASE(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, prevSubstantialNodes, checker);
+                    Set<Link> ret2 = runtimeNode2.getFormula().linksGeneration_BASE(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], contextChange, prevSubstantialNodes, checker);
                     result.addAll(lgUtils.cartesianSet(ret1, ret2));
                 }
             }
             else if(((FOr)originFormula).getSubformulas()[0].isAffected()){
-                Set<Link> ret1 = runtimeNode1.getFormula().LinksGeneration_BASE(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, prevSubstantialNodes, checker);
+                Set<Link> ret1 = runtimeNode1.getFormula().linksGeneration_BASE(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, prevSubstantialNodes, checker);
                 // check whether runtimeNode2.links reusable
                 Set<Link> ret2;
                 if(prevSubstantialNodes.contains(runtimeNode2)){
                     ret2 = runtimeNode2.getLinks();
                 }
                 else{
-                    ret2 = runtimeNode2.getFormula().LinksGeneration_BASE(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], contextChange, prevSubstantialNodes, checker);
+                    ret2 = runtimeNode2.getFormula().linksGeneration_BASE(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], contextChange, prevSubstantialNodes, checker);
                 }
                 result.addAll(lgUtils.cartesianSet(ret1, ret2));
             }
             else{
-                Set<Link> ret2 = runtimeNode2.getFormula().LinksGeneration_BASE(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], contextChange, prevSubstantialNodes, checker);
+                Set<Link> ret2 = runtimeNode2.getFormula().linksGeneration_BASE(runtimeNode2, ((FOr)originFormula).getSubformulas()[1], contextChange, prevSubstantialNodes, checker);
                 // check whether runtimeNode1.links reusable
                 Set<Link> ret1;
                 if (prevSubstantialNodes.contains(runtimeNode1)) {
                     ret1 = runtimeNode1.getLinks();
                 }
                 else{
-                    ret1 = runtimeNode1.getFormula().LinksGeneration_BASE(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, prevSubstantialNodes, checker);
+                    ret1 = runtimeNode1.getFormula().linksGeneration_BASE(runtimeNode1, ((FOr)originFormula).getSubformulas()[0], contextChange, prevSubstantialNodes, checker);
                 }
                 result.addAll(lgUtils.cartesianSet(ret1, ret2));
             }

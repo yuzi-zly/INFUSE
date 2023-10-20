@@ -24,23 +24,23 @@ public class BASE extends ConC{
         for(Rule rule : ruleHandler.getRuleMap().values()){
             if(rule.getVarPatternMap().containsValue(contextChange.getPattern_id())){
                 //apply changes
-                contextPool.ApplyChange(rule.getRule_id(), contextChange);
-                rule.UpdateAffectedWithOneChange(contextChange, this);
+                contextPool.applyChange(rule.getRule_id(), contextChange);
+                rule.updateAffectedWithOneChange(contextChange, this);
                 //modify CCT
-                rule.ModifyCCT_BASE(contextChange, this);
+                rule.modifyCCT_BASE(contextChange, this);
                 //truth evaluation
-                rule.TruthEvaluation_BASE(contextChange, this);
+                rule.truthEvaluation_BASE(contextChange, this);
                 //taint SCCT
                 Set<RuntimeNode> prevSubstantialNodes = this.substantialNodes.getOrDefault(rule.getRule_id(),  new HashSet<>());
                 if(this.isMG){
                     this.substantialNodes.put(rule.getRule_id(), rule.taintSCCT());
                 }
                 //links generation
-                Set<Link> links = rule.LinksGeneration_BASE(contextChange, this, prevSubstantialNodes);
+                Set<Link> links = rule.linksGeneration_BASE(contextChange, this, prevSubstantialNodes);
                 if(links != null){
                     rule.addCriticalSet(links);
                 }
-                rule.CleanAffected();
+                rule.cleanAffected();
                 if(links != null){
                     storeLink(rule.getRule_id(), rule.getCCTRoot().isTruth(), links);
                 }

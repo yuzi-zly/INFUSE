@@ -40,13 +40,13 @@ public abstract class Checker {
 
     public void checkInit(){
         for(Rule rule : ruleHandler.getRuleMap().values()){
-            rule.BuildCCT_ECCPCC(this);
-            rule.TruthEvaluation_ECC(this);
+            rule.buildCCT_ECCPCC(this);
+            rule.truthEvaluation_ECC(this);
             Set<RuntimeNode> prevSubstantialNodes = this.substantialNodes.getOrDefault(rule.getRule_id(),  new HashSet<>());
             if(this.isMG){
                 this.substantialNodes.put(rule.getRule_id(), rule.taintSCCT());
             }
-            rule.LinksGeneration_ECC(this, prevSubstantialNodes);
+            rule.linksGeneration_ECC(this, prevSubstantialNodes);
         }
     }
     public abstract void ctxChangeCheckIMD(ContextChange contextChange);

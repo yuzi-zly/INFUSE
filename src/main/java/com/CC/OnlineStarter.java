@@ -39,8 +39,6 @@ public class OnlineStarter implements Loggable {
         private final String patternFile;
         private final String mfuncFile;
         private final String incOutFile;
-        private final String dataOutFile;
-
         private final RuleHandler ruleHandler;
         private final PatternHandler patternHandler;
         private final ContextHandler contextHandler;
@@ -55,13 +53,12 @@ public class OnlineStarter implements Loggable {
         private final Queue<ContextChange> changeQueue = new LinkedList<>();
         private boolean cleaned = false;
 
-        public CCEServer(String approach, String ruleFile, String bfuncFile, String patternFile, String mfuncFile, String dataType, boolean isMG, String incOutFile, String dataOutFile) {
+        public CCEServer(String approach, String ruleFile, String bfuncFile, String patternFile, String mfuncFile, String dataType, boolean isMG, String incOutFile) {
             this.ruleFile = ruleFile;
             this.bfuncFile = bfuncFile;
             this.patternFile = patternFile;
             this.mfuncFile = mfuncFile;
             this.incOutFile = incOutFile;
-            this.dataOutFile = dataOutFile;
 
             this.ruleHandler = new RuleHandler();
             this.patternHandler = new PatternHandler();
@@ -150,15 +147,15 @@ public class OnlineStarter implements Loggable {
             logger.info("Build patterns successfully");
 
             for(Rule rule : ruleHandler.getRuleMap().values()){
-                contextPool.PoolInit(rule);
+                contextPool.poolInit(rule);
                 //S-condition
-                rule.DeriveSConditions();
+                rule.deriveSConditions();
                 //DIS
-                rule.DeriveRCRESets();
+                rule.deriveRCRESets();
             }
 
             for(String pattern_id : patternHandler.getPatternMap().keySet()){
-                contextPool.ThreeSetsInit(pattern_id);
+                contextPool.threeSetsInit(pattern_id);
             }
         }
 
@@ -380,9 +377,9 @@ public class OnlineStarter implements Loggable {
     public OnlineStarter() {
     }
 
-    public void start(String approach, String ruleFile, String bfuncFile, String patternFile, String mfuncFile, String dataType, boolean isMG, String incOutFile, String dataOutFile){
+    public void start(String approach, String ruleFile, String bfuncFile, String patternFile, String mfuncFile, String dataType, boolean isMG, String incOutFile){
        //FutureTask<Void> clientTask = new FutureTask<>(new CCEClient("./taxi/data_5_0-1_new.txt"));
-        FutureTask<Void> serverTask = new FutureTask<>(new CCEServer(approach, ruleFile, bfuncFile, patternFile, mfuncFile, dataType, isMG, incOutFile, dataOutFile));
+        FutureTask<Void> serverTask = new FutureTask<>(new CCEServer(approach, ruleFile, bfuncFile, patternFile, mfuncFile, dataType, isMG, incOutFile));
         //new Thread(clientTask, "Client...").start();
         new Thread(serverTask, "Server...").start();
         try {

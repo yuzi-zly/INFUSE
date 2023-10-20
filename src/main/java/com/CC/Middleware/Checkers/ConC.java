@@ -57,14 +57,14 @@ public class ConC extends Checker {
                 returnNode.setDepth(this.depth + 1);
                 returnNode.getVarEnv().putAll(this.varEnv);
                 returnNode.getVarEnv().put(((FExists)originFormula).getVar(), context);
-                returnNode.getFormula().CreateBranches_ConC(rule_id, returnNode, ((FExists)originFormula).getSubformula(), false, checker);
+                returnNode.getFormula().createBranches_ConC(rule_id, returnNode, ((FExists)originFormula).getSubformula(), false, checker);
             }
             else{
                 returnNode = new RuntimeNode(((FForall)originFormula).getSubformula());
                 returnNode.setDepth(this.depth + 1);
                 returnNode.getVarEnv().putAll(this.varEnv);
                 returnNode.getVarEnv().put(((FForall)originFormula).getVar(), context);
-                returnNode.getFormula().CreateBranches_ConC(rule_id, returnNode, ((FForall)originFormula).getSubformula(), false, checker);
+                returnNode.getFormula().createBranches_ConC(rule_id, returnNode, ((FForall)originFormula).getSubformula(), false, checker);
             }
             return returnNode;
         }
@@ -83,7 +83,7 @@ public class ConC extends Checker {
 
         @Override
         public Boolean call() {
-            return curNode.getFormula().TruthEvaluation_ConC(curNode, originFormula, false, checker);
+            return curNode.getFormula().truthEvaluation_ConC(curNode, originFormula, false, checker);
         }
     }
 
@@ -104,7 +104,7 @@ public class ConC extends Checker {
 
         @Override
         public Set<Link> call(){
-            return curNode.getFormula().LinksGeneration_ConC(curNode, originFormula, false, prevSubstantialNodes, checker);
+            return curNode.getFormula().linksGeneration_ConC(curNode, originFormula, false, prevSubstantialNodes, checker);
         }
     }
 
@@ -114,18 +114,18 @@ public class ConC extends Checker {
         for(Rule rule : ruleHandler.getRuleMap().values()){
             if(rule.getVarPatternMap().containsValue(contextChange.getPattern_id())){
                 //apply changes
-                contextPool.ApplyChange(rule.getRule_id(), contextChange);
+                contextPool.applyChange(rule.getRule_id(), contextChange);
                 //build CCT
-                rule.BuildCCT_CONC(this);
+                rule.buildCCT_CONC(this);
                 //Truth value evaluation
-                rule.TruthEvaluation_ConC(this);
+                rule.truthEvaluation_ConC(this);
                 //taint SCCT
                 Set<RuntimeNode> prevSubstantialNodes = this.substantialNodes.getOrDefault(rule.getRule_id(),  new HashSet<>());
                 if(this.isMG){
                     this.substantialNodes.put(rule.getRule_id(), rule.taintSCCT());
                 }
                 //Links Generation
-                Set<Link> links = rule.LinksGeneration_ConC(this, prevSubstantialNodes);
+                Set<Link> links = rule.linksGeneration_ConC(this, prevSubstantialNodes);
                 if(links != null){
                     rule.addCriticalSet(links);
                 }
@@ -140,16 +140,16 @@ public class ConC extends Checker {
     public void ctxChangeCheckBatch(Rule rule, List<ContextChange> batch) throws NotSupportedException {
 
         for(ContextChange contextChange : batch){
-            contextPool.ApplyChange(rule.getRule_id(), contextChange);
+            contextPool.applyChange(rule.getRule_id(), contextChange);
         }
-        rule.BuildCCT_CONC(this);
-        rule.TruthEvaluation_ConC(this);
+        rule.buildCCT_CONC(this);
+        rule.truthEvaluation_ConC(this);
         //taint SCCT
         Set<RuntimeNode> prevSubstantialNodes = this.substantialNodes.getOrDefault(rule.getRule_id(),  new HashSet<>());
         if(this.isMG){
             this.substantialNodes.put(rule.getRule_id(), rule.taintSCCT());
         }
-        Set<Link> links = rule.LinksGeneration_ConC(this, prevSubstantialNodes);
+        Set<Link> links = rule.linksGeneration_ConC(this, prevSubstantialNodes);
         if(links != null){
             rule.addCriticalSet(links);
         }

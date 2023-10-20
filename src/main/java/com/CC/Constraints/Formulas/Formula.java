@@ -33,53 +33,53 @@ public abstract class Formula {
     //为syntax tree输出
     public abstract void output(int offset);
     //PCC
-    public abstract boolean UpdateAffectedWithOneChange(ContextChange contextChange, Checker checker);
-    public abstract void CleanAffected();
+    public abstract boolean updateAffectedWithOneChange(ContextChange contextChange, Checker checker);
+    public abstract void cleanAffected();
     //PCCM && CPCC
-    public abstract boolean UpdateAffectedWithChanges(Checker checker);
-    public abstract void UpdateCanConcurrent_CPCC_NB(boolean canConcurrent, Rule rule, Checker checker);
-    public abstract void CleanAffectedAndCanConcurrent();
+    public abstract boolean updateAffectedWithChanges(Checker checker);
+    public abstract void updateCanConcurrent_INFUSE(boolean canConcurrent, Rule rule, Checker checker);
+    public abstract void cleanAffectedAndCanConcurrent();
 
     //RuntimeNode创建时使用
-    public abstract Formula FormulaClone();
+    public abstract Formula formulaClone();
     //S-condition
-    public abstract void DeriveIncPlusSet(Set<Map.Entry<ContextChange.Change_Type, String>> incPlusSet);
-    public abstract void DeriveIncMinusSet(Set<Map.Entry<ContextChange.Change_Type, String>> incMinusSet);
+    public abstract void deriveIncPlusSet(Set<Map.Entry<ContextChange.Change_Type, String>> incPlusSet);
+    public abstract void deriveIncMinusSet(Set<Map.Entry<ContextChange.Change_Type, String>> incMinusSet);
     //C-condition
-    public abstract boolean EvaluationAndEqualSideEffect(RuntimeNode curNode, Formula originFormula, String var, ContextChange delChange, ContextChange addChange, boolean canConcurrent, Scheduler scheduler);
-    public abstract void sideEffectResolution(RuntimeNode curNode, Formula originFormula, String var, ContextChange delChange, ContextChange addChange, boolean canConcurrent, Scheduler scheduler);
+    public abstract boolean evaluationAndEqualSideEffect(RuntimeNode curNode, Formula originFormula, String var, ContextChange delChange, ContextChange addChange, boolean canConcurrent, Scheduler scheduler);
+    public abstract void sideeffectresolution(RuntimeNode curNode, Formula originFormula, String var, ContextChange delChange, ContextChange addChange, boolean canConcurrent, Scheduler scheduler);
     //DIS
-    public abstract void DeriveRCRESets(boolean from);
+    public abstract void deriveRCRESets(boolean from);
 
     public abstract void taintSCCT(RuntimeNode curNode, Formula originFormula, Set<RuntimeNode> substantialNodes);
 
     //ECC && PCC
-    public abstract void CreateBranches_ECCPCC(String rule_id, RuntimeNode curNode, Formula originFormula, Checker checker);
+    public abstract void createBranches_ECCPCC(String rule_id, RuntimeNode curNode, Formula originFormula, Checker checker);
     //ECC
-    public abstract boolean TruthEvaluation_ECC(RuntimeNode curNode, Formula originFormula, Checker checker);
-    public abstract Set<Link> LinksGeneration_ECC(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker);
+    public abstract boolean truthEvaluation_ECC(RuntimeNode curNode, Formula originFormula, Checker checker);
+    public abstract Set<Link> linksGeneration_ECC(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker);
     //PCC
-    public abstract void ModifyBranch_PCC(String rule_id, RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker);
-    public abstract boolean TruthEvaluation_PCC(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker);
-    public abstract Set<Link> LinksGeneration_PCC(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, final Set<RuntimeNode> prevSubstantialNodes, Checker checker);
+    public abstract void modifyBranch_PCC(String rule_id, RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker);
+    public abstract boolean truthEvaluation_PCC(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker);
+    public abstract Set<Link> linksGeneration_PCC(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, final Set<RuntimeNode> prevSubstantialNodes, Checker checker);
     //ConC
-    public abstract void CreateBranches_ConC(String rule_id, RuntimeNode curNode, Formula originFormula, boolean canConcurrent, Checker checker);
-    public abstract boolean TruthEvaluation_ConC(RuntimeNode curNode, Formula originFormula, boolean canConcurrent, Checker checker);
-    public abstract Set<Link> LinksGeneration_ConC(RuntimeNode curNode, Formula originFormula, boolean canConcurrent, final Set<RuntimeNode> prevSubstantialNodes, Checker checker);
+    public abstract void createBranches_ConC(String rule_id, RuntimeNode curNode, Formula originFormula, boolean canConcurrent, Checker checker);
+    public abstract boolean truthEvaluation_ConC(RuntimeNode curNode, Formula originFormula, boolean canConcurrent, Checker checker);
+    public abstract Set<Link> linksGeneration_ConC(RuntimeNode curNode, Formula originFormula, boolean canConcurrent, final Set<RuntimeNode> prevSubstantialNodes, Checker checker);
     //PCCM
-    public abstract void ModifyBranch_PCCM(String rule_id, RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker);
-    public abstract boolean TruthEvaluation_PCCM(RuntimeNode curNode, Formula originFormula, Checker checker);
-    public abstract Set<Link> LinksGeneration_PCCM(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker);
+    public abstract void modifyBranch_PCCM(String rule_id, RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker);
+    public abstract boolean truthEvaluation_PCCM(RuntimeNode curNode, Formula originFormula, Checker checker);
+    public abstract Set<Link> linksGeneration_PCCM(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker);
 
-    //CPCC_NB
-    public abstract void CreateBranches_CPCC_NB(Rule rule, RuntimeNode curNode ,Formula originFormula, Checker checker);
-    public abstract void ModifyBranch_CPCC_NB(Rule rule, RuntimeNode curNode, Formula originFormula, Checker checker);
-    public abstract boolean TruthEvaluationCom_CPCC_NB(RuntimeNode curNode, Formula originFormula, Checker checker);
-    public abstract boolean TruthEvaluationPar_CPCC_NB(RuntimeNode curNode, Formula originFormula, Checker checker);
-    public abstract Set<Link> LinksGeneration_CPCC_NB(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker);
+    //INFUSE
+    public abstract void createBranches_INFUSE(Rule rule, RuntimeNode curNode , Formula originFormula, Checker checker);
+    public abstract void modifyBranch_INFUSE(Rule rule, RuntimeNode curNode, Formula originFormula, Checker checker);
+    public abstract boolean truthEvaluationCom_INFUSE(RuntimeNode curNode, Formula originFormula, Checker checker);
+    public abstract boolean truthEvaluationPar_INFUSE(RuntimeNode curNode, Formula originFormula, Checker checker);
+    public abstract Set<Link> linksGeneration_INFUSE(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker);
 
     //BASE
-    public abstract void ModifyBranch_BASE(String rule_id, RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker);
-    public abstract boolean TruthEvaluation_BASE(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker);
-    public abstract Set<Link> LinksGeneration_BASE(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, final Set<RuntimeNode> prevSubstantialNodes, Checker checker);
+    public abstract void modifyBranch_BASE(String rule_id, RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker);
+    public abstract boolean truthEvaluation_BASE(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker);
+    public abstract Set<Link> linksGeneration_BASE(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, final Set<RuntimeNode> prevSubstantialNodes, Checker checker);
 }

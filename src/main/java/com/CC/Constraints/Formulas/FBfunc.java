@@ -1,7 +1,6 @@
 package com.CC.Constraints.Formulas;
 
 import com.CC.Constraints.Rules.Rule;
-import com.CC.Constraints.Runtime.LGUtils;
 import com.CC.Constraints.Runtime.Link;
 import com.CC.Constraints.Runtime.RuntimeNode;
 import com.CC.Contexts.Context;
@@ -77,7 +76,7 @@ public class FBfunc extends Formula {
     }
 
     @Override
-    public Formula FormulaClone() {
+    public Formula formulaClone() {
         FBfunc fBfunc = new FBfunc(this.func);
         HashMap<String, String> tmpParams = new HashMap<>(this.params);
         fBfunc.setParams(tmpParams);
@@ -86,18 +85,18 @@ public class FBfunc extends Formula {
 
     //S-condition
     @Override
-    public void DeriveIncPlusSet(Set<Map.Entry<ContextChange.Change_Type, String>> incPlusSet) {
+    public void deriveIncPlusSet(Set<Map.Entry<ContextChange.Change_Type, String>> incPlusSet) {
         //Do nothing
     }
 
     @Override
-    public void DeriveIncMinusSet(Set<Map.Entry<ContextChange.Change_Type, String>> incMinusSet) {
+    public void deriveIncMinusSet(Set<Map.Entry<ContextChange.Change_Type, String>> incMinusSet) {
         //Do nothing
     }
 
     //C-condition
     @Override
-    public boolean EvaluationAndEqualSideEffect(RuntimeNode curNode, Formula originFormula, String var, ContextChange delChange, ContextChange addChange, boolean canConcurrent, Scheduler scheduler) {
+    public boolean evaluationAndEqualSideEffect(RuntimeNode curNode, Formula originFormula, String var, ContextChange delChange, ContextChange addChange, boolean canConcurrent, Scheduler scheduler) {
         if(var == null){
             return true;
         }
@@ -112,7 +111,7 @@ public class FBfunc extends Formula {
     }
 
     @Override
-    public void sideEffectResolution(RuntimeNode curNode, Formula originFormula, String var, ContextChange delChange, ContextChange addChange, boolean canConcurrent, Scheduler scheduler) {
+    public void sideeffectresolution(RuntimeNode curNode, Formula originFormula, String var, ContextChange delChange, ContextChange addChange, boolean canConcurrent, Scheduler scheduler) {
         if(var != null){
             curNode.setTruth(curNode.isOptTruth());
             curNode.setOptTruth(false);
@@ -123,34 +122,34 @@ public class FBfunc extends Formula {
 
     //DIS
     @Override
-    public void DeriveRCRESets(boolean from) {
+    public void deriveRCRESets(boolean from) {
 
     }
 
     //PCC
     @Override
-    public boolean UpdateAffectedWithOneChange(ContextChange contextChange, Checker checker) {
+    public boolean updateAffectedWithOneChange(ContextChange contextChange, Checker checker) {
         return false;
     }
 
     //PCCM && CPCC
     @Override
-    public boolean UpdateAffectedWithChanges(Checker checker) {
+    public boolean updateAffectedWithChanges(Checker checker) {
         return false;
     }
     @Override
-    public void CleanAffected() {
+    public void cleanAffected() {
         this.setAffected(false);
     }
 
     //CPCC_NB
     @Override
-    public void UpdateCanConcurrent_CPCC_NB(boolean canConcurrent, Rule rule, Checker checker) {
+    public void updateCanConcurrent_INFUSE(boolean canConcurrent, Rule rule, Checker checker) {
 
     }
 
     @Override
-    public void CleanAffectedAndCanConcurrent() {
+    public void cleanAffectedAndCanConcurrent() {
         this.setAffected(false);
     }
 
@@ -164,7 +163,7 @@ public class FBfunc extends Formula {
                                             ECC PCC
                                          */
     @Override
-    public void CreateBranches_ECCPCC(String rule_id, RuntimeNode curNode, Formula originFormula, Checker checker) {
+    public void createBranches_ECCPCC(String rule_id, RuntimeNode curNode, Formula originFormula, Checker checker) {
         //do nothing
     }
 
@@ -172,7 +171,7 @@ public class FBfunc extends Formula {
         ECC
      */
     @Override
-    public boolean TruthEvaluation_ECC(RuntimeNode curNode, Formula originFormula, Checker checker) {
+    public boolean truthEvaluation_ECC(RuntimeNode curNode, Formula originFormula, Checker checker) {
         boolean result = false;
         result = bfuncCaller(curNode.getVarEnv(), checker);
         curNode.setTruth(result);
@@ -180,7 +179,7 @@ public class FBfunc extends Formula {
     }
 
     @Override
-    public Set<Link> LinksGeneration_ECC(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
+    public Set<Link> linksGeneration_ECC(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
         Set<Link> result = new HashSet<>(1);
         curNode.setLinks(result);
         return curNode.getLinks();
@@ -191,14 +190,14 @@ public class FBfunc extends Formula {
      */
 
     @Override
-    public void ModifyBranch_PCC(String rule_id, RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
+    public void modifyBranch_PCC(String rule_id, RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
         //do nothing
     }
 
     @Override
-    public boolean TruthEvaluation_PCC(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
+    public boolean truthEvaluation_PCC(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
         if(originFormula.isAffected()){
-            this.TruthEvaluation_ECC(curNode, originFormula, checker);
+            this.truthEvaluation_ECC(curNode, originFormula, checker);
             return curNode.isTruth();
         }
         else{
@@ -207,7 +206,7 @@ public class FBfunc extends Formula {
     }
 
     @Override
-    public Set<Link> LinksGeneration_PCC(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
+    public Set<Link> linksGeneration_PCC(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
         Set<Link> result = new HashSet<>(1);
         curNode.setLinks(result);
         return curNode.getLinks();
@@ -217,12 +216,12 @@ public class FBfunc extends Formula {
         ConC
      */
     @Override
-    public void CreateBranches_ConC(String rule_id, RuntimeNode curNode, Formula originFormula, boolean canConcurrent, Checker checker) {
+    public void createBranches_ConC(String rule_id, RuntimeNode curNode, Formula originFormula, boolean canConcurrent, Checker checker) {
         //do nothing
     }
 
     @Override
-    public boolean TruthEvaluation_ConC(RuntimeNode curNode, Formula originFormula, boolean canConcurrent, Checker checker) {
+    public boolean truthEvaluation_ConC(RuntimeNode curNode, Formula originFormula, boolean canConcurrent, Checker checker) {
         boolean result = false;
         result = bfuncCaller(curNode.getVarEnv(), checker);
         curNode.setTruth(result);
@@ -230,7 +229,7 @@ public class FBfunc extends Formula {
     }
 
     @Override
-    public Set<Link> LinksGeneration_ConC(RuntimeNode curNode, Formula originFormula, boolean canConcurrent, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
+    public Set<Link> linksGeneration_ConC(RuntimeNode curNode, Formula originFormula, boolean canConcurrent, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
         Set<Link> result = new HashSet<>(1);
         curNode.setLinks(result);
         return curNode.getLinks();
@@ -241,14 +240,14 @@ public class FBfunc extends Formula {
      */
 
     @Override
-    public void ModifyBranch_PCCM(String rule_id, RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
+    public void modifyBranch_PCCM(String rule_id, RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
 
     }
 
     @Override
-    public boolean TruthEvaluation_PCCM(RuntimeNode curNode, Formula originFormula, Checker checker) {
+    public boolean truthEvaluation_PCCM(RuntimeNode curNode, Formula originFormula, Checker checker) {
         if(originFormula.isAffected()){
-            this.TruthEvaluation_ECC(curNode, originFormula, checker);
+            this.truthEvaluation_ECC(curNode, originFormula, checker);
             return curNode.isTruth();
         }
         else{
@@ -257,7 +256,7 @@ public class FBfunc extends Formula {
     }
 
     @Override
-    public Set<Link> LinksGeneration_PCCM(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
+    public Set<Link> linksGeneration_PCCM(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
         Set<Link> result = new HashSet<>(1);
         curNode.setLinks(result);
         return curNode.getLinks();
@@ -268,17 +267,17 @@ public class FBfunc extends Formula {
      */
 
     @Override
-    public void CreateBranches_CPCC_NB(Rule rule, RuntimeNode curNode, Formula originFormula, Checker checker) {
+    public void createBranches_INFUSE(Rule rule, RuntimeNode curNode, Formula originFormula, Checker checker) {
 
     }
 
     @Override
-    public void ModifyBranch_CPCC_NB(Rule rule, RuntimeNode curNode, Formula originFormula, Checker checker) {
+    public void modifyBranch_INFUSE(Rule rule, RuntimeNode curNode, Formula originFormula, Checker checker) {
 
     }
 
     @Override
-    public boolean TruthEvaluationCom_CPCC_NB(RuntimeNode curNode, Formula originFormula, Checker checker) {
+    public boolean truthEvaluationCom_INFUSE(RuntimeNode curNode, Formula originFormula, Checker checker) {
         boolean result = false;
         result = bfuncCaller(curNode.getVarEnv(), checker);
         curNode.setTruth(result);
@@ -287,9 +286,9 @@ public class FBfunc extends Formula {
     }
 
     @Override
-    public boolean TruthEvaluationPar_CPCC_NB(RuntimeNode curNode, Formula originFormula, Checker checker) {
+    public boolean truthEvaluationPar_INFUSE(RuntimeNode curNode, Formula originFormula, Checker checker) {
         if(originFormula.isAffected()){
-            this.TruthEvaluationCom_CPCC_NB(curNode, originFormula, checker);
+            this.truthEvaluationCom_INFUSE(curNode, originFormula, checker);
             curNode.setVirtualTruth(curNode.isTruth() ? RuntimeNode.Virtual_Truth_Type.TRUE : RuntimeNode.Virtual_Truth_Type.FALSE);
             return curNode.isTruth();
         }
@@ -299,7 +298,7 @@ public class FBfunc extends Formula {
     }
 
     @Override
-    public Set<Link> LinksGeneration_CPCC_NB(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
+    public Set<Link> linksGeneration_INFUSE(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
         Set<Link> result = new HashSet<>(1);
         curNode.setLinks(result);
         return curNode.getLinks();
@@ -310,14 +309,14 @@ public class FBfunc extends Formula {
      */
 
     @Override
-    public void ModifyBranch_BASE(String rule_id, RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
+    public void modifyBranch_BASE(String rule_id, RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
         //do nothing
     }
 
     @Override
-    public boolean TruthEvaluation_BASE(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
+    public boolean truthEvaluation_BASE(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, Checker checker) {
         if(originFormula.isAffected()){
-            this.TruthEvaluation_ECC(curNode, originFormula, checker);
+            this.truthEvaluation_ECC(curNode, originFormula, checker);
             return curNode.isTruth();
         }
         else{
@@ -326,7 +325,7 @@ public class FBfunc extends Formula {
     }
 
     @Override
-    public Set<Link> LinksGeneration_BASE(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
+    public Set<Link> linksGeneration_BASE(RuntimeNode curNode, Formula originFormula, ContextChange contextChange, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
         Set<Link> result = new HashSet<>(1);
         curNode.setLinks(result);
         return curNode.getLinks();
