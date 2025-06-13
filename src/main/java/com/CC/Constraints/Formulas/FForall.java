@@ -1250,6 +1250,7 @@ public class FForall extends Formula{
                 try {
                     future.get();
                 } catch (Exception e) {
+                    e.printStackTrace();
                     System.out.println(e.getMessage());
                     System.out.println("get Void error");
                     System.exit(1);

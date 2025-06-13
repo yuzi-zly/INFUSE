@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class RuleHandler implements Loggable {
 
@@ -51,7 +52,8 @@ public class RuleHandler implements Loggable {
                 tmpForall.setSubformula(resolveFormula(eFormula.elements().get(0), varPatternMap, patToFormula, patToRunTimeNode, depth + 1));
                 varPatternMap.put(eFormula.attributeValue("var"), eFormula.attributeValue("in"));
                 patToFormula.put(eFormula.attributeValue("in"), tmpForall);
-                patToRunTimeNode.put(eFormula.attributeValue("in"), new HashSet<>());
+                //patToRunTimeNode.put(eFormula.attributeValue("in"), new HashSet<>());
+                patToRunTimeNode.put(eFormula.attributeValue("in"), ConcurrentHashMap.newKeySet());
                 retFormula = tmpForall;
                 break;
             }
@@ -61,7 +63,8 @@ public class RuleHandler implements Loggable {
                 tmpExists.setSubformula(resolveFormula(eFormula.elements().get(0), varPatternMap, patToFormula, patToRunTimeNode, depth + 1));
                 varPatternMap.put(eFormula.attributeValue("var"), eFormula.attributeValue("in"));
                 patToFormula.put(eFormula.attributeValue("in"), tmpExists);
-                patToRunTimeNode.put(eFormula.attributeValue("in"), new HashSet<>());
+                //patToRunTimeNode.put(eFormula.attributeValue("in"), new HashSet<>());
+                patToRunTimeNode.put(eFormula.attributeValue("in"), ConcurrentHashMap.newKeySet());
                 retFormula = tmpExists;
                 break;
             }
