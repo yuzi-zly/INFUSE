@@ -7,6 +7,9 @@ import com.CC.Contexts.Context;
 import com.CC.Contexts.ContextChange;
 import com.CC.Middleware.Checkers.Checker;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 
 public class Rule {
@@ -41,6 +44,8 @@ public class Rule {
     //GEAS C-condition
     private final Set<String> criticalSet;
 
+    private FileWriter fileWriter;
+    private BufferedWriter bufferedWriter;
 
     //constructor
     public Rule(String rule_id){
@@ -60,6 +65,25 @@ public class Rule {
         this.patToRuntimeNode = new HashMap<>();
         this.patToDepth = new HashMap<>();
         this.depthToPat = new TreeMap<>();
+    }
+
+
+    public void batchInit(String strategy) {
+        try {
+            this.fileWriter = new FileWriter("./" + strategy + "_" +  rule_id + ".txt");
+            this.bufferedWriter = new BufferedWriter(fileWriter);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void intoFile(List<ContextChange> changeList) {
+        try {
+            bufferedWriter.write(changeList.size() + ": " + changeList + "\n\n");
+            bufferedWriter.flush();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     //functional methods

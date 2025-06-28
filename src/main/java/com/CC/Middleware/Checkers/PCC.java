@@ -7,6 +7,7 @@ import com.CC.Constraints.Runtime.RuntimeNode;
 import com.CC.Contexts.ContextChange;
 import com.CC.Contexts.ContextPool;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -20,6 +21,12 @@ public class PCC extends Checker{
 
     @Override
     public void ctxChangeCheckIMD(ContextChange contextChange) {
+        // for hospital progress
+        if(contextChange.getPattern_id().equals("P_temporal_1") &&
+                contextChange.getChange_type() == ContextChange.Change_Type.ADDITION) {
+            System.out.println("PCC+IMD Processing: " + contextChange.getContext().getCtx_id());
+        }
+
         //consistency checking
         for(Rule rule : ruleHandler.getRuleMap().values()){
             if(rule.getVarPatternMap().containsValue(contextChange.getPattern_id())){
@@ -51,6 +58,20 @@ public class PCC extends Checker{
 
     @Override
     public void ctxChangeCheckBatch(Rule rule, List<ContextChange> batch) {
+        // for hospital progresss
+        List<String> related_ctx_ids = new ArrayList<>();
+        for (ContextChange contextChange : batch) {
+            if (contextChange.getPattern_id().equals("P_temporal_1") &&
+                    contextChange.getChange_type() == ContextChange.Change_Type.ADDITION) {
+                related_ctx_ids.add(contextChange.getContext().getCtx_id());
+            }
+        }
+        long max_ctx_id = 0;
+        for (String ctx_id : related_ctx_ids) {
+            max_ctx_id = Math.max(max_ctx_id, Long.parseLong(ctx_id.split("_")[1]));
+        }
+        System.out.println("PCC+GEAS Processing: ctx_" + max_ctx_id);
+
         //rule.intoFile(batch);
         //clean
         for(String pattern_id : rule.getVarPatternMap().values()){

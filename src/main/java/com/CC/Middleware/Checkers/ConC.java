@@ -12,10 +12,7 @@ import com.CC.Contexts.ContextChange;
 import com.CC.Contexts.ContextPool;
 import com.CC.Util.NotSupportedException;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -26,7 +23,7 @@ public class ConC extends Checker {
 
     public ConC(RuleHandler ruleHandler, ContextPool contextPool, Object bfunctions, boolean isMG) {
         super(ruleHandler, contextPool, bfunctions, isMG);
-        ThreadPool = Executors.newFixedThreadPool(13);
+        ThreadPool = Executors.newFixedThreadPool(16);
         this.technique = "ConC";
     }
 
@@ -110,6 +107,12 @@ public class ConC extends Checker {
 
     @Override
     public void ctxChangeCheckIMD(ContextChange contextChange) {
+        // for hospital progress
+        if(contextChange.getPattern_id().equals("P_temporal_1") &&
+                contextChange.getChange_type() == ContextChange.Change_Type.ADDITION) {
+            System.out.println("ConC+IMD Processing: " + contextChange.getContext().getCtx_id());
+        }
+
         //consistency checking
         for(Rule rule : ruleHandler.getRuleMap().values()){
             if(rule.getVarPatternMap().containsValue(contextChange.getPattern_id())){
@@ -138,6 +141,21 @@ public class ConC extends Checker {
 
     @Override
     public void ctxChangeCheckBatch(Rule rule, List<ContextChange> batch) throws NotSupportedException {
+        // for hospital progresss
+        List<String> related_ctx_ids = new ArrayList<>();
+        for (ContextChange contextChange : batch) {
+            if (contextChange.getPattern_id().equals("P_temporal_1") &&
+                    contextChange.getChange_type() == ContextChange.Change_Type.ADDITION) {
+                related_ctx_ids.add(contextChange.getContext().getCtx_id());
+            }
+        }
+        long max_ctx_id = 0;
+        for (String ctx_id : related_ctx_ids) {
+            max_ctx_id = Math.max(max_ctx_id, Long.parseLong(ctx_id.split("_")[1]));
+        }
+        System.out.println("ConC+GEAS Processing: ctx_" + max_ctx_id);
+
+        //rule.intoFile(batch);
 
         for(ContextChange contextChange : batch){
             contextPool.applyChange(rule.getRule_id(), contextChange);

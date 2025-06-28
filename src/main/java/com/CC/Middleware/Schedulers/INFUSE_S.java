@@ -22,6 +22,10 @@ public class INFUSE_S extends Scheduler{
     public INFUSE_S(RuleHandler ruleHandler, ContextPool contextPool, Checker checker) {
         super(ruleHandler, contextPool, checker);
         this.strategy = "INFUSE_S";
+
+//        for (Rule rule: this.ruleHandler.getRuleMap().values()){
+//            rule.batchInit(this.strategy);
+//        }
     }
 
     @Override

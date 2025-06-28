@@ -16,6 +16,10 @@ public class GEAS_ori extends Scheduler{
     public GEAS_ori(RuleHandler ruleHandler, ContextPool contextPool, Checker checker) {
         super(ruleHandler, contextPool, checker);
         this.strategy = "GEAS_ori";
+
+//        for (Rule rule: this.ruleHandler.getRuleMap().values()){
+//            rule.batchInit(this.strategy);
+//        }
     }
 
     @Override

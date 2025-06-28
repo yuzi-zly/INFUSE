@@ -22,7 +22,7 @@ public class INFUSE_C extends Checker{
 
     public INFUSE_C(RuleHandler ruleHandler, ContextPool contextPool, Object bfunctions, boolean isMG) {
         super(ruleHandler, contextPool, bfunctions, isMG);
-        ThreadPool = Executors.newFixedThreadPool(13);
+        ThreadPool = Executors.newFixedThreadPool(32);
         this.technique = "CPCC_NB";
     }
 
@@ -176,6 +176,21 @@ public class INFUSE_C extends Checker{
 
     @Override
     public void ctxChangeCheckBatch(Rule rule, List<ContextChange> batch) throws NotSupportedException {
+        // for hospital progresss
+        List<String> related_ctx_ids = new ArrayList<>();
+        for (ContextChange contextChange : batch) {
+            if (contextChange.getPattern_id().equals("P_temporal_1") &&
+                    contextChange.getChange_type() == ContextChange.Change_Type.ADDITION) {
+                related_ctx_ids.add(contextChange.getContext().getCtx_id());
+            }
+        }
+        long max_ctx_id = 0;
+        for (String ctx_id : related_ctx_ids) {
+            max_ctx_id = Math.max(max_ctx_id, Long.parseLong(ctx_id.split("_")[1]));
+        }
+        System.out.println("INFUSE Processing: ctx_" + max_ctx_id);
+
+
         //rule.intoFile(batch);
 
         contextPool.applyChanges(rule, batch);

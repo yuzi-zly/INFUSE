@@ -368,11 +368,11 @@ public class FForall extends Formula{
     @Override
     public void createBranches_ECCPCC(String rule_id, RuntimeNode curNode, Formula originFormula, Checker checker) {
         Set<Context> pool = checker.getContextPool().getPoolSet(rule_id, ((FForall)originFormula).getPattern_id());
-        for(Context context : pool){
-            RuntimeNode runtimeNode = new RuntimeNode(((FForall)originFormula).getSubformula());
+        for(Context context : pool) {
+            RuntimeNode runtimeNode = new RuntimeNode(((FForall) originFormula).getSubformula());
             runtimeNode.setDepth(curNode.getDepth() + 1);
             runtimeNode.getVarEnv().putAll(curNode.getVarEnv());
-            runtimeNode.getVarEnv().put(((FForall)originFormula).getVar(), context);
+            runtimeNode.getVarEnv().put(((FForall) originFormula).getVar(), context);
             curNode.getChildren().add(runtimeNode);
             //递归调用
             runtimeNode.getFormula().createBranches_ECCPCC(rule_id, runtimeNode, ((FForall) originFormula).getSubformula(), checker);
