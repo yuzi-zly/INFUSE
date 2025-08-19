@@ -2,50 +2,81 @@ plugins {
     id 'java'
 }
 
+group 'org.INFUSE'
+version '1.0[jdk17]'
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
 javadoc {
     options.encoding = 'UTF-8'
 }
 
-java{
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(11))
-    }
-}
-
-group 'org.INFUSE'
-version '1.0[jdk11]'
-
-jar {
-    duplicatesStrategy = DuplicatesStrategy.INCLUDE
-    manifest {
-        attributes('Main-Class': 'com.CC.CLIParser')
-        attributes("Multi-Release": true)
-    }
-    from{
-        (configurations.runtimeClasspath).collect {
-            it.isDirectory() ? it : zipTree(it)
+sourceSets {
+    shared {
+        java {
+            srcDirs = ['src/shared/java']
+        }
+        resources {
+            srcDirs = ['src/shared/resources']
         }
     }
-    //processResources.exclude('*')
+    main {
+        // 告诉 main 它依赖于 shared
+        compileClasspath += shared.output
+        runtimeClasspath += shared.output
+    }
+    test {
+        // 告诉 test 它也依赖于 shared
+        compileClasspath += shared.output
+        runtimeClasspath += shared.output
+    }
 }
 
 repositories {
     mavenCentral()
 }
 
-
 dependencies {
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+    // Main 源集的外部依赖
     implementation 'org.dom4j:dom4j:2.1.3'
     implementation 'commons-cli:commons-cli:1.5.0'
-    // https://mvnrepository.com/artifact/com.alibaba/fastjson
     implementation 'com.alibaba:fastjson:1.2.83'
-    // https://mvnrepository.com/artifact/commons-io/commons-io
     implementation 'commons-io:commons-io:2.11.0'
     implementation 'org.apache.logging.log4j:log4j-api:2.19.0'
     implementation 'org.apache.logging.log4j:log4j-core:2.19.0'
+
+    // Shared 源集的外部依赖
+
+    // Test 源集的外部依赖
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
 }
+
+
+task mainJar(type: Jar) {
+    archiveClassifier = 'main'
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    
+    // 包含 main 的运行时依赖 和 main 自己的编译结果
+    from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+    from sourceSets.main.output
+    
+    manifest {
+        attributes('Main-Class': 'com.CC.CLIParser')
+        attributes("Multi-Release": true)
+    }
+}
+
+task sharedJar(type: Jar) {
+    archiveClassifier = 'llm'
+    destinationDirectory = file('build/libs')
+    from sourceSets.shared.output
+}
+
 test {
     useJUnitPlatform()
 }
