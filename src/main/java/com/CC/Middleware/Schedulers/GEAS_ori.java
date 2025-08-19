@@ -7,6 +7,8 @@ import com.CC.Contexts.ContextPool;
 import com.CC.Middleware.Checkers.Checker;
 import com.CC.Middleware.Checkers.INFUSE_C;
 import com.CC.Middleware.Checkers.ConC;
+import com.CC.Middleware.Checkers.PCC;
+import com.CC.Middleware.Checkers.ECC;
 import com.CC.Util.NotSupportedException;
 
 import java.util.*;
@@ -83,6 +85,12 @@ public class GEAS_ori extends Scheduler{
             case "BASE":
                 assert this.checker instanceof ConC;
                 ((ConC) checker).ThreadPool.shutdown();
+                break;
+            case "PCC":
+                ((PCC) checker).closeFiles();
+                break;
+            case "ECC":
+                ((ECC) checker).closeFiles();
                 break;
         }
     }

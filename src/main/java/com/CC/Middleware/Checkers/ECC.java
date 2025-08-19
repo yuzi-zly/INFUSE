@@ -9,13 +9,39 @@ import com.CC.Contexts.ContextPool;
 
 import java.util.HashSet;
 import java.util.List;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Set;
 
 public class ECC extends Checker{
 
+    private OutputStream outputStream;
+    private OutputStreamWriter outputStreamWriter;
+    private BufferedWriter bufferedWriter;
+
     public ECC(RuleHandler ruleHandler, ContextPool contextPool, Object bfunctions, boolean isMG) {
         super(ruleHandler, contextPool, bfunctions, isMG);
         this.technique = "ECC";
+        try {
+            this.outputStream = Files.newOutputStream(Paths.get("ECC1.txt"));
+            this.outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
+            this.bufferedWriter = new BufferedWriter(outputStreamWriter);
+        } catch (IOException ex) {
+        }
+    }
+
+    public void closeFiles() {
+        try {
+            this.bufferedWriter.close();
+            this.outputStreamWriter.close();
+            this.outputStream.close();
+        } catch (IOException e) {
+        }
     }
 
     @Override
@@ -49,6 +75,14 @@ public class ECC extends Checker{
         for(ContextChange contextChange : batch){
             contextPool.applyChange(rule.getRule_id(), contextChange);
         }
+        for (String pattern_id : rule.getVarPatternMap().values()) {
+            try {
+                bufferedWriter.write("%s size: %d".formatted(pattern_id, contextPool.getPoolSetSize(rule.getRule_id(), pattern_id)));
+                bufferedWriter.flush();
+            } catch (IOException e) {
+            }
+        }
+
         //build CCT
         rule.buildCCT_ECCPCC(this);
         //truth value evaluation

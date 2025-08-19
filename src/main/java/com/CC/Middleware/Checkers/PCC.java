@@ -7,15 +7,41 @@ import com.CC.Constraints.Runtime.RuntimeNode;
 import com.CC.Contexts.ContextChange;
 import com.CC.Contexts.ContextPool;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 public class PCC extends Checker{
 
+    private OutputStream outputStream;
+    private OutputStreamWriter outputStreamWriter;
+    private BufferedWriter bufferedWriter;
+
     public PCC(RuleHandler ruleHandler, ContextPool contextPool, Object bfunctions, boolean isMG) {
         super(ruleHandler, contextPool, bfunctions, isMG);
         this.technique = "PCC";
+        try {
+            this.outputStream = Files.newOutputStream(Paths.get("PCC1.txt"));
+            this.outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
+            this.bufferedWriter = new BufferedWriter(outputStreamWriter);
+        } catch (IOException ex) {
+        }
+    }
+
+    public void closeFiles() {
+        try {
+            this.bufferedWriter.close();
+            this.outputStreamWriter.close();
+            this.outputStream.close();
+        } catch (IOException e) {
+        }
     }
 
     @Override
@@ -60,9 +86,17 @@ public class PCC extends Checker{
         }
         for(ContextChange contextChange : batch){
             contextPool.applyChangeWithSets(rule.getRule_id(), contextChange);
-            
             rule.modifyCCT_PCCM(contextChange, this);
         }
+        for (String pattern_id : rule.getVarPatternMap().values()) {
+            try {
+                bufferedWriter.write("%s size: %d".formatted(pattern_id, contextPool.getPoolSetSize(rule.getRule_id(), pattern_id)));
+                bufferedWriter.flush();
+            } catch (IOException e) {
+                // Handle exception
+            }
+        }
+
         rule.updateAffectedWithChanges(this);
         rule.truthEvaluation_PCCM(this);
         //taint SCCT
