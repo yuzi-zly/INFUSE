@@ -12,7 +12,7 @@
             </forall>
         </formula>
     </rule>
-
+<!--
     <rule>
         <id>rule_01</id>
         <formula>
@@ -908,5 +908,5 @@
             </forall>
         </formula>
     </rule>
-
+-->
 </rules>

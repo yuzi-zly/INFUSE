@@ -22,6 +22,7 @@ public class CLIParser implements Loggable {
 
     public static String incOut = "inconsistencies.txt";
 
+    @SuppressWarnings("CallToPrintStackTrace")
     public static void main(String[] args) throws Exception {
         // common
         Option opt_ap = Option.builder("approach")
@@ -250,7 +251,7 @@ java -jar INFUSE.jar
             boolean isMG = cli.hasOption("mg");
             logger.info(String.format("Minimizing link generation is %s", isMG ? "on" : "off"));
             // incs
-            String incs = null;
+            String incs;
             if(!cli.hasOption("incs")){
                 incs = incOut;
                 logger.info("The default inconsistency file is \"" + incOut + "\"");

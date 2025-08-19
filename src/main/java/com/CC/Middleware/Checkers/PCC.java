@@ -60,6 +60,7 @@ public class PCC extends Checker{
         }
         for(ContextChange contextChange : batch){
             contextPool.applyChangeWithSets(rule.getRule_id(), contextChange);
+            
             rule.modifyCCT_PCCM(contextChange, this);
         }
         rule.updateAffectedWithChanges(this);

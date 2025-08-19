@@ -41,6 +41,7 @@ import com.CC.Middleware.Schedulers.INFUSE_S;
 import com.CC.Middleware.Schedulers.Scheduler;
 import com.CC.Patterns.PatternHandler;
 import com.CC.Util.Loggable;
+import com.CC.Util.LLM;
 
 public class OfflineStarter implements Loggable {
 
@@ -104,45 +105,28 @@ public class OfflineStarter implements Loggable {
                 technique = "INFUSE_C";
                 schedule = "INFUSE_S";
             }
+            else {
+                throw new IllegalArgumentException("Unknown approach: " + approach);
+            }
         }
 
         logger.debug("Checking technique is " + technique + ", scheduling strategy is " + schedule + ", with MG " + (isMG ? "on" : "off"));
         assert technique != null;
 
         switch (technique) {
-            case "ECC":
-                this.checker = new ECC(this.ruleHandler, this.contextPool, bfuncInstance, isMG);
-                break;
-            case "ConC":
-                this.checker = new ConC(this.ruleHandler, this.contextPool, bfuncInstance, isMG);
-                break;
-            case "PCC":
-                this.checker = new PCC(this.ruleHandler, this.contextPool, bfuncInstance, isMG);
-                break;
-            case "INFUSE_base":
-                this.checker = new BASE(this.ruleHandler, this.contextPool, bfuncInstance, isMG);
-                break;
-            case "INFUSE_C":
-                this.checker = new INFUSE_C(this.ruleHandler, this.contextPool, bfuncInstance, isMG);
-                break;
+            case "ECC" -> this.checker = new ECC(this.ruleHandler, this.contextPool, bfuncInstance, isMG);
+            case "ConC" -> this.checker = new ConC(this.ruleHandler, this.contextPool, bfuncInstance, isMG);
+            case "PCC" -> this.checker = new PCC(this.ruleHandler, this.contextPool, bfuncInstance, isMG);
+            case "INFUSE_base" -> this.checker = new BASE(this.ruleHandler, this.contextPool, bfuncInstance, isMG);
+            case "INFUSE_C" -> this.checker = new INFUSE_C(this.ruleHandler, this.contextPool, bfuncInstance, isMG);
         }
 
         switch (schedule){
-            case "IMD":
-                this.scheduler = new IMD(ruleHandler, contextPool, checker);
-                break;
-            case "GEAS_ori":
-                this.scheduler = new GEAS_ori(ruleHandler, contextPool, checker);
-                break;
-            case "GEAS_opt_s":
-                this.scheduler = new GEAS_opt_s(ruleHandler, contextPool, checker);
-                break;
-            case "GEAS_opt_c":
-                this.scheduler = new GEAS_opt_c(ruleHandler, contextPool, checker);
-                break;
-            case "INFUSE_S":
-                this.scheduler = new INFUSE_S(ruleHandler, contextPool, checker);
-                break;
+            case "IMD" -> this.scheduler = new IMD(ruleHandler, contextPool, checker);
+            case "GEAS_ori" -> this.scheduler = new GEAS_ori(ruleHandler, contextPool, checker);
+            case "GEAS_opt_s" -> this.scheduler = new GEAS_opt_s(ruleHandler, contextPool, checker);
+            case "GEAS_opt_c" -> this.scheduler = new GEAS_opt_c(ruleHandler, contextPool, checker);
+            case "INFUSE_S" -> this.scheduler = new INFUSE_S(ruleHandler, contextPool, checker);
         }
 
         //check init
@@ -183,8 +167,8 @@ public class OfflineStarter implements Loggable {
         Object bfuncInstance = null;
         try(URLClassLoader classLoader = new URLClassLoader(new URL[]{ bfuncPath.getParent().toFile().toURI().toURL()})){
             Class<?> c = classLoader.loadClass(bfuncPath.getFileName().toString().substring(0, bfuncPath.getFileName().toString().length() - 6));
-            Constructor<?> constructor = c.getConstructor();
-            bfuncInstance = constructor.newInstance();
+            Constructor<?> constructor = c.getConstructor(LLMCallBack.class);
+            bfuncInstance = constructor.newInstance(new LLM());
         } catch (ClassNotFoundException | InvocationTargetException | NoSuchMethodException | InstantiationException |
                  IllegalAccessException | IOException e) {
             throw new RuntimeException(e);

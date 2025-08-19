@@ -2,7 +2,7 @@ plugins {
     id 'java'
 }
 
-group 'org.INFUSE'
+group 'org.SPAR'
 version '1.0[jdk17]'
 
 java {
@@ -12,6 +12,14 @@ java {
 }
 
 javadoc {
+    options.encoding = 'UTF-8'
+}
+
+compileJava {
+    options.encoding = 'UTF-8'
+}
+
+compileTestJava {
     options.encoding = 'UTF-8'
 }
 
@@ -28,11 +36,23 @@ sourceSets {
         // 告诉 main 它依赖于 shared
         compileClasspath += shared.output
         runtimeClasspath += shared.output
+        java {
+            srcDirs = ['src/main/java']
+        }
+        resources {
+            srcDirs = ['src/main/resources']
+        }
     }
     test {
         // 告诉 test 它也依赖于 shared
         compileClasspath += shared.output
         runtimeClasspath += shared.output
+        java {
+            srcDirs = ['src/test/java']
+        }
+        resources {
+            srcDirs = ['src/test/resources']
+        }
     }
 }
 
@@ -56,7 +76,6 @@ dependencies {
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
 }
 
-
 task mainJar(type: Jar) {
     archiveClassifier = 'main'
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
@@ -79,4 +98,6 @@ task sharedJar(type: Jar) {
 
 test {
     useJUnitPlatform()
+    // 跳过测试
+    //enabled = false
 }

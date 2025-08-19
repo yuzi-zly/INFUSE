@@ -1,15 +1,14 @@
 package com.CC;
 
-import org.apache.commons.io.FileUtils;
-import org.junit.jupiter.api.Test;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.commons.io.FileUtils;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Test;
 
 public class SimpleTest {
 
@@ -34,7 +33,7 @@ public class SimpleTest {
     }
 
     public static void testDriver(String ap, boolean isMG){
-        String[] args = null;
+        String[] args;
         if(isMG){
             args = new String[]{
                     "-mode", "offline", "-approach", ap,
