@@ -351,7 +351,7 @@ public class FBfunc extends Formula {
             vcMap.put(params.get(pos), ctxInfos);
         }
         
-        long startTime = System.currentTimeMillis();
+        // long startTime = System.currentTimeMillis();
         boolean result = false;
         try {
             Object bfuncInstance = checker.getBfuncInstance();
@@ -360,13 +360,13 @@ public class FBfunc extends Formula {
         } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException | ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
-        long endTime = System.currentTimeMillis();
-        if (checker instanceof PCC pcc) {
-            pcc.addBfuncTime(endTime - startTime);
-        }
-        else if (checker instanceof ECC ecc) {
-            ecc.addBfuncTime(endTime - startTime);
-        }
+        // long endTime = System.currentTimeMillis();
+        // if (checker instanceof PCC pcc) {
+        //     pcc.addBfuncTime(endTime - startTime);
+        // }
+        // else if (checker instanceof ECC ecc) {
+        //     ecc.addBfuncTime(endTime - startTime);
+        // }
         return result;
     }
 }
