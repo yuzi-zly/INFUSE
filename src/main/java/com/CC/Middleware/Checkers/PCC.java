@@ -20,20 +20,20 @@ import java.util.Set;
 
 public class PCC extends Checker{
 
-    private OutputStream outputStream;
-    private OutputStreamWriter outputStreamWriter;
-    private BufferedWriter bufferedWriter;
+    // private OutputStream outputStream;
+    // private OutputStreamWriter outputStreamWriter;
+    // private BufferedWriter bufferedWriter;
     private long bfuncTime;
 
     public PCC(RuleHandler ruleHandler, ContextPool contextPool, Object bfunctions, boolean isMG) {
         super(ruleHandler, contextPool, bfunctions, isMG);
         this.technique = "PCC";
-        try {
-            this.outputStream = Files.newOutputStream(Paths.get("PCC.txt"));
-            this.outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
-            this.bufferedWriter = new BufferedWriter(outputStreamWriter);
-        } catch (IOException ex) {
-        }
+        // try {
+        //     this.outputStream = Files.newOutputStream(Paths.get("PCC.txt"));
+        //     this.outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
+        //     this.bufferedWriter = new BufferedWriter(outputStreamWriter);
+        // } catch (IOException ex) {
+        // }
         this.bfuncTime = 0L;
     }
 
@@ -43,12 +43,12 @@ public class PCC extends Checker{
 
     public void closeFiles() {
         System.out.println("bfuncTime: %d ms".formatted(this.bfuncTime));
-        try {
-            this.bufferedWriter.close();
-            this.outputStreamWriter.close();
-            this.outputStream.close();
-        } catch (IOException e) {
-        }
+        // try {
+        //     this.bufferedWriter.close();
+        //     this.outputStreamWriter.close();
+        //     this.outputStream.close();
+        // } catch (IOException e) {
+        // }
     }
 
     @Override
@@ -95,20 +95,20 @@ public class PCC extends Checker{
             contextPool.applyChangeWithSets(rule.getRule_id(), contextChange);
             rule.modifyCCT_PCCM(contextChange, this);
         }
-        for (String pattern_id : rule.getVarPatternMap().values()) {
-            try {
-                bufferedWriter.write("%s size: %d,%d,%d,%d\n".formatted(
-                    pattern_id, 
-                    contextPool.getPoolSetSize(rule.getRule_id(), pattern_id),
-                    contextPool.getAddSetSize(pattern_id),
-                    contextPool.getUpdSetSize(pattern_id),
-                    contextPool.getDelSetSize(pattern_id)
-                ));
-                bufferedWriter.flush();
-            } catch (IOException e) {
-                // Handle exception
-            }
-        }
+        // for (String pattern_id : rule.getVarPatternMap().values()) {
+        //     try {
+        //         bufferedWriter.write("%s size: %d,%d,%d,%d\n".formatted(
+        //             pattern_id, 
+        //             contextPool.getPoolSetSize(rule.getRule_id(), pattern_id),
+        //             contextPool.getAddSetSize(pattern_id),
+        //             contextPool.getUpdSetSize(pattern_id),
+        //             contextPool.getDelSetSize(pattern_id)
+        //         ));
+        //         bufferedWriter.flush();
+        //     } catch (IOException e) {
+        //         // Handle exception
+        //     }
+        // }
 
         rule.updateAffectedWithChanges(this);
         rule.truthEvaluation_PCCM(this);

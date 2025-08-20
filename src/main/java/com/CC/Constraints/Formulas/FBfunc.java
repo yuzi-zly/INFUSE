@@ -7,6 +7,7 @@ import com.CC.Contexts.Context;
 import com.CC.Contexts.ContextChange;
 import com.CC.Middleware.Checkers.Checker;
 import com.CC.Middleware.Checkers.PCC;
+import com.CC.Middleware.Checkers.ECC;
 import com.CC.Middleware.Schedulers.Scheduler;
 
 import java.lang.reflect.InvocationTargetException;
@@ -357,6 +358,9 @@ public class FBfunc extends Formula {
         long endTime = System.currentTimeMillis();
         if (checker instanceof PCC pcc) {
             pcc.addBfuncTime(endTime - startTime);
+        }
+        else if (checker instanceof ECC ecc) {
+            ecc.addBfuncTime(endTime - startTime);
         }
         return result;
     }
