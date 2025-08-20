@@ -1,9 +1,9 @@
-group 'org.SPAR'
-version '1.0[jdk17]'
-
 plugins {
     id 'java'
 }
+
+group 'org.SPAR'
+version '1.0[jdk17]'
 
 java {
     toolchain {

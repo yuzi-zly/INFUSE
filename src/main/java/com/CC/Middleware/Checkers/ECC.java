@@ -49,34 +49,35 @@ public class ECC extends Checker{
     }
 
     public void evaluteBfuncNodes(){
-        this.toEvaluateBfuncNodes.entrySet().parallelStream().forEach(entry -> {
-            String funcName = entry.getKey();
-            List<RuntimeNode> nodes = entry.getValue();
-            
+        // 收集所有任务
+        List<Runnable> allTasks = new ArrayList<>();
+        
+        // 使用普通forEach遍历所有函数名和对应的节点列表
+        this.toEvaluateBfuncNodes.forEach((funcName, nodes) -> {
             // 计算需要多少批
             int numOfBatches = (int) Math.ceil((double) nodes.size() / BATCH_SIZE);
             
-            // 创建线程池处理每批任务
-            List<Runnable> tasks = new ArrayList<>();
+            // 为每个批次创建任务
             for (int i = 0; i < numOfBatches; i++) {
                 final int start = i * BATCH_SIZE;
                 final int end = Math.min((i + 1) * BATCH_SIZE, nodes.size());
                 
-                tasks.add(() -> {
+                allTasks.add(() -> {
                     try {
                         Thread.sleep(5000);
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                     }
+                    // 处理每批中的节点
                     for (int j = start; j < end; j++) {
                         ((FBfunc) nodes.get(j).getFormula()).bfuncCaller(nodes.get(j).getVarEnv(), this);
                     }
                 });
             }
-            
-            // 并行执行所有批次任务
-            tasks.parallelStream().forEach(Runnable::run);
         });
+        
+        // 并行执行所有任务
+        allTasks.parallelStream().forEach(Runnable::run);
     }
 
     @Override
@@ -114,13 +115,13 @@ public class ECC extends Checker{
         this.toEvaluateBfuncNodes.clear();
         //build CCT
         rule.buildCCT_ECCPCC(this);
-        // for (String funcName : this.toEvaluateBfuncNodes.keySet()) {
-        //     System.out.println("%s has %d toEvaluateBfuncNodes".formatted(funcName, this.toEvaluateBfuncNodes.get(funcName).size()));
-        // }
         long startTime = System.currentTimeMillis();
         this.evaluteBfuncNodes();
         long endTime = System.currentTimeMillis();
         this.addBfuncTime(endTime - startTime);
+        for (String funcName : this.toEvaluateBfuncNodes.keySet()) {
+            System.out.println("%s has %d toEvaluateBfuncNodes".formatted(funcName, this.toEvaluateBfuncNodes.get(funcName).size()));
+        }
         System.out.println("ECC bfunc time: %d ms".formatted(endTime - startTime));
 
         //truth value evaluation
