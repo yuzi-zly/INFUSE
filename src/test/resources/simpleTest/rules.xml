@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 <rules>
-
+<!--
     <rule>
         <id>rule_00</id>
         <formula>
@@ -12,7 +12,7 @@
             </forall>
         </formula>
     </rule>
-<!--
+-->
     <rule>
         <id>rule_01</id>
         <formula>
@@ -40,7 +40,7 @@
             </forall>
         </formula>
     </rule>
-
+<!--
     <rule>
         <id>rule_10</id>
         <formula>

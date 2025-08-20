@@ -28,7 +28,7 @@ public class PCC extends Checker{
         super(ruleHandler, contextPool, bfunctions, isMG);
         this.technique = "PCC";
         try {
-            this.outputStream = Files.newOutputStream(Paths.get("PCC1.txt"));
+            this.outputStream = Files.newOutputStream(Paths.get("PCC.txt"));
             this.outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
             this.bufferedWriter = new BufferedWriter(outputStreamWriter);
         } catch (IOException ex) {
@@ -90,7 +90,13 @@ public class PCC extends Checker{
         }
         for (String pattern_id : rule.getVarPatternMap().values()) {
             try {
-                bufferedWriter.write("%s size: %d".formatted(pattern_id, contextPool.getPoolSetSize(rule.getRule_id(), pattern_id)));
+                bufferedWriter.write("%s size: %d,%d,%d,%d\n".formatted(
+                    pattern_id, 
+                    contextPool.getPoolSetSize(rule.getRule_id(), pattern_id),
+                    contextPool.getAddSetSize(pattern_id),
+                    contextPool.getUpdSetSize(pattern_id),
+                    contextPool.getDelSetSize(pattern_id)
+                ));
                 bufferedWriter.flush();
             } catch (IOException e) {
                 // Handle exception

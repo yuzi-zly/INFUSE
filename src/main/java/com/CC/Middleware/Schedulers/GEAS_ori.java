@@ -89,9 +89,6 @@ public class GEAS_ori extends Scheduler{
             case "PCC":
                 ((PCC) checker).closeFiles();
                 break;
-            case "ECC":
-                ((ECC) checker).closeFiles();
-                break;
         }
     }
 
