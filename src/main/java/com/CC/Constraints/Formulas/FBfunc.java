@@ -6,6 +6,7 @@ import com.CC.Constraints.Runtime.RuntimeNode;
 import com.CC.Contexts.Context;
 import com.CC.Contexts.ContextChange;
 import com.CC.Middleware.Checkers.Checker;
+import com.CC.Middleware.Checkers.PCC;
 import com.CC.Middleware.Schedulers.Scheduler;
 
 import java.lang.reflect.InvocationTargetException;
@@ -343,7 +344,8 @@ public class FBfunc extends Formula {
             }
             vcMap.put(params.get(pos), ctxInfos);
         }
-
+        
+        long startTime = System.currentTimeMillis();
         boolean result = false;
         try {
             Object bfuncInstance = checker.getBfuncInstance();
@@ -351,6 +353,10 @@ public class FBfunc extends Formula {
             result = (boolean) m.invoke(bfuncInstance,func, vcMap);
         } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException | ClassNotFoundException e) {
             throw new RuntimeException(e);
+        }
+        long endTime = System.currentTimeMillis();
+        if (checker instanceof PCC pcc) {
+            pcc.addBfuncTime(endTime - startTime);
         }
         return result;
     }

@@ -20,10 +20,21 @@ import java.util.Set;
 
 public class ECC extends Checker{
 
+    private long bfuncTime;
 
     public ECC(RuleHandler ruleHandler, ContextPool contextPool, Object bfunctions, boolean isMG) {
         super(ruleHandler, contextPool, bfunctions, isMG);
         this.technique = "ECC";
+        this.bfuncTime = 0L;
+    }
+
+    public void closeFiles() {
+        System.out.println("bfuncTime: %d ms".formatted(this.bfuncTime));
+        // No file operations in ECC, so nothing to close
+    }
+
+    public void addBfuncTime(long time) {
+        this.bfuncTime += time;
     }
 
     @Override

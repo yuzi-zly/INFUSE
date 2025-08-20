@@ -23,6 +23,7 @@ public class PCC extends Checker{
     private OutputStream outputStream;
     private OutputStreamWriter outputStreamWriter;
     private BufferedWriter bufferedWriter;
+    private long bfuncTime;
 
     public PCC(RuleHandler ruleHandler, ContextPool contextPool, Object bfunctions, boolean isMG) {
         super(ruleHandler, contextPool, bfunctions, isMG);
@@ -33,9 +34,15 @@ public class PCC extends Checker{
             this.bufferedWriter = new BufferedWriter(outputStreamWriter);
         } catch (IOException ex) {
         }
+        this.bfuncTime = 0L;
+    }
+
+    public void addBfuncTime(long time) {
+        this.bfuncTime += time;
     }
 
     public void closeFiles() {
+        System.out.println("bfuncTime: %d ms".formatted(this.bfuncTime));
         try {
             this.bufferedWriter.close();
             this.outputStreamWriter.close();

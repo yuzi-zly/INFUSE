@@ -73,22 +73,18 @@ public class GEAS_ori extends Scheduler{
         return retflag;
     }
 
+    @Override
     public void checkEnds() throws NotSupportedException {
         cleanUp();
         switch (this.checker.getTechnique()) {
-            case "ConC":
-                ((ConC) checker).ThreadPool.shutdown();
-                break;
-            case "CPCC_NB":
-                ((INFUSE_C) checker).ThreadPool.shutdown();
-                break;
-            case "BASE":
+            case "ConC" -> ((ConC) checker).ThreadPool.shutdown();
+            case "CPCC_NB" -> ((INFUSE_C) checker).ThreadPool.shutdown();
+            case "BASE" -> {
                 assert this.checker instanceof ConC;
                 ((ConC) checker).ThreadPool.shutdown();
-                break;
-            case "PCC":
-                ((PCC) checker).closeFiles();
-                break;
+            }
+            case "PCC" -> ((PCC) checker).closeFiles();
+            case "ECC" -> ((ECC) checker).closeFiles();
         }
     }
 
