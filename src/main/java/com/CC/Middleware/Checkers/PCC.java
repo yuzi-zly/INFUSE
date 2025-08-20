@@ -14,6 +14,8 @@ import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -24,6 +26,7 @@ public class PCC extends Checker{
     // private OutputStreamWriter outputStreamWriter;
     // private BufferedWriter bufferedWriter;
     private long bfuncTime;
+    private final HashMap<String, List<RuntimeNode>> toEvaluateBfuncNodes;
 
     public PCC(RuleHandler ruleHandler, ContextPool contextPool, Object bfunctions, boolean isMG) {
         super(ruleHandler, contextPool, bfunctions, isMG);
@@ -35,6 +38,7 @@ public class PCC extends Checker{
         // } catch (IOException ex) {
         // }
         this.bfuncTime = 0L;
+        this.toEvaluateBfuncNodes = new HashMap<>();
     }
 
     public void addBfuncTime(long time) {
@@ -49,6 +53,10 @@ public class PCC extends Checker{
         //     this.outputStream.close();
         // } catch (IOException e) {
         // }
+    }
+
+    public void addBfuncNode(String funcName, RuntimeNode bfuncNode) {
+        this.toEvaluateBfuncNodes.computeIfAbsent(funcName, k -> new ArrayList<>()).add(bfuncNode);
     }
 
     @Override
@@ -91,9 +99,14 @@ public class PCC extends Checker{
             contextPool.getDelSet(pattern_id).clear();
             contextPool.getUpdSet(pattern_id).clear();
         }
+
+        this.toEvaluateBfuncNodes.clear();
         for(ContextChange contextChange : batch){
             contextPool.applyChangeWithSets(rule.getRule_id(), contextChange);
             rule.modifyCCT_PCCM(contextChange, this);
+        }
+        for(String funcName : this.toEvaluateBfuncNodes.keySet()) {
+            System.out.println("%s has %d toEvaluateBfuncNodes".formatted(funcName, this.toEvaluateBfuncNodes.get(funcName).size()));
         }
         // for (String pattern_id : rule.getVarPatternMap().values()) {
         //     try {

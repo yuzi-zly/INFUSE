@@ -8,6 +8,8 @@ import com.CC.Contexts.ContextChange;
 import com.CC.Contexts.ContextPool;
 
 import java.util.HashSet;
+import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -21,11 +23,13 @@ import java.util.Set;
 public class ECC extends Checker{
 
     private long bfuncTime;
+    private final HashMap<String, List<RuntimeNode>> toEvaluateBfuncNodes;
 
     public ECC(RuleHandler ruleHandler, ContextPool contextPool, Object bfunctions, boolean isMG) {
         super(ruleHandler, contextPool, bfunctions, isMG);
         this.technique = "ECC";
         this.bfuncTime = 0L;
+        this.toEvaluateBfuncNodes = new HashMap<>();
     }
 
     public void closeFiles() {
@@ -35,6 +39,10 @@ public class ECC extends Checker{
 
     public void addBfuncTime(long time) {
         this.bfuncTime += time;
+    }
+
+    public void addBfuncNode(String funcName, RuntimeNode bfuncNode) {
+        this.toEvaluateBfuncNodes.computeIfAbsent(funcName, k -> new ArrayList<>()).add(bfuncNode);
     }
 
     @Override
@@ -68,9 +76,14 @@ public class ECC extends Checker{
         for(ContextChange contextChange : batch){
             contextPool.applyChange(rule.getRule_id(), contextChange);
         }
-
+        
+        this.toEvaluateBfuncNodes.clear();
         //build CCT
         rule.buildCCT_ECCPCC(this);
+        for (String funcName : this.toEvaluateBfuncNodes.keySet()) {
+            System.out.println("%s has %d toEvaluateBfuncNodes".formatted(funcName, this.toEvaluateBfuncNodes.get(funcName).size()));
+        }
+
         //truth value evaluation
         rule.truthEvaluation_ECC(this);
         //taint SCCT

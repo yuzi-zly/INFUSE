@@ -1,9 +1,17 @@
 - PCC+GEAS for one forall constraint
-    - 6784 (66)
+    - 6784 (66) ms
 - ECC+GEAS for one forall constraint
-    - 9432 (1754)
+    - 9432 (1754) ms
 - PCC+GEAS for two nested forall constraint
-    - 11260 (1188)
+    - 11260 (1188) ms
 - ECC+GEAS for two nested forall constraint
-    - 43559 (13629)
+    - 43559 (13629) ms
 
+- one forall constraint ctx infos
+    - ecc bfunc-call times: 3512980, 63.33
+    - pcc bfunc-call times: 100000, 1.80
+    - check times: 55467
+- two nested forall constraint ctx infos
+    - ecc bfunc-call times: 9933585, 2591.60 (need to * 3)
+    - pcc bfunc-call times: 785707, 204.98 (need to * 3)
+    - check times: 3833

@@ -167,6 +167,11 @@ public class FBfunc extends Formula {
     @Override
     public void createBranches_ECCPCC(String rule_id, RuntimeNode curNode, Formula originFormula, Checker checker) {
         //do nothing
+        if (checker instanceof ECC ecc) {
+            ecc.addBfuncNode(this.func, curNode);
+        } else if (checker instanceof PCC pcc) {
+            pcc.addBfuncNode(this.func, curNode);
+        }
     }
 
     /*
