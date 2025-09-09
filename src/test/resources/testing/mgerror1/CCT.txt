@@ -4,8 +4,8 @@
             "v2=3"@("F bfunc random_5155")
             "v2=4"@("F bfunc random_5155")
         )
-        "v1=2"@("T exists v2 pat_2"
-            "v2=3"@("T bfunc random_5155")
+        "v1=2"@("SCCT T exists v2 pat_2"
+            "v2=3"@("SCCT T bfunc random_5155")
             "v2=4"@("F bfunc random_5155")
         )
     )

@@ -824,7 +824,7 @@ public class FExists extends Formula{
     private void RemoveBranch_PCCM(RuntimeNode curNode, Context context){
         boolean flag = false;
         for(RuntimeNode child : curNode.getChildren()){
-            if(child.getVarEnv().get(this.var) == context){
+            if(child.getVarEnv().get(this.var).equals(context)){
                 flag = true;
                 curNode.getChildren().remove(child);
                 break;

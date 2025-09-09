@@ -7,14 +7,18 @@ import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.cli.*;
 import org.apache.commons.io.FileUtils;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-
+import java.util.Random;
 
 
 public class CLIParser implements Loggable {
@@ -88,7 +92,7 @@ public class CLIParser implements Loggable {
                 .desc("Load patterns from given file (XML file)")
                 .build();
 
-        Option opt_mf = Option.builder("mfunc")
+        Option opt_mf = Option.builder("mfuncs")
                 .argName("file")
                 .hasArg()
                 .required(false)
@@ -260,8 +264,8 @@ public class CLIParser implements Loggable {
             offlineStarter.start(approach, ruleFile, bfuncFile, patternFile, null, dataFile, "change", isMG, incs, cct, "test");
             long totalTime = System.nanoTime() - startTime;
 
-            Files.delete(Paths.get(patternFile));
-            Files.delete(Paths.get(dataFile));
+//            Files.delete(Paths.get(patternFile));
+//            Files.delete(Paths.get(dataFile));
 
             logger.info("Detected inconsistencies is in \"" + incs + "\" and CCT is in \"" + cct + "\"");
             logger.info("Checking Approach: " + approach + "\t" + totalTime / 1000000L + " ms");
@@ -341,7 +345,7 @@ java -jar INFUSE.jar
                 System.exit(1);
             }
             else{
-                patternFile = cli.getOptionValue("pattenrs");
+                patternFile = cli.getOptionValue("patterns");
                 logger.info(String.format("The pattern file is \"%s\"", patternFile));
             }
             // mfunc file
@@ -427,7 +431,8 @@ java -jar INFUSE.jar
         }
     }
 
-
+    /*
+    // version 1
     private static String testModeDataConvertor(String contextPool) throws Exception {
         Path cpPath = Paths.get(contextPool).toAbsolutePath();
         String parent = cpPath.getParent().toString();
@@ -482,6 +487,113 @@ java -jar INFUSE.jar
 
         return parent;
     }
+     */
 
+    // version 2
+    private static String testModeDataConvertor(String contextPool) throws Exception {
+        Path cpPath = Paths.get(contextPool).toAbsolutePath();
+        String parent = cpPath.getParent().toString();
+
+        OutputStream patternOutputStream = Files.newOutputStream(Paths.get(parent+ "/tmpPatterns.xml"));
+        OutputStreamWriter patternWriter = new OutputStreamWriter(patternOutputStream, StandardCharsets.UTF_8);
+        BufferedWriter patternBufferWriter = new BufferedWriter(patternWriter);
+        patternBufferWriter.write("<?xml version=\"1.0\"?>\n\n<patterns>\n\n");
+
+        OutputStream dataOutputStream = Files.newOutputStream(Paths.get(parent + "/tmpData.txt"));
+        OutputStreamWriter dataWriter = new OutputStreamWriter(dataOutputStream, StandardCharsets.UTF_8);
+        BufferedWriter dataBufferWriter = new BufferedWriter(dataWriter);
+
+        String cpStr = FileUtils.readFileToString(new File(contextPool), StandardCharsets.UTF_8);
+        JSONArray cpArray = (JSONArray) JSON.parse(cpStr);
+        //cpArray = shuffleJSONArray(cpArray);
+        for(Object patObj : cpArray){
+            JSONObject patJsonObj = (JSONObject) patObj;
+            String patternId = patJsonObj.getString("pat_id");
+
+            //generate pattern
+            String patternStrBuilder = "<pattern>\n<id>" + patternId +
+                    "</id>\n" + "<freshness>\n" + "<type>number</type>\n" +
+                    "<value>1</value>\n" + "</freshness>" + "</pattern>\n\n";
+            patternBufferWriter.write(patternStrBuilder);
+
+            //generate context changes for one pattern
+
+            // 1. add fake element 0
+            JSONObject addFakeElementJsonObj = new JSONObject();
+            addFakeElementJsonObj.put("changeType", "+");
+            addFakeElementJsonObj.put("patternId", patternId);
+            JSONObject fakeElementJsonObj = new JSONObject();
+            fakeElementJsonObj.put("contextId", "0");
+            JSONObject fieldJsonObj = new JSONObject();
+            fieldJsonObj.put("data", "0");
+            fakeElementJsonObj.put("fields", fieldJsonObj);
+            addFakeElementJsonObj.put("context", fakeElementJsonObj);
+            dataBufferWriter.write(addFakeElementJsonObj.toJSONString() + "\n");
+
+            // 2. add origin elements
+            List<JSONObject> originChanges = new ArrayList<>();
+            JSONArray ctxJsonArray = patJsonObj.getJSONArray("contexts");
+            for(Object ctxObj : ctxJsonArray){
+                JSONObject ctxJsonObj = (JSONObject) ctxObj;
+                String ctxId = ctxJsonObj.getString("ctx_id");
+
+                JSONObject lineDataJsonObj = new JSONObject();
+                lineDataJsonObj.put("changeType", "+");
+                lineDataJsonObj.put("patternId", patternId);
+                JSONObject newCtxJsonObj = new JSONObject();
+                newCtxJsonObj.put("contextId", ctxId);
+                newCtxJsonObj.put("fields", ctxJsonObj.getJSONObject("fields"));
+                lineDataJsonObj.put("context", newCtxJsonObj);
+
+                dataBufferWriter.write(lineDataJsonObj.toJSONString() + "\n");
+                originChanges.add(lineDataJsonObj);
+            }
+
+            // 3. remove fake element 0
+            addFakeElementJsonObj.replace("changeType", "-");
+            dataBufferWriter.write(addFakeElementJsonObj.toJSONString() + "\n");
+
+            // 4. remove origin elements
+            for(JSONObject jsonObject : originChanges){
+                jsonObject.replace("changeType", "-");
+                dataBufferWriter.write(jsonObject.toJSONString() + "\n");
+            }
+
+            // 5. add origin elements
+            for(JSONObject jsonObject : originChanges){
+                jsonObject.replace("changeType", "+");
+                dataBufferWriter.write(jsonObject.toJSONString() + "\n");
+            }
+
+        }
+
+
+        dataBufferWriter.flush();
+        patternBufferWriter.write("</patterns>\n");
+        patternBufferWriter.flush();
+
+        dataOutputStream.close();
+        dataBufferWriter.close();
+        dataWriter.close();
+
+        patternOutputStream.close();
+        patternBufferWriter.close();
+        patternWriter.close();
+
+        return parent;
+    }
+
+    private static JSONArray shuffleJSONArray(JSONArray jsonArray){
+        JSONArray shuffledArray = new JSONArray();
+        List<Integer> indexList = new ArrayList<>();
+        for(int i = 0; i < jsonArray.size(); ++i){
+            indexList.add(i);
+        }
+        Collections.shuffle(indexList);
+        for(int index : indexList){
+            shuffledArray.add(jsonArray.get(index));
+        }
+        return shuffledArray;
+    }
 }
 

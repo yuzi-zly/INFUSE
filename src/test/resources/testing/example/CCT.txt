@@ -1,0 +1,18 @@
+("T exists v3 pat_3"
+    "v3=ctx_7"@("F bfunc bfunc_2")
+    "v3=ctx_6"@("T bfunc bfunc_2")
+)
+
+("SCCT F forall v1 pat_1"
+    "v1=ctx_1"@("SCCT F forall v2 pat_2"
+        "v2=ctx_3"@("T bfunc bfunc_1")
+        "v2=ctx_5"@("SCCT F bfunc bfunc_1")
+        "v2=ctx_4"@("SCCT F bfunc bfunc_1")
+    )
+    "v1=ctx_2"@("T forall v2 pat_2"
+        "v2=ctx_3"@("T bfunc bfunc_1")
+        "v2=ctx_5"@("T bfunc bfunc_1")
+        "v2=ctx_4"@("T bfunc bfunc_1")
+    )
+)
+

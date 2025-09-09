@@ -6,9 +6,9 @@
         <id>rule_00</id>
         <formula>
             <forall var = "v1" in = "pat_000">
-                <bfunction name = "sz_loc_range">
+                <bfunc name = "sz_loc_range">
                     <param pos = "1" var = "v1"/>
-                </bfunction>
+                </bfunc>
             </forall>
         </formula>
     </rule>
@@ -21,20 +21,20 @@
                     <implies>
                         <and>
                             <not>
-                                <bfunction name = "same">
+                                <bfunc name = "same">
                                     <param pos = "1" var = "v1"/>
                                     <param pos = "2" var = "v2"/>
-                                </bfunction>
+                                </bfunc>
                             </not>
-                            <bfunction name = "sz_loc_close">
+                            <bfunc name = "sz_loc_close">
                                 <param pos = "1" var = "v1"/>
                                 <param pos = "2" var = "v2"/>
-                            </bfunction>
+                            </bfunc>
                         </and>
-                        <bfunction name = "sz_spd_close">
+                        <bfunc name = "sz_spd_close">
                             <param pos = "1" var = "v1"/>
                             <param pos = "2" var = "v2"/>
-                        </bfunction>
+                        </bfunc>
                     </implies>
                 </forall>
             </forall>
@@ -47,14 +47,14 @@
             <forall var = "v1" in = "pat_100">
                 <forall var = "v2" in = "pat_101">
                     <implies>
-                        <bfunction name = "same">
+                        <bfunc name = "same">
                             <param pos = "1" var = "v1"/>
                             <param pos = "2" var = "v2"/>
-                        </bfunction>
-                        <bfunction name = "sz_loc_dist">
+                        </bfunc>
+                        <bfunc name = "sz_loc_dist">
                             <param pos = "1" var = "v1"/>
                             <param pos = "2" var = "v2"/>
-                        </bfunction>
+                        </bfunc>
                     </implies>
                 </forall>
             </forall>
@@ -67,14 +67,14 @@
             <forall var = "v1" in = "pat_102">
                 <forall var = "v2" in = "pat_103">
                     <implies>
-                        <bfunction name = "same">
+                        <bfunc name = "same">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
-                        <bfunction name = "sz_loc_dist">
+                        </bfunc>
+                        <bfunc name = "sz_loc_dist">
                             <param pos = "1" var = "v1"  />
                             <param pos = "2" var = "v2"  />
-                        </bfunction>
+                        </bfunc>
                     </implies>
                 </forall>
             </forall>
@@ -87,14 +87,14 @@
             <forall var = "v1" in = "pat_104">
                 <forall var = "v2" in = "pat_105">
                     <implies>
-                        <bfunction name = "same">
+                        <bfunc name = "same">
                             <param pos = "1" var = "v1"  />
                             <param pos = "2" var = "v2"  />
-                        </bfunction>
-                        <bfunction name = "sz_loc_dist">
+                        </bfunc>
+                        <bfunc name = "sz_loc_dist">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
+                        </bfunc>
                     </implies>
                 </forall>
             </forall>
@@ -107,14 +107,14 @@
             <forall var = "v1" in = "pat_106">
                 <forall var = "v2" in = "pat_107">
                     <implies>
-                        <bfunction name = "same">
+                        <bfunc name = "same">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
-                        <bfunction name = "sz_loc_dist">
+                        </bfunc>
+                        <bfunc name = "sz_loc_dist">
                             <param pos = "1" var = "v1"/>
                             <param pos = "2" var = "v2"/>
-                        </bfunction>
+                        </bfunc>
                     </implies>
                 </forall>
             </forall>
@@ -127,14 +127,14 @@
             <forall var = "v1" in = "pat_108">
                 <forall var = "v2" in = "pat_109">
                     <implies>
-                        <bfunction name = "same">
+                        <bfunc name = "same">
                             <param pos = "1" var = "v1"  />
                             <param pos = "2" var = "v2"  />
-                        </bfunction>
-                        <bfunction name = "sz_loc_dist">
+                        </bfunc>
+                        <bfunc name = "sz_loc_dist">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
+                        </bfunc>
                     </implies>
                 </forall>
             </forall>
@@ -147,14 +147,14 @@
             <forall var = "v1" in = "pat_110">
                 <forall var = "v2" in = "pat_111">
                     <implies>
-                        <bfunction name = "same">
+                        <bfunc name = "same">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
-                        <bfunction name = "sz_loc_dist">
+                        </bfunc>
+                        <bfunc name = "sz_loc_dist">
                             <param pos = "1" var = "v1"/>
                             <param pos = "2" var = "v2"/>
-                        </bfunction>
+                        </bfunc>
                     </implies>
                 </forall>
             </forall>
@@ -167,14 +167,14 @@
             <forall var = "v1" in = "pat_112">
                 <forall var = "v2" in = "pat_113">
                     <implies>
-                        <bfunction name = "same">
+                        <bfunc name = "same">
                             <param pos = "1" var = "v1"  />
                             <param pos = "2" var = "v2"  />
-                        </bfunction>
-                        <bfunction name = "sz_loc_dist">
+                        </bfunc>
+                        <bfunc name = "sz_loc_dist">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
+                        </bfunc>
                     </implies>
                 </forall>
             </forall>
@@ -187,14 +187,14 @@
             <forall var = "v1" in = "pat_114">
                 <forall var = "v2" in = "pat_115">
                     <implies>
-                        <bfunction name = "same">
+                        <bfunc name = "same">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
-                        <bfunction name = "sz_loc_dist">
+                        </bfunc>
+                        <bfunc name = "sz_loc_dist">
                             <param pos = "1" var = "v1"  />
                             <param pos = "2" var = "v2"  />
-                        </bfunction>
+                        </bfunc>
                     </implies>
                 </forall>
             </forall>
@@ -207,14 +207,14 @@
             <forall var = "v1" in = "pat_116">
                 <forall var = "v2" in = "pat_117">
                     <implies>
-                        <bfunction name = "same">
+                        <bfunc name = "same">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
-                        <bfunction name = "sz_loc_dist">
+                        </bfunc>
+                        <bfunc name = "sz_loc_dist">
                             <param pos = "1" var = "v1"/>
                             <param pos = "2" var = "v2"/>
-                        </bfunction>
+                        </bfunc>
                     </implies>
                 </forall>
             </forall>
@@ -227,14 +227,14 @@
             <forall var = "v1" in = "pat_118">
                 <forall var = "v2" in = "pat_119">
                     <implies>
-                        <bfunction name = "same">
+                        <bfunc name = "same">
                             <param pos = "1" var = "v1"  />
                             <param pos = "2" var = "v2"  />
-                        </bfunction>
-                        <bfunction name = "sz_loc_dist">
+                        </bfunc>
+                        <bfunc name = "sz_loc_dist">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
+                        </bfunc>
                     </implies>
                 </forall>
             </forall>
@@ -247,14 +247,14 @@
             <forall var = "v1" in = "pat_1A1">
                 <forall var = "v2" in = "pat_1A2">
                     <implies>
-                        <bfunction name = "same">
+                        <bfunc name = "same">
                             <param pos = "1" var = "v1"/>
                             <param pos = "2" var = "v2"/>
-                        </bfunction>
-                        <bfunction name = "sz_loc_dist">
+                        </bfunc>
+                        <bfunc name = "sz_loc_dist">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
+                        </bfunc>
                     </implies>
                 </forall>
             </forall>
@@ -267,14 +267,14 @@
             <forall var = "v1" in = "pat_1B1">
                 <forall var = "v2" in = "pat_1B2">
                     <implies>
-                        <bfunction name = "same">
+                        <bfunc name = "same">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
-                        <bfunction name = "sz_loc_dist">
+                        </bfunc>
+                        <bfunc name = "sz_loc_dist">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
+                        </bfunc>
                     </implies>
                 </forall>
             </forall>
@@ -287,14 +287,14 @@
             <forall var = "v1" in = "pat_1C1">
                 <forall var = "v2" in = "pat_1C2">
                     <implies>
-                        <bfunction name = "same">
+                        <bfunc name = "same">
                             <param pos = "1" var = "v1"  />
                             <param pos = "2" var = "v2"  />
-                        </bfunction>
-                        <bfunction name = "sz_loc_dist">
+                        </bfunc>
+                        <bfunc name = "sz_loc_dist">
                             <param pos = "1" var = "v1"  />
                             <param pos = "2" var = "v2"  />
-                        </bfunction>
+                        </bfunc>
                     </implies>
                 </forall>
             </forall>
@@ -307,14 +307,14 @@
             <forall var = "v1" in = "pat_1D1">
                 <forall var = "v2" in = "pat_1D2">
                     <implies>
-                        <bfunction name = "same">
+                        <bfunc name = "same">
                             <param pos = "1" var = "v1"/>
                             <param pos = "2" var = "v2"/>
-                        </bfunction>
-                        <bfunction name = "sz_loc_dist">
+                        </bfunc>
+                        <bfunc name = "sz_loc_dist">
                             <param pos = "1" var = "v1"/>
                             <param pos = "2" var = "v2"/>
-                        </bfunction>
+                        </bfunc>
                     </implies>
                 </forall>
             </forall>
@@ -327,14 +327,14 @@
             <forall var = "v1" in = "pat_1E1">
                 <forall var = "v2" in = "pat_1E2">
                     <implies>
-                        <bfunction name = "same">
+                        <bfunc name = "same">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
-                        <bfunction name = "sz_loc_dist">
+                        </bfunc>
+                        <bfunc name = "sz_loc_dist">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
+                        </bfunc>
                     </implies>
                 </forall>
             </forall>
@@ -347,14 +347,14 @@
             <forall var = "v1" in = "pat_1F1">
                 <forall var = "v2" in = "pat_1F2">
                     <implies>
-                        <bfunction name = "same">
+                        <bfunc name = "same">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
-                        <bfunction name = "sz_loc_dist">
+                        </bfunc>
+                        <bfunc name = "sz_loc_dist">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
+                        </bfunc>
                     </implies>
                 </forall>
             </forall>
@@ -367,14 +367,14 @@
             <forall var = "v1" in = "pat_1G1">
                 <forall var = "v2" in = "pat_1G2">
                     <implies>
-                        <bfunction name = "same">
+                        <bfunc name = "same">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
-                        <bfunction name = "sz_loc_dist">
+                        </bfunc>
+                        <bfunc name = "sz_loc_dist">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
+                        </bfunc>
                     </implies>
                 </forall>
             </forall>
@@ -387,14 +387,14 @@
             <forall var = "v1" in = "pat_1H1">
                 <forall var = "v2" in = "pat_1H2">
                     <implies>
-                        <bfunction name = "same">
+                        <bfunc name = "same">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
-                        <bfunction name = "sz_loc_dist">
+                        </bfunc>
+                        <bfunc name = "sz_loc_dist">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
+                        </bfunc>
                     </implies>
                 </forall>
             </forall>
@@ -407,14 +407,14 @@
             <forall var = "v1" in = "pat_1I1">
                 <forall var = "v2" in = "pat_1I2">
                     <implies>
-                        <bfunction name = "same">
+                        <bfunc name = "same">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
-                        <bfunction name = "sz_loc_dist">
+                        </bfunc>
+                        <bfunc name = "sz_loc_dist">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
+                        </bfunc>
                     </implies>
                 </forall>
             </forall>
@@ -427,14 +427,14 @@
             <forall var = "v1" in = "pat_1J1">
                 <forall var = "v2" in = "pat_1J2">
                     <implies>
-                        <bfunction name = "same">
+                        <bfunc name = "same">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
-                        <bfunction name = "sz_loc_dist">
+                        </bfunc>
+                        <bfunc name = "sz_loc_dist">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
+                        </bfunc>
                     </implies>
                 </forall>
             </forall>
@@ -447,14 +447,14 @@
             <forall var = "v1" in = "pat_1K1">
                 <forall var = "v2" in = "pat_1K2">
                     <implies>
-                        <bfunction name = "same">
+                        <bfunc name = "same">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
-                        <bfunction name = "sz_loc_dist">
+                        </bfunc>
+                        <bfunc name = "sz_loc_dist">
                             <param pos = "1" var = "v1"/>
                             <param pos = "2" var = "v2"/>
-                        </bfunction>
+                        </bfunc>
                     </implies>
                 </forall>
             </forall>
@@ -467,14 +467,14 @@
             <forall var = "v1" in = "pat_1L1">
                 <forall var = "v2" in = "pat_1L2">
                     <implies>
-                        <bfunction name = "same">
+                        <bfunc name = "same">
                             <param pos = "1" var = "v1"  />
                             <param pos = "2" var = "v2"  />
-                        </bfunction>
-                        <bfunction name = "sz_loc_dist">
+                        </bfunc>
+                        <bfunc name = "sz_loc_dist">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
+                        </bfunc>
                     </implies>
                 </forall>
             </forall>
@@ -487,14 +487,14 @@
             <forall var = "v1" in = "pat_1M1">
                 <forall var = "v2" in = "pat_1M2">
                     <implies>
-                        <bfunction name = "same">
+                        <bfunc name = "same">
                             <param pos = "1" var = "v1"  />
                             <param pos = "2" var = "v2"  />
-                        </bfunction>
-                        <bfunction name = "sz_loc_dist">
+                        </bfunc>
+                        <bfunc name = "sz_loc_dist">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
+                        </bfunc>
                     </implies>
                 </forall>
             </forall>
@@ -507,14 +507,14 @@
             <forall var = "v1" in = "pat_1N1">
                 <forall var = "v2" in = "pat_1N2">
                     <implies>
-                        <bfunction name = "same">
+                        <bfunc name = "same">
                             <param pos = "1" var = "v1"  />
                             <param pos = "2" var = "v2"  />
-                        </bfunction>
-                        <bfunction name = "sz_loc_dist">
+                        </bfunc>
+                        <bfunc name = "sz_loc_dist">
                             <param pos = "1" var = "v1"  />
                             <param pos = "2" var = "v2"  />
-                        </bfunction>
+                        </bfunc>
                     </implies>
                 </forall>
             </forall>
@@ -527,14 +527,14 @@
             <forall var = "v1" in = "pat_1O1">
                 <forall var = "v2" in = "pat_1O2">
                     <implies>
-                        <bfunction name = "same">
+                        <bfunc name = "same">
                             <param pos = "1" var = "v1"  />
                             <param pos = "2" var = "v2"  />
-                        </bfunction>
-                        <bfunction name = "sz_loc_dist">
+                        </bfunc>
+                        <bfunc name = "sz_loc_dist">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
+                        </bfunc>
                     </implies>
                 </forall>
             </forall>
@@ -547,14 +547,14 @@
             <forall var = "v1" in = "pat_1P1">
                 <forall var = "v2" in = "pat_1P2">
                     <implies>
-                        <bfunction name = "same">
+                        <bfunc name = "same">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
-                        <bfunction name = "sz_loc_dist">
+                        </bfunc>
+                        <bfunc name = "sz_loc_dist">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
+                        </bfunc>
                     </implies>
                 </forall>
             </forall>
@@ -567,14 +567,14 @@
             <forall var = "v1" in = "pat_1Q1">
                 <forall var = "v2" in = "pat_1Q2">
                     <implies>
-                        <bfunction name = "same">
+                        <bfunc name = "same">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
-                        <bfunction name = "sz_loc_dist">
+                        </bfunc>
+                        <bfunc name = "sz_loc_dist">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
+                        </bfunc>
                     </implies>
                 </forall>
             </forall>
@@ -587,14 +587,14 @@
             <forall var = "v1" in = "pat_1R1">
                 <forall var = "v2" in = "pat_1R2">
                     <implies>
-                        <bfunction name = "same">
+                        <bfunc name = "same">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
-                        <bfunction name = "sz_loc_dist">
+                        </bfunc>
+                        <bfunc name = "sz_loc_dist">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
+                        </bfunc>
                     </implies>
                 </forall>
             </forall>
@@ -607,14 +607,14 @@
             <forall var = "v1" in = "pat_1S1">
                 <forall var = "v2" in = "pat_1S2">
                     <implies>
-                        <bfunction name = "same">
+                        <bfunc name = "same">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
-                        <bfunction name = "sz_loc_dist">
+                        </bfunc>
+                        <bfunc name = "sz_loc_dist">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
+                        </bfunc>
                     </implies>
                 </forall>
             </forall>
@@ -627,14 +627,14 @@
             <forall var = "v1" in = "pat_1T1">
                 <forall var = "v2" in = "pat_1T2">
                     <implies>
-                        <bfunction name = "same">
+                        <bfunc name = "same">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
-                        <bfunction name = "sz_loc_dist">
+                        </bfunc>
+                        <bfunc name = "sz_loc_dist">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
+                        </bfunc>
                     </implies>
                 </forall>
             </forall>
@@ -647,14 +647,14 @@
             <forall var = "v1" in = "pat_1U1">
                 <forall var = "v2" in = "pat_1U2">
                     <implies>
-                        <bfunction name = "same">
+                        <bfunc name = "same">
                             <param pos = "1" var = "v1"  />
                             <param pos = "2" var = "v2"  />
-                        </bfunction>
-                        <bfunction name = "sz_loc_dist">
+                        </bfunc>
+                        <bfunc name = "sz_loc_dist">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
+                        </bfunc>
                     </implies>
                 </forall>
             </forall>
@@ -667,14 +667,14 @@
             <forall var = "v1" in = "pat_1V1">
                 <forall var = "v2" in = "pat_1V2">
                     <implies>
-                        <bfunction name = "same">
+                        <bfunc name = "same">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
-                        <bfunction name = "sz_loc_dist">
+                        </bfunc>
+                        <bfunc name = "sz_loc_dist">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
+                        </bfunc>
                     </implies>
                 </forall>
             </forall>
@@ -687,14 +687,14 @@
             <forall var = "v1" in = "pat_1W1">
                 <forall var = "v2" in = "pat_1W2">
                     <implies>
-                        <bfunction name = "same">
+                        <bfunc name = "same">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
-                        <bfunction name = "sz_loc_dist">
+                        </bfunc>
+                        <bfunc name = "sz_loc_dist">
                             <param pos = "1" var = "v1"  />
                             <param pos = "2" var = "v2"  />
-                        </bfunction>
+                        </bfunc>
                     </implies>
                 </forall>
             </forall>
@@ -707,14 +707,14 @@
             <forall var = "v1" in = "pat_1X1">
                 <forall var = "v2" in = "pat_1X2">
                     <implies>
-                        <bfunction name = "same">
+                        <bfunc name = "same">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
-                        <bfunction name = "sz_loc_dist">
+                        </bfunc>
+                        <bfunc name = "sz_loc_dist">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
+                        </bfunc>
                     </implies>
                 </forall>
             </forall>
@@ -727,14 +727,14 @@
             <forall var = "v1" in = "pat_1Y1">
                 <forall var = "v2" in = "pat_1Y2">
                     <implies>
-                        <bfunction name = "same">
+                        <bfunc name = "same">
                             <param pos = "1" var = "v1"  />
                             <param pos = "2" var = "v2"  />
-                        </bfunction>
-                        <bfunction name = "sz_loc_dist">
+                        </bfunc>
+                        <bfunc name = "sz_loc_dist">
                             <param pos = "1" var = "v1"  />
                             <param pos = "2" var = "v2"  />
-                        </bfunction>
+                        </bfunc>
                     </implies>
                 </forall>
             </forall>
@@ -747,14 +747,14 @@
             <forall var = "v1" in = "pat_1Z1">
                 <forall var = "v2" in = "pat_1Z2">
                     <implies>
-                        <bfunction name = "same">
+                        <bfunc name = "same">
                             <param pos = "1" var = "v1"  />
                             <param pos = "2" var = "v2"  />
-                        </bfunction>
-                        <bfunction name = "sz_loc_dist">
+                        </bfunc>
+                        <bfunc name = "sz_loc_dist">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
+                        </bfunc>
                     </implies>
                 </forall>
             </forall>
@@ -766,10 +766,10 @@
         <formula>
             <forall var = "v1" in = "pat_A">
                 <exists var = "v2" in = "pat_C">
-                    <bfunction name = "same">
+                    <bfunc name = "same">
                         <param pos = "1" var = "v1"  />
                         <param pos = "2" var = "v2"  />
-                    </bfunction>
+                    </bfunc>
                 </exists>
             </forall>
         </formula>
@@ -780,10 +780,10 @@
         <formula>
             <forall var = "v1" in = "pat_B">
                 <exists var = "v2" in = "pat_C">
-                    <bfunction name = "same">
+                    <bfunc name = "same">
                         <param pos = "1" var = "v1" />
                         <param pos = "2" var = "v2" />
-                    </bfunction>
+                    </bfunc>
                 </exists>
             </forall>
         </formula>
@@ -794,10 +794,10 @@
         <formula>
             <forall var = "v1" in = "pat_D">
                 <exists var = "v2" in = "pat_F">
-                    <bfunction name = "same">
+                    <bfunc name = "same">
                         <param pos = "1" var = "v1"  />
                         <param pos = "2" var = "v2"  />
-                    </bfunction>
+                    </bfunc>
                 </exists>
             </forall>
         </formula>
@@ -808,10 +808,10 @@
         <formula>
             <forall var = "v1" in = "pat_E">
                 <exists var = "v2" in = "pat_F">
-                    <bfunction name = "same">
+                    <bfunc name = "same">
                         <param pos = "1" var = "v1" />
                         <param pos = "2" var = "v2" />
-                    </bfunction>
+                    </bfunc>
                 </exists>
             </forall>
         </formula>
@@ -823,10 +823,10 @@
             <forall var = "v1" in = "pat_F">
                 <not>
                     <exists var = "v2" in = "pat_C">
-                        <bfunction name = "same">
+                        <bfunc name = "same">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
+                        </bfunc>
                     </exists>
                 </not>
             </forall>
@@ -839,10 +839,10 @@
             <forall var = "v1" in = "pat_G">
                 <not>
                     <exists var = "v2" in = "pat_E">
-                        <bfunction name = "same">
+                        <bfunc name = "same">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
+                        </bfunc>
                     </exists>
                 </not>
             </forall>
@@ -855,10 +855,10 @@
             <forall var = "v1" in = "pat_A">
                 <not>
                     <exists var = "v2" in = "pat_G">
-                        <bfunction name = "same">
+                        <bfunc name = "same">
                             <param pos = "1" var = "v1"/>
                             <param pos = "2" var = "v2"/>
-                        </bfunction>
+                        </bfunc>
                     </exists>
                 </not>
             </forall>
@@ -871,10 +871,10 @@
             <forall var = "v1" in = "pat_B">
                 <not>
                     <exists var = "v2" in = "pat_H">
-                        <bfunction name = "same">
+                        <bfunc name = "same">
                             <param pos = "1" var = "v1" />
                             <param pos = "2" var = "v2" />
-                        </bfunction>
+                        </bfunc>
                     </exists>
                 </not>
             </forall>
@@ -886,10 +886,10 @@
         <formula>
             <forall var = "v1" in = "pat_G">
                 <exists var = "v2" in = "pat_I">
-                    <bfunction name = "same">
+                    <bfunc name = "same">
                         <param pos = "1" var = "v1"/>
                         <param pos = "2" var = "v2"/>
-                    </bfunction>
+                    </bfunc>
                 </exists>
             </forall>
         </formula>
@@ -900,10 +900,10 @@
         <formula>
             <forall var = "v1" in = "pat_I">
                 <exists var = "v2" in = "pat_G">
-                    <bfunction name = "same">
+                    <bfunc name = "same">
                         <param pos = "1" var = "v1" />
                         <param pos = "2" var = "v2" />
-                    </bfunction>
+                    </bfunc>
                 </exists>
             </forall>
         </formula>

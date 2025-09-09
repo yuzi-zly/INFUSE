@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<rules>
+<rule>
+<id>rule_2_15</id>
+<formula>
+<exists var = "v1" in = "pat_1">
+<or>
+<bfunc name = "random_26">
+<param pos = "1" var = "v1" field = "subject" />
+</bfunc>
+<bfunc name = "random_27">
+<param pos = "1" var = "v1" field = "subject" />
+</bfunc>
+</or>
+</exists>
+</formula>
+</rule>
+</rules>

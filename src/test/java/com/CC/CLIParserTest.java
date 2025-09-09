@@ -1,38 +1,30 @@
 package com.CC;
 
-import org.junit.jupiter.api.Test;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
-
 class CLIParserTest {
 
     public static void testTaxi(String ap, boolean isMG){
         String[] args = null;
         if(isMG){
             args = new String[]{
-                    "-md", "offline", "-ap", ap,
-                    "-rf", "src/test/resources/taxi/rules.xml",
-                    "-bf", "src/test/resources/taxi/Bfunction.class",
-                    "-pf", "src/test/resources/taxi/patterns.xml",
-                    "-mf", "src/test/resources/taxi/Mfunction.class",
-                    "-df", "src/test/resources/taxi/data_5_0-1_new.txt",
-                    "-dt", "rawData",
+                    "-mode", "offline", "-approach", ap,
+                    "-rules", "src/test/resources/taxi/rules.xml",
+                    "-bfuncs", "src/test/resources/taxi/Bfunction.class",
+                    "-patterns", "src/test/resources/taxi/patterns.xml",
+                    "-mfuncs", "src/test/resources/taxi/Mfunction.class",
+                    "-data", "src/test/resources/taxi/data_5_0-1_new.txt",
+                    "-datatype", "rawData",
                     "-mg"
             };
         }
         else{
             args = new String[]{
-                    "-md", "offline", "-ap", ap,
-                    "-rf", "src/test/resources/taxi/rules.xml",
-                    "-bf", "src/test/resources/taxi/Bfunction.class",
-                    "-pf", "src/test/resources/taxi/patterns.xml",
-                    "-mf", "src/test/resources/taxi/Mfunction.class",
-                    "-df", "src/test/resources/taxi/data_5_0-1_new.txt",
-                    "-dt", "rawData"
+                    "-mode", "offline", "-approach", ap,
+                    "-rules", "src/test/resources/taxi/rules.xml",
+                    "-bfuncs", "src/test/resources/taxi/Bfunction.class",
+                    "-patterns", "src/test/resources/taxi/patterns.xml",
+                    "-mfuncs", "src/test/resources/taxi/Mfunction.class",
+                    "-data", "src/test/resources/taxi/data_5_0-1_new.txt",
+                    "-datatype", "rawData"
             };
         }
         try {
@@ -45,11 +37,13 @@ class CLIParserTest {
 
     public static void testTesting(String ap, String path){
         String [] args = new String[]{
-                "-t", "-ap", ap,
-                "-rf", "src/test/resources/testing/" + path +  "/rules.xml",
-                "-cp", "src/test/resources/testing/" + path + "/cp.json",
-                "-bf", "src/test/resources/testing/" + path + "/Bfunction.class",
-                "-o", "src/test/resources/testing/" + path + "/cceResult.json"
+                "-test", "-approach", ap,
+                "-rules", "src/test/resources/testing/" + path +  "/rules.xml",
+                "-contextpool", "src/test/resources/testing/" + path + "/cp.json",
+                "-bfuncs", "src/test/resources/testing/" + path + "/Bfunction.class",
+                "-incs", "src/test/resources/testing/" + path + "/cceResult.json",
+                "-cct", "src/test/resources/testing/" + path + "/CCT.txt",
+                "-mg"
         };
         try {
             CLIParser.main(args);

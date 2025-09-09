@@ -1,0 +1,6 @@
+("SCCT F exists v1 pat_1"
+    "v1=1"@("F forall v2 pat_2"
+        "v2=2"@("F bfunc random_3")
+    )
+)
+
