@@ -49,15 +49,22 @@ public class CLIParser implements Loggable {
         Option opt_mg = new Option("mg", false, "Enable link generation minimization");
         opt_mg.setRequired(false);
 
+        Option opt_task_out = Option.builder("taskOut")
+                .argName("file")
+                .hasArg()
+                .required(false)
+                .desc("Write constructed tasks to given file")
+                .build();
+
         Option opt_h = new Option("help", false, "Print the usage");
         opt_h.setRequired(false);
 
         Option opt_oi = Option.builder("incs")
                 .argName("file")
                 .hasArg()
-                .required(false)
+                .required(true)
                 .desc("Write detected inconsistencies to given file")
-                .build();
+                .build(); 
 
         // normal run
         Option opt_md = Option.builder("mode")
@@ -106,6 +113,7 @@ public class CLIParser implements Loggable {
         options.addOption(opt_bf);
         options.addOption(opt_dt);
         options.addOption(opt_mg);
+        options.addOption(opt_task_out);
         options.addOption(opt_oi);
 
         CommandLine cli = null;
@@ -177,7 +185,7 @@ java -jar INFUSE.jar
             }
             else{
                 ruleFile = cli.getOptionValue("rules");
-                logger.info(String.format("The rule file is \"%s\"", ruleFile));
+                //logger.info(String.format("The rule file is \"%s\"", ruleFile));
             }
             // bfunc file
             String bfuncFile = null;
@@ -188,7 +196,7 @@ java -jar INFUSE.jar
             }
             else{
                 bfuncFile = cli.getOptionValue("bfuncs");
-                logger.info(String.format("The bfunction file is \"%s\"", bfuncFile));
+                //logger.info(String.format("The bfunction file is \"%s\"", bfuncFile));
             }
             // pattern file
             String patternFile = null;
@@ -199,7 +207,7 @@ java -jar INFUSE.jar
             }
             else{
                 patternFile = cli.getOptionValue("patterns");
-                logger.info(String.format("The pattern file is \"%s\"", patternFile));
+                //logger.info(String.format("The pattern file is \"%s\"", patternFile));
             }
             // mfunc file
             String mfuncFile = null;
@@ -208,7 +216,7 @@ java -jar INFUSE.jar
             }
             else{
                 mfuncFile = cli.getOptionValue("mfuncs");
-                logger.info(String.format("The mfunction file is \"%s\"", mfuncFile));
+                //logger.info(String.format("The mfunction file is \"%s\"", mfuncFile));
             }
             // data file [offline]
             String dataFile = null;
@@ -221,7 +229,7 @@ java -jar INFUSE.jar
                 }
                 else{
                     dataFile = cli.getOptionValue("data");
-                    logger.info(String.format("The data file is \"%s\"", dataFile));
+                    //logger.info(String.format("The data file is \"%s\"", dataFile));
                 }
             }
             else{
@@ -248,29 +256,36 @@ java -jar INFUSE.jar
             }
             // isMG or not
             boolean isMG = cli.hasOption("mg");
-            logger.info(String.format("Minimizing link generation is %s", isMG ? "on" : "off"));
+            //logger.info(String.format("Minimizing link generation is %s", isMG ? "on" : "off"));
+            // taskOut file
+            String taskOutFile = null;
+            if(cli.hasOption("taskOut")){
+                taskOutFile = cli.getOptionValue("taskOut");
+                //logger.info(String.format("Task output file is \"%s\"", taskOutFile));
+            }
             // incs
             String incs = null;
             if(!cli.hasOption("incs")){
-                incs = incOut;
-                logger.info("The default inconsistency file is \"" + incOut + "\"");
+                logger.error("\033[91m" + "No specified inconsistency file, please use option \"-incs\"" + "\033[0m");
+                logger.info("\033[92m" + "Use option \"-help\" for more information"  + "\033[0m");
+                System.exit(1);
             }
             else{
                 incs = cli.getOptionValue("incs");
-                logger.info(String.format("The inconsistency file is \"%s\"", incs));
+                //logger.info(String.format("The inconsistency file is \"%s\"", incs));
             }
 
             // start
             if(checkingMode.equalsIgnoreCase("offline")){
-                long startTime = System.nanoTime();
+                //long startTime = System.nanoTime();
                 OfflineStarter offlineStarter = new OfflineStarter();
-                offlineStarter.start(approach, ruleFile, bfuncFile, patternFile, mfuncFile, dataFile, dataType, isMG, incs);
-                long totalTime = System.nanoTime() - startTime;
-                logger.info("\033[92m" + "Time cost: " + totalTime / 1000000L + " ms\033[0m");
+                offlineStarter.start(approach, ruleFile, bfuncFile, patternFile, mfuncFile, dataFile, dataType, isMG, incs, taskOutFile);
+                //long totalTime = System.nanoTime() - startTime;
+                //logger.info("\033[92m" + "Time cost: " + totalTime / 1000000L + " ms\033[0m");
             }
             else if(checkingMode.equalsIgnoreCase("online")){
                 OnlineStarter onlineStarter = new OnlineStarter();
-                onlineStarter.start(approach, ruleFile, bfuncFile, patternFile, mfuncFile, dataType, isMG, incs);
+                onlineStarter.start(approach, ruleFile, bfuncFile, patternFile, mfuncFile, dataType, isMG, incs, taskOutFile);
             }
         }
     }

@@ -129,7 +129,7 @@ public class FExists extends Formula{
                 if(varEnv.get(this.var).equals(delChange.getContext())){//找到了对应分
                     meet_cnt++;
                     boolean tv1 = child.isTruth();
-                    boolean chk_flag = child.getFormula().evaluationAndEqualSideEffect(child, ((FExists)originFormula).getSubformula(), this.var, delChange, addChange, false, scheduler);
+                    child.getFormula().evaluationAndEqualSideEffect(child, ((FExists)originFormula).getSubformula(), this.var, delChange, addChange, false, scheduler);
                     boolean tv2 = child.isTruth();
                     if(tv1 != tv2){
                         result = false;
@@ -423,20 +423,7 @@ public class FExists extends Formula{
         PCC
      */
     private void RemoveBranch_PCC(RuntimeNode curNode, Context context){
-        boolean flag = false;
-        for(RuntimeNode child : curNode.getChildren()){
-            if(child.getVarEnv().get(this.var).equals(context)){
-                flag = true;
-                curNode.getChildren().remove(child);
-                break;
-            }
-        }
-        //for static
-//        if(!flag){
-//            System.out.println("PCC: [FExists] cannot remove context");
-//            curNode.PrintRuntimeNode(0);
-//            System.exit(1);
-//        }
+        curNode.getChildren().removeIf(child -> child.getVarEnv().get(this.var).equals(context));
     }
 
     @Override
@@ -822,20 +809,7 @@ public class FExists extends Formula{
         PCCM
      */
     private void RemoveBranch_PCCM(RuntimeNode curNode, Context context){
-        boolean flag = false;
-        for(RuntimeNode child : curNode.getChildren()){
-            if(child.getVarEnv().get(this.var).equals(context)){
-                flag = true;
-                curNode.getChildren().remove(child);
-                break;
-            }
-        }
-        //for static
-//        if(!flag){
-//            curNode.PrintRuntimeNode(0);
-//            System.out.println("[FExists] cannot remove context " + context.toString());
-//            System.exit(1);
-//        }
+        curNode.getChildren().removeIf(child -> child.getVarEnv().get(this.var).equals(context));
     }
 
     @Override
@@ -1132,22 +1106,25 @@ public class FExists extends Formula{
         CPCC_NB
      */
 
-    private RuntimeNode RemoveBranch_CPCC(Rule rule, RuntimeNode curNode, Context context, boolean updating){
-        for(RuntimeNode child : curNode.getChildren()){
-            if(child.getVarEnv().get(this.var).equals(context)){
-                child.setParent(null);
-                curNode.getChildren().remove(child);
-                if(!updating){
-                    int patDepth = rule.getPatToDepth().get(this.pattern_id);
-                    SortedMap<Integer, String> headMap =  rule.getDepthToPat().headMap(patDepth);
-                    for(String lowerPat : headMap.values()){
-                        rule.getPatToRuntimeNode().get(lowerPat).removeIf(runtimeNode -> runtimeNode.getVarEnv().containsValue(context));
-                    }
+    private RuntimeNode removeBranch_INFUSE(Rule rule, RuntimeNode curNode, Context context, boolean updating){
+        RuntimeNode targetChild = curNode.getChildren().stream()
+            .filter(child -> child.getVarEnv().get(this.var).equals(context))
+            .findFirst()
+            .orElse(null);
+        
+        if(targetChild != null){
+            targetChild.setParent(null);
+            curNode.getChildren().remove(targetChild);
+            
+            if(!updating){
+                int patDepth = rule.getPatToDepth().get(this.pattern_id);
+                SortedMap<Integer, String> headMap =  rule.getDepthToPat().headMap(patDepth);
+                for(String lowerPat : headMap.values()){
+                    rule.getPatToRuntimeNode().get(lowerPat).removeIf(runtimeNode -> runtimeNode.getVarEnv().containsValue(context));
                 }
-                return child;
             }
         }
-        return null;
+        return targetChild;
     }
 
     @Override
@@ -1196,13 +1173,13 @@ public class FExists extends Formula{
         //Delset
         Set<Context> DelSet = checker.getContextPool().getDelSet(this.pattern_id);
         for(Context context : DelSet){
-            RemoveBranch_CPCC(rule, curNode, context, false);
+            removeBranch_INFUSE(rule, curNode, context, false);
         }
 
         //ModSet
         Set<Context> ModSet = checker.getContextPool().getUpdSet(this.pattern_id);
         for(Context context : ModSet){
-            RuntimeNode ModNode = RemoveBranch_CPCC(rule, curNode, context, true);
+            RuntimeNode ModNode = removeBranch_INFUSE(rule, curNode, context, true);
             if(ModNode != null){
                 ModNode.setParent(curNode);
                 curNode.getChildren().add(ModNode);

@@ -14,8 +14,8 @@ import java.util.Set;
 public class GEAS_opt_s extends GEAS_ori{
 
 
-    public GEAS_opt_s(RuleHandler ruleHandler, ContextPool contextPool, Checker checker) {
-        super(ruleHandler, contextPool, checker);
+    public GEAS_opt_s(RuleHandler ruleHandler, ContextPool contextPool, Checker checker, String taskOutFile) {
+        super(ruleHandler, contextPool, checker, taskOutFile);
         this.strategy = "GEAS_opt_s";
     }
 
@@ -24,6 +24,8 @@ public class GEAS_opt_s extends GEAS_ori{
         batchFormAndRefineSerial(contextChange);
         for(Rule rule : ruleHandler.getRuleMap().values()){
             if(rule.getNewBatch() != null){
+                // TaskInfo: [Strategy] {size}: {changes}
+                writeTaskInfo(formatTaskLine(rule.getBatch()));
                 this.checker.ctxChangeCheckBatch(rule, rule.getBatch());
                 rule.setBatch(rule.getNewBatch());
                 rule.setNewBatch(null);

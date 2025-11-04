@@ -132,7 +132,7 @@ public class FForall extends Formula{
                 if(varEnv.get(this.var).equals(delChange.getContext())){//找到了对应分支
                     meet_cnt ++;
                     boolean tv1 = child.isTruth();
-                    boolean chk_flag = child.getFormula().evaluationAndEqualSideEffect(child, ((FForall)originFormula).getSubformula(), this.var, delChange, addChange, false, scheduler);
+                    child.getFormula().evaluationAndEqualSideEffect(child, ((FForall)originFormula).getSubformula(), this.var, delChange, addChange, false, scheduler);
                     boolean tv2 = child.isTruth();
                     if(tv1 != tv2){
                         result = false;
@@ -435,20 +435,8 @@ public class FForall extends Formula{
         PCC
      */
 
-    private void RemoveBranch_PCC(RuntimeNode curNode, Context context, Formula originFormula){
-        boolean flag = false;
-        for(RuntimeNode child : curNode.getChildren()){
-            if(child.getVarEnv().get(((FForall)originFormula).getVar()).equals(context)){
-                flag = curNode.getChildren().remove(child);
-                break;
-            }
-        }
-        //for static
-//        if(!flag){
-//            System.out.println("PCC: [FForall] cannot remove context");
-//            curNode.PrintRuntimeNode(0);
-//            System.exit(1);
-//        }
+    private void RemoveBranch_PCC(RuntimeNode curNode, Context context){
+        curNode.getChildren().removeIf(child -> child.getVarEnv().get(this.var).equals(context));
     }
 
     @Override
@@ -466,7 +454,7 @@ public class FForall extends Formula{
                 //因为只有一个change，无需对更小的语法结构进行修改
             }
             else{
-                RemoveBranch_PCC(curNode, contextChange.getContext(), originFormula);
+                RemoveBranch_PCC(curNode, contextChange.getContext());
             }
         }
         else{
@@ -833,21 +821,8 @@ public class FForall extends Formula{
         PCCM
      */
 
-    private void RemoveBranch_PCCM(RuntimeNode curNode, Context context, Formula originFormula){
-        boolean flag = false;
-        for(RuntimeNode child : curNode.getChildren()){
-            if(child.getVarEnv().get(((FForall)originFormula).getVar()).equals(context)){
-                flag = true;
-                curNode.getChildren().remove(child);
-                break;
-            }
-        }
-        //for static
-//        if(!flag){
-//            curNode.PrintRuntimeNode(0);
-//            System.out.println("[FForall] cannot remove context " + context.toString());
-//            System.exit(1);
-//        }
+    private void RemoveBranch_PCCM(RuntimeNode curNode, Context context){
+        curNode.getChildren().removeIf(child -> child.getVarEnv().get(this.var).equals(context));
     }
 
     @Override
@@ -865,7 +840,7 @@ public class FForall extends Formula{
                 //因为只有一个change，无需对更小的语法结构进行修改
             }
             else{
-                RemoveBranch_PCCM(curNode, contextChange.getContext(), originFormula);
+                RemoveBranch_PCCM(curNode, contextChange.getContext());
             }
         }
         else{
@@ -1142,25 +1117,28 @@ public class FForall extends Formula{
     /*
         CPCC_NB
      */
-    private RuntimeNode RemoveBranch_CPCC(Rule rule, RuntimeNode curNode, Context context, boolean updating){
-        for(RuntimeNode child : curNode.getChildren()){
-            if(child.getVarEnv().get(this.var).equals(context)){
-                child.setParent(null);
-                curNode.getChildren().remove(child);
-                if(!updating){ //deleting
-                    int patDepth = rule.getPatToDepth().get(this.pattern_id);
-                    SortedMap<Integer, String> headMap =  rule.getDepthToPat().headMap(patDepth);
-                    for(String lowerPat : headMap.values()){
-                        rule.getPatToRuntimeNode().get(lowerPat).removeIf(runtimeNode -> runtimeNode.getVarEnv().containsValue(context));
-                    }
+    private RuntimeNode removeBranch_INFUSE(Rule rule, RuntimeNode curNode, Context context, boolean updating){
+        RuntimeNode targetChild = curNode.getChildren().stream()
+            .filter(child -> child.getVarEnv().get(this.var).equals(context))
+            .findFirst()
+            .orElse(null);
+        
+        if(targetChild != null){
+            targetChild.setParent(null);
+            curNode.getChildren().remove(targetChild);
+            
+            if(!updating){ //deleting
+                int patDepth = rule.getPatToDepth().get(this.pattern_id);
+                SortedMap<Integer, String> headMap =  rule.getDepthToPat().headMap(patDepth);
+                for(String lowerPat : headMap.values()){
+                    rule.getPatToRuntimeNode().get(lowerPat).removeIf(runtimeNode -> runtimeNode.getVarEnv().containsValue(context));
                 }
-                else{
-                    //TODO()
-                }
-                return child;
+            }
+            else{
+                //TODO()
             }
         }
-        return null;
+        return targetChild;
     }
 
     @Override
@@ -1210,13 +1188,13 @@ public class FForall extends Formula{
         //Delset
         Set<Context> DelSet = checker.getContextPool().getDelSet(((FForall)originFormula).getPattern_id());
         for(Context context : DelSet){
-            RemoveBranch_CPCC(rule, curNode, context, false);
+            removeBranch_INFUSE(rule, curNode, context, false);
         }
 
         //ModSet
         Set<Context> ModSet = checker.getContextPool().getUpdSet(((FForall)originFormula).getPattern_id());
         for(Context context : ModSet){
-            RuntimeNode ModNode = RemoveBranch_CPCC(rule, curNode, context, true);
+            RuntimeNode ModNode = removeBranch_INFUSE(rule, curNode, context, true);
             if(ModNode != null){
                 ModNode.setParent(curNode);
                 curNode.getChildren().add(ModNode);
@@ -1988,7 +1966,7 @@ public class FForall extends Formula{
                 //因为只有一个change，无需对更小的语法结构进行修改
             }
             else{
-                RemoveBranch_PCC(curNode, contextChange.getContext(), originFormula);
+                RemoveBranch_PCC(curNode, contextChange.getContext());
             }
         }
         else{

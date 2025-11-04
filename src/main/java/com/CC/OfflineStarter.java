@@ -46,7 +46,7 @@ public class OfflineStarter implements Loggable {
 
     public OfflineStarter() {}
 
-    public void start(String approach, String ruleFile, String bfuncFile, String patternFile, String mfuncFile, String dataFile, String dataType, boolean isMG, String incOutFile){
+    public void start(String approach, String ruleFile, String bfuncFile, String patternFile, String mfuncFile, String dataFile, String dataType, boolean isMG, String incOutFile, String taskOutFile){
         this.ruleFile = ruleFile;
         this.bfuncFile = bfuncFile;
         this.patternFile = patternFile;
@@ -68,7 +68,7 @@ public class OfflineStarter implements Loggable {
         Object bfuncInstance = null;
         try {
             bfuncInstance = loadBfuncFile();
-            logger.info("Load bfunctions successfully.");
+            //logger.info("Load bfunctions successfully.");
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -113,29 +113,29 @@ public class OfflineStarter implements Loggable {
 
         switch (schedule){
             case "IMD":
-                this.scheduler = new IMD(ruleHandler, contextPool, checker);
+                    this.scheduler = new IMD(ruleHandler, contextPool, checker, taskOutFile);
                 break;
             case "GEAS_ori":
-                this.scheduler = new GEAS_ori(ruleHandler, contextPool, checker);
+                    this.scheduler = new GEAS_ori(ruleHandler, contextPool, checker, taskOutFile);
                 break;
             case "GEAS_opt_s":
-                this.scheduler = new GEAS_opt_s(ruleHandler, contextPool, checker);
+                    this.scheduler = new GEAS_opt_s(ruleHandler, contextPool, checker, taskOutFile);
                 break;
             case "GEAS_opt_c":
-                this.scheduler = new GEAS_opt_c(ruleHandler, contextPool, checker);
+                    this.scheduler = new GEAS_opt_c(ruleHandler, contextPool, checker, taskOutFile);
                 break;
             case "INFUSE_S":
-                this.scheduler = new INFUSE_S(ruleHandler, contextPool, checker);
+                    this.scheduler = new INFUSE_S(ruleHandler, contextPool, checker, taskOutFile);
                 break;
         }
 
         //check init
         this.checker.checkInit();
-        logger.info("Init checking successfully.");
+        //logger.info("Init checking successfully.");
 
         //run
         try {
-            logger.info("Start running......");
+            //logger.info("Start running......");
             run();
             incsOutput();
         } catch (Exception e) {
@@ -145,9 +145,9 @@ public class OfflineStarter implements Loggable {
 
     private void buildRulesAndPatterns() throws Exception {
         this.ruleHandler.buildRules(ruleFile);
-        logger.info("Build rules successfully.");
+        //logger.info("Build rules successfully.");
         this.patternHandler.buildPatterns(patternFile, mfuncFile);
-        logger.info("Build patterns successfully.");
+        //logger.info("Build patterns successfully.");
 
         for(Rule rule : ruleHandler.getRuleMap().values()){
             contextPool.poolInit(rule);

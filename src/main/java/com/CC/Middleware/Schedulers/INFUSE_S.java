@@ -19,8 +19,8 @@ import java.util.*;
 public class INFUSE_S extends Scheduler{
 
 
-    public INFUSE_S(RuleHandler ruleHandler, ContextPool contextPool, Checker checker) {
-        super(ruleHandler, contextPool, checker);
+    public INFUSE_S(RuleHandler ruleHandler, ContextPool contextPool, Checker checker, String taskOutFile) {
+        super(ruleHandler, contextPool, checker, taskOutFile);
         this.strategy = "INFUSE_S";
     }
 
@@ -29,6 +29,8 @@ public class INFUSE_S extends Scheduler{
         batchFormINFUSE(contextChange);
         for(Rule rule : ruleHandler.getRuleMap().values()){
             if(rule.getNewBatch() != null){
+                // TaskInfo: [Strategy] {size}: {changes}
+                writeTaskInfo(formatTaskLine(rule.getBatch()));
                 this.checker.ctxChangeCheckBatch(rule, rule.getBatch());
                 rule.setBatch(rule.getNewBatch());
                 rule.setNewBatch(null);
@@ -84,7 +86,6 @@ public class INFUSE_S extends Scheduler{
                     reFlag = true;
                 }
                 if(!reFlag){
-                    long oldTime = System.nanoTime();
                     for(RuntimeNode runtimeNode : runtimeNodeSet){
                         runtimeNode.vtPropagationAdd(newChange.getContext());
                         //runtimeNode.virtualTruthUpdating(ContextChange.Change_Type.ADD, RuntimeNode.Virtual_Truth_Type.UNKNOWN, null);
@@ -133,7 +134,6 @@ public class INFUSE_S extends Scheduler{
                 if(newChange.getChange_type() == rcType){
                     rcFlag = true;
                 }
-                long oldTime = System.nanoTime();
                 for(RuntimeNode runtimeNode : runtimeNodeSet){
                     runtimeNode.vtPropagationAdd(newChange.getContext());
                 }
@@ -183,6 +183,7 @@ public class INFUSE_S extends Scheduler{
                 ((ConC) checker).ThreadPool.shutdown();
                 break;
         }
+            closeTaskWriter();
     }
 
     protected void CleanUp() throws NotSupportedException {

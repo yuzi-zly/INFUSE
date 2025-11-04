@@ -9,7 +9,6 @@ import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
@@ -36,7 +35,7 @@ public class PatternHandler implements Loggable {
     public void buildPatterns(String patternFile, String mfuncFile) {
         Object mfuncInstance = loadMfuncFile(mfuncFile);
         if(mfuncInstance != null){
-            logger.info("Load mfunc file successfully");
+            //logger.info("Load mfunc file successfully");
         }
         try(InputStream inputStream = Files.newInputStream(Paths.get(patternFile))){
             SAXReader saxReader = new SAXReader();

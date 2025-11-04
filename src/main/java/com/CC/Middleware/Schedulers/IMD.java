@@ -12,13 +12,15 @@ import com.CC.Middleware.Checkers.ConC;
 public class IMD extends Scheduler{
 
 
-    public IMD(RuleHandler ruleHandler, ContextPool contextPool, Checker checker) {
-        super(ruleHandler, contextPool, checker);
+    public IMD(RuleHandler ruleHandler, ContextPool contextPool, Checker checker, String taskOutFile) {
+        super(ruleHandler, contextPool, checker, taskOutFile);
         this.strategy = "IMD";
     }
 
     @Override
     public void doSchedule(ContextChange contextChange) throws Exception {
+        // TaskInfo: [Strategy] {size}: {changes}
+        writeTaskInfo(formatTaskLine(java.util.Collections.singletonList(contextChange)));
         this.checker.ctxChangeCheckIMD(contextChange);
     }
 
@@ -36,6 +38,7 @@ public class IMD extends Scheduler{
                 ((ConC) this.checker).ThreadPool.shutdown();
                 break;
         }
+        closeTaskWriter();
     }
 
     @Override

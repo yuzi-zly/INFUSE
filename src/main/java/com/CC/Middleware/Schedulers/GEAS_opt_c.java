@@ -20,8 +20,8 @@ import java.util.concurrent.Executors;
 public class GEAS_opt_c extends GEAS_ori{
     public final ExecutorService ThreadPool;
 
-    public GEAS_opt_c(RuleHandler ruleHandler, ContextPool contextPool, Checker checker) {
-        super(ruleHandler, contextPool, checker);
+    public GEAS_opt_c(RuleHandler ruleHandler, ContextPool contextPool, Checker checker, String taskOutFile) {
+        super(ruleHandler, contextPool, checker, taskOutFile);
         this.ThreadPool = Executors.newFixedThreadPool(13);
         this.strategy = "GEAS_opt_c";
     }
@@ -32,6 +32,8 @@ public class GEAS_opt_c extends GEAS_ori{
         batchFormAndRefineConcurrent(contextChange);
         for(Rule rule : ruleHandler.getRuleMap().values()){
             if(rule.getNewBatch() != null){
+                // TaskInfo: [Strategy] {size}: {changes}
+                writeTaskInfo(formatTaskLine(rule.getBatch()));
                 this.checker.ctxChangeCheckBatch(rule, rule.getBatch());
                 rule.setBatch(rule.getNewBatch());
                 rule.setNewBatch(null);
@@ -89,13 +91,11 @@ public class GEAS_opt_c extends GEAS_ori{
                 continue;
             }
 
-            long oldTime = System.nanoTime();
             if(rule.inCriticalSet(chg.getContext().getCtx_id()) || rule.inCriticalSet(newChange.getContext().getCtx_id())){
                 continue;
             }
 
             //examine part2 - sideEffect
-            oldTime = System.nanoTime();
             if(isEffectCancellableEvaluatedSideEffectConcurrent(rule, chg, newChange)){
                 return chg;
             }

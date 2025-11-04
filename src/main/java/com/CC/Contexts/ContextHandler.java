@@ -112,10 +112,8 @@ public class ContextHandler implements Loggable{
             //clean overdue
             this.cleanOverdueContext(latestDate, changeList);
             //context pattern match
-            boolean matched = false;
             for(Pattern pattern : patternHandler.getPatternMap().values()){
                 if(pattern.getMatcher() == null || match(pattern, context)){
-                    matched = true;
                     changeList.addAll(generate(pattern, context));
                 }
             }

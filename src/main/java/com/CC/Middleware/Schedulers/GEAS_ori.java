@@ -13,8 +13,8 @@ import java.util.*;
 
 public class GEAS_ori extends Scheduler{
 
-    public GEAS_ori(RuleHandler ruleHandler, ContextPool contextPool, Checker checker) {
-        super(ruleHandler, contextPool, checker);
+    public GEAS_ori(RuleHandler ruleHandler, ContextPool contextPool, Checker checker, String taskOutFile) {
+        super(ruleHandler, contextPool, checker, taskOutFile);
         this.strategy = "GEAS_ori";
     }
 
@@ -23,6 +23,8 @@ public class GEAS_ori extends Scheduler{
         batchForm(contextChange);
         for(Rule rule : ruleHandler.getRuleMap().values()){
             if(rule.getNewBatch() != null){
+                // TaskInfo: [Strategy] {size}: {changes}
+                writeTaskInfo(formatTaskLine(rule.getBatch()));
                 this.checker.ctxChangeCheckBatch(rule, rule.getBatch());
                 rule.setBatch(rule.getNewBatch());
                 rule.setNewBatch(null);
@@ -85,6 +87,7 @@ public class GEAS_ori extends Scheduler{
                 ((ConC) checker).ThreadPool.shutdown();
                 break;
         }
+            closeTaskWriter();
     }
 
     protected void cleanUp() throws NotSupportedException {
