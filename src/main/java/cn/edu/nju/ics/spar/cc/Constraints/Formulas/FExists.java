@@ -147,7 +147,7 @@ public class FExists extends Formula{
                 for(RuntimeNode child : curNode.getChildren()){
                     assert scheduler instanceof GEAS_opt_c;
                     Future<Boolean> future = ((GEAS_opt_c) scheduler).ThreadPool.submit(
-                            new GEAS_opt_c.evaluationAndEqualSideEffectCon(child, ((FExists)originFormula).getSubformula(), delChange, addChange, scheduler)
+                            new GEAS_opt_c.EvaluationAndEqualSideEffectCon(child, ((FExists)originFormula).getSubformula(), delChange, addChange, scheduler)
                     );
                     retList.add(future);
                 }
@@ -191,7 +191,7 @@ public class FExists extends Formula{
     }
 
     @Override
-    public void sideeffectresolution(RuntimeNode curNode, Formula originFormula, String var, ContextChange delChange, ContextChange addChange, boolean canConcurrent, Scheduler scheduler) {
+    public void sideEffectResolution(RuntimeNode curNode, Formula originFormula, String var, ContextChange delChange, ContextChange addChange, boolean canConcurrent, Scheduler scheduler) {
         if(curNode.getChildren().size() == 0)
             return;
         if(delChange.getPattern_id().equals(this.pattern_id)){
@@ -201,7 +201,7 @@ public class FExists extends Formula{
                 HashMap<String, Context> varEnv = child.getVarEnv();
                 if(varEnv.get(this.var).equals(addChange.getContext())) {
                     meet_cnt++;
-                    child.getFormula().sideeffectresolution(child, ((FExists)originFormula).getSubformula(), this.var, delChange, addChange, false, scheduler);
+                    child.getFormula().sideEffectResolution(child, ((FExists)originFormula).getSubformula(), this.var, delChange, addChange, false, scheduler);
                 }
             }
             assert meet_cnt == 1;
@@ -213,7 +213,7 @@ public class FExists extends Formula{
                 for(RuntimeNode child : curNode.getChildren()){
                     assert scheduler instanceof GEAS_opt_c;
                     Future<Void> future = ((GEAS_opt_c) scheduler).ThreadPool.submit(
-                            new GEAS_opt_c.sideEffectResolutionCon(child, ((FExists)originFormula).getSubformula(), delChange, addChange, scheduler)
+                            new GEAS_opt_c.SideEffectResolutionCon(child, ((FExists)originFormula).getSubformula(), delChange, addChange, scheduler)
                     );
                     retList.add(future);
                 }
@@ -236,7 +236,7 @@ public class FExists extends Formula{
                     curNode.getVarEnv().put(var, delChange.getContext());
                 }
                 for(RuntimeNode child : curNode.getChildren()){
-                    child.getFormula().sideeffectresolution(child, ((FExists)originFormula).getSubformula(), var, delChange, addChange, false, scheduler);
+                    child.getFormula().sideEffectResolution(child, ((FExists)originFormula).getSubformula(), var, delChange, addChange, false, scheduler);
                 }
             }
         }

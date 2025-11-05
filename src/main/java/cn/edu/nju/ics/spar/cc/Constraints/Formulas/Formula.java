@@ -47,7 +47,7 @@ public abstract class Formula {
     public abstract void deriveIncMinusSet(Set<Map.Entry<ContextChange.Change_Type, String>> incMinusSet);
     //C-condition
     public abstract boolean evaluationAndEqualSideEffect(RuntimeNode curNode, Formula originFormula, String var, ContextChange delChange, ContextChange addChange, boolean canConcurrent, Scheduler scheduler);
-    public abstract void sideeffectresolution(RuntimeNode curNode, Formula originFormula, String var, ContextChange delChange, ContextChange addChange, boolean canConcurrent, Scheduler scheduler);
+    public abstract void sideEffectResolution(RuntimeNode curNode, Formula originFormula, String var, ContextChange delChange, ContextChange addChange, boolean canConcurrent, Scheduler scheduler);
     //DIS
     public abstract void deriveRCRESets(boolean from);
 

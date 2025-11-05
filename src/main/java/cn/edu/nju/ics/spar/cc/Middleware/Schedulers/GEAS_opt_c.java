@@ -125,14 +125,14 @@ public class GEAS_opt_c extends GEAS_ori{
         return rule.getCCTRoot().getFormula().evaluationAndEqualSideEffect(rule.getCCTRoot(), rule.getFormula(), null, delChange, addChange, true, this);
     }
     //并发版本EvaluationAndEqualSideEffect
-    public static class evaluationAndEqualSideEffectCon implements Callable<Boolean> {
+    public static class EvaluationAndEqualSideEffectCon implements Callable<Boolean> {
         RuntimeNode curNode;
         Formula formula;
         ContextChange delChange;
         ContextChange addChange;
         Scheduler scheduler;
 
-        public evaluationAndEqualSideEffectCon(RuntimeNode curNode, Formula formula, ContextChange delChange, ContextChange addChange, Scheduler scheduler) {
+        public EvaluationAndEqualSideEffectCon(RuntimeNode curNode, Formula formula, ContextChange delChange, ContextChange addChange, Scheduler scheduler) {
             this.curNode = curNode;
             this.formula = formula;
             this.delChange = delChange;
@@ -150,17 +150,17 @@ public class GEAS_opt_c extends GEAS_ori{
         assert chg1.getPattern_id().equals(chg2.getPattern_id());
         ContextChange delChange = chg1.getChange_type() == ContextChange.Change_Type.DELETION ? chg1 : chg2;
         ContextChange addChange = chg1.getChange_type() == ContextChange.Change_Type.ADDITION ? chg1 : chg2;
-        rule.getCCTRoot().getFormula().sideeffectresolution(rule.getCCTRoot(), rule.getFormula(), null, delChange, addChange, true, this);
+        rule.getCCTRoot().getFormula().sideEffectResolution(rule.getCCTRoot(), rule.getFormula(), null, delChange, addChange, true, this);
     }
     //并发版本sideEffectResolution
-    public static class sideEffectResolutionCon implements Callable<Void>{
+    public static class SideEffectResolutionCon implements Callable<Void>{
         RuntimeNode curNode;
         Formula formula;
         ContextChange delChange;
         ContextChange addChange;
         Scheduler scheduler;
 
-        public sideEffectResolutionCon(RuntimeNode curNode, Formula formula, ContextChange delChange, ContextChange addChange, Scheduler scheduler) {
+        public SideEffectResolutionCon(RuntimeNode curNode, Formula formula, ContextChange delChange, ContextChange addChange, Scheduler scheduler) {
             this.curNode = curNode;
             this.formula = formula;
             this.delChange = delChange;
@@ -170,7 +170,7 @@ public class GEAS_opt_c extends GEAS_ori{
 
         @Override
         public Void call() {
-            curNode.getFormula().sideeffectresolution(curNode, formula, null, delChange, addChange, false, scheduler);
+            curNode.getFormula().sideEffectResolution(curNode, formula, null, delChange, addChange, false, scheduler);
             return null;
         }
     }

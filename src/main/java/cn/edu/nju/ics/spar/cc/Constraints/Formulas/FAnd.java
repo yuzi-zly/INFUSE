@@ -97,7 +97,7 @@ public class FAnd extends Formula {
     }
 
     @Override
-    public void sideeffectresolution(RuntimeNode curNode, Formula originFormula, String var, ContextChange delChange, ContextChange addChange, boolean canConcurrent, Scheduler scheduler) {
+    public void sideEffectResolution(RuntimeNode curNode, Formula originFormula, String var, ContextChange delChange, ContextChange addChange, boolean canConcurrent, Scheduler scheduler) {
         if(var != null){
             curNode.setTruth(curNode.isOptTruth());
             curNode.setOptTruth(false);
@@ -105,9 +105,9 @@ public class FAnd extends Formula {
             curNode.getVarEnv().put(var, delChange.getContext());
         }
         RuntimeNode runtimeNode1 = curNode.getChildren().get(0);
-        runtimeNode1.getFormula().sideeffectresolution(runtimeNode1, ((FAnd)originFormula).getSubformulas()[0], var, delChange, addChange, canConcurrent, scheduler);
+        runtimeNode1.getFormula().sideEffectResolution(runtimeNode1, ((FAnd)originFormula).getSubformulas()[0], var, delChange, addChange, canConcurrent, scheduler);
         RuntimeNode runtimeNode2 = curNode.getChildren().get(1);
-        runtimeNode2.getFormula().sideeffectresolution(runtimeNode2, ((FAnd)originFormula).getSubformulas()[1], var, delChange, addChange, canConcurrent, scheduler);
+        runtimeNode2.getFormula().sideEffectResolution(runtimeNode2, ((FAnd)originFormula).getSubformulas()[1], var, delChange, addChange, canConcurrent, scheduler);
     }
 
     //DIS

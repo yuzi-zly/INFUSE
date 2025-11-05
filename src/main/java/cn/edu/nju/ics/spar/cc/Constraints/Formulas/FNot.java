@@ -85,7 +85,7 @@ public class FNot extends Formula{
     }
 
     @Override
-    public void sideeffectresolution(RuntimeNode curNode, Formula originFormula, String var, ContextChange delChange, ContextChange addChange, boolean canConcurrent, Scheduler scheduler) {
+    public void sideEffectResolution(RuntimeNode curNode, Formula originFormula, String var, ContextChange delChange, ContextChange addChange, boolean canConcurrent, Scheduler scheduler) {
         if(var != null){
             curNode.setTruth(curNode.isOptTruth());
             curNode.setOptTruth(false);
@@ -93,7 +93,7 @@ public class FNot extends Formula{
             curNode.getVarEnv().put(var, delChange.getContext());
         }
         RuntimeNode runtimeNode = curNode.getChildren().get(0);
-        runtimeNode.getFormula().sideeffectresolution(runtimeNode, ((FNot)originFormula).getSubformula(), var, delChange, addChange, canConcurrent, scheduler);
+        runtimeNode.getFormula().sideEffectResolution(runtimeNode, ((FNot)originFormula).getSubformula(), var, delChange, addChange, canConcurrent, scheduler);
     }
 
     //DIS

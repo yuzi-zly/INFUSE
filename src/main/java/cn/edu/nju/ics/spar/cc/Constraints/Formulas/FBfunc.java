@@ -111,7 +111,7 @@ public class FBfunc extends Formula {
     }
 
     @Override
-    public void sideeffectresolution(RuntimeNode curNode, Formula originFormula, String var, ContextChange delChange, ContextChange addChange, boolean canConcurrent, Scheduler scheduler) {
+    public void sideEffectResolution(RuntimeNode curNode, Formula originFormula, String var, ContextChange delChange, ContextChange addChange, boolean canConcurrent, Scheduler scheduler) {
         if(var != null){
             curNode.setTruth(curNode.isOptTruth());
             curNode.setOptTruth(false);

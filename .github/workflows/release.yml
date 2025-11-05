@@ -58,6 +58,8 @@ jobs:
         with:
           # (可选) 自动根据 commit 历史生成发布日志
           # generate_release_notes: true 
+          
+          draft: false
 
           # ----------------------------------------------------------
           # 关键：告诉 Action 在哪里找到要上传的文件

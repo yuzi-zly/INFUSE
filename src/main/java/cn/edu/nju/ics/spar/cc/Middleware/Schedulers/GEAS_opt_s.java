@@ -120,7 +120,7 @@ public class GEAS_opt_s extends GEAS_ori{
         assert chg1.getPattern_id().equals(chg2.getPattern_id());
         ContextChange delChange = chg1.getChange_type() == ContextChange.Change_Type.DELETION ? chg1 : chg2;
         ContextChange addChange = chg1.getChange_type() == ContextChange.Change_Type.ADDITION ? chg1 : chg2;
-        rule.getCCTRoot().getFormula().sideeffectresolution(rule.getCCTRoot(), rule.getFormula(), null, delChange, addChange, false, this);
+        rule.getCCTRoot().getFormula().sideEffectResolution(rule.getCCTRoot(), rule.getFormula(), null, delChange, addChange, false, this);
     }
 
 }

@@ -150,7 +150,7 @@ public class FForall extends Formula{
                 for(RuntimeNode child : curNode.getChildren()){
                     assert scheduler instanceof GEAS_opt_c;
                     Future<Boolean> future = ((GEAS_opt_c) scheduler).ThreadPool.submit(
-                            new GEAS_opt_c.evaluationAndEqualSideEffectCon(child, ((FForall)originFormula).getSubformula(), delChange, addChange, scheduler)
+                            new GEAS_opt_c.EvaluationAndEqualSideEffectCon(child, ((FForall)originFormula).getSubformula(), delChange, addChange, scheduler)
                     );
                     retList.add(future);
                 }
@@ -196,7 +196,7 @@ public class FForall extends Formula{
     }
 
     @Override
-    public void sideeffectresolution(RuntimeNode curNode, Formula originFormula, String var, ContextChange delChange, ContextChange addChange, boolean canConcurrent, Scheduler scheduler) {
+    public void sideEffectResolution(RuntimeNode curNode, Formula originFormula, String var, ContextChange delChange, ContextChange addChange, boolean canConcurrent, Scheduler scheduler) {
         if(curNode.getChildren().size() == 0)
             return;
         if(delChange.getPattern_id().equals(this.pattern_id)){
@@ -206,7 +206,7 @@ public class FForall extends Formula{
                 HashMap<String, Context> varEnv = child.getVarEnv();
                 if(varEnv.get(this.var).equals(addChange.getContext())) {//找到了对应分支
                     meet_cnt++;
-                    child.getFormula().sideeffectresolution(child, ((FForall)originFormula).getSubformula(), this.var, delChange, addChange, false, scheduler);
+                    child.getFormula().sideEffectResolution(child, ((FForall)originFormula).getSubformula(), this.var, delChange, addChange, false, scheduler);
                 }
             }
             if(meet_cnt != 1){
@@ -226,7 +226,7 @@ public class FForall extends Formula{
                 for(RuntimeNode child : curNode.getChildren()){
                     assert scheduler instanceof GEAS_opt_c;
                     Future<Void> future = ((GEAS_opt_c) scheduler).ThreadPool.submit(
-                            new GEAS_opt_c.sideEffectResolutionCon(child, ((FForall)originFormula).getSubformula(), delChange, addChange, scheduler)
+                            new GEAS_opt_c.SideEffectResolutionCon(child, ((FForall)originFormula).getSubformula(), delChange, addChange, scheduler)
                     );
                     retList.add(future);
                 }
@@ -249,7 +249,7 @@ public class FForall extends Formula{
                     curNode.getVarEnv().put(var, delChange.getContext());
                 }
                 for(RuntimeNode child : curNode.getChildren()){
-                    child.getFormula().sideeffectresolution(child, ((FForall)originFormula).getSubformula(), var, delChange, addChange, false, scheduler);
+                    child.getFormula().sideEffectResolution(child, ((FForall)originFormula).getSubformula(), var, delChange, addChange, false, scheduler);
                 }
             }
         }
