@@ -1,51 +1,83 @@
+// build.gradle (Groovy DSL)
+
 plugins {
     id 'java'
+    id 'com.gradleup.shadow' version '8.3.9'
+    id 'application'
 }
 
-javadoc {
-    options.encoding = 'UTF-8'
-}
-
-java{
+java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(17))
     }
 }
 
-group 'org.INFUSE'
-version '2.1.1[jdk11]'
-
-jar {
-    duplicatesStrategy = DuplicatesStrategy.INCLUDE
-    manifest {
-        attributes('Main-Class': 'com.CC.CLIParser')
-        attributes("Multi-Release": true)
-    }
-    from{
-        (configurations.runtimeClasspath).collect {
-            it.isDirectory() ? it : zipTree(it)
-        }
-    }
-    //processResources.exclude('*')
+application {
+    // shadow 插件会自动读取这个设置
+    mainClass.set('cn.edu.nju.ics.spar.cc.CLIParser') 
 }
+
+group 'cn.edu.nju.ics.spar'
+version '1.0.1-jdk17' 
 
 repositories {
     mavenCentral()
 }
 
-
 dependencies {
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.1'
+
     implementation 'org.dom4j:dom4j:2.1.3'
     implementation 'commons-cli:commons-cli:1.5.0'
-    // https://mvnrepository.com/artifact/com.alibaba/fastjson
-    implementation 'com.alibaba:fastjson:1.2.83'
-    // https://mvnrepository.com/artifact/commons-io/commons-io
+    implementation 'com.alibaba:fastjson:1.2.83' 
     implementation 'commons-io:commons-io:2.11.0'
     implementation 'org.apache.logging.log4j:log4j-api:2.19.0'
     implementation 'org.apache.logging.log4j:log4j-core:2.19.0'
 }
+
+// 为了正确处理 Log4j2，合并 "services" 和 "Log4j2Plugins.dat" 两个文件。
+shadowJar {
+    // 步骤 1: (可选, 但推荐) 明确设置默认策略
+    // shadow 插件的默认是 EXCLUDE，这会导致合并器失效
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    // 步骤 2: 应用所有需要的合并器
+    mergeServiceFiles()
+    transform(com.github.jengelman.gradle.plugins.shadow.transformers.Log4j2PluginsCacheFileTransformer)
+
+    // 步骤 3: (必需) 为这两个合并器“开后门”
+    //    让它们的文件绕过 EXCLUDE 策略
+    filesMatching('META-INF/services/**') {
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    }
+    filesMatching('META-INF/org/apache/logging/log4j/core/config/plugins/Log4j2Plugins.dat') {
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    }
+
+    archiveBaseName.set('INFUSE')
+    archiveClassifier.set('testAdaptor')
+}
+
 test {
     useJUnitPlatform()
+    // 默认跳过测试，除非显式运行 gradle test
+    onlyIf {
+        project.hasProperty('runTests') || gradle.startParameter.taskNames.contains('test')
+    }
+      
+    // 显示测试输出到控制台
+    testLogging {
+        // 显示被测程序的标准输出和错误输出
+        showStandardStreams = true
+        
+        // 只显示关键事件
+        events "passed", "failed", "skipped"
+        
+        // 失败时显示完整异常信息
+        exceptionFormat = 'full'
+        showExceptions = true
+        showCauses = true
+        showStackTraces = true
+    }
 }

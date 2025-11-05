@@ -1,4 +1,4 @@
 - This is the testAdaptor version of INFUSE
-- Differences between this version and the stable version:
+- Differences between this version and the stable version (main branch):
   - configuration and implementation for gmc's testing, like change generation strategy (testModeDataConvertor method in CLIParser.java)
 - any bug found in this version should be fixed in the stable version as well.
