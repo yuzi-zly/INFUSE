@@ -6,7 +6,7 @@
 
 ## :round_pushpin: Start
 
-1. Download [INFUSE_stable_jdk11.jar](https://github.com/yuzi-zly/INFUSE/releases/tag/stable_jdk11) into your work directory.
+1. Download [INFUSE-1.0.1-jdk17.jar] into your work directory.
 
 2. Write your own rules and patterns in [rules.xml](#rule) and [patterns.xml](#pattern).
 
@@ -282,7 +282,7 @@ rule_02(VIOLATED,{(v1,2),(v2,3)})
 For example, if we want use `INFUSE` approach to check the consistency of data in **data.txt** with rules in **rules.xml**, patterns in **patterns.xml**, bfunctions in **Bfunction.class**, and mfunctions in **Mfunction.class** under `offline` mode with `MG`, we can use the following commands and detected inconsistencies would be output in **incs.txt**.
 
 ```shell
-java -jar INFUSE_v1.0_stable_jdk11.jar -mode offline -approach INFUSE -data data.txt -dataType rawData -rules rules.xml -patterns patterns.xml -bfuncs Bfunction.class -mfuncs Mfunction.class -mg -incs incs.txt 
+java -jar INFUSE-1.0.1-jdk17.jar -mode offline -approach INFUSE -data data.txt -dataType rawData -rules rules.xml -patterns patterns.xml -bfuncs Bfunction.class -mfuncs Mfunction.class -mg -incs incs.txt 
 ```
 
 ## :bookmark_tabs: <span id="papers">Main Papers</span>

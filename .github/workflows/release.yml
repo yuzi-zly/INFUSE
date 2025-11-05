@@ -1,0 +1,68 @@
+# .github/workflows/release.yml
+#
+# 这个工作流会在每次推送一个 "v" 开头的标签时自动运行
+# (例如: v1.0.1-jdk17)
+
+name: Create Release and Upload JAR
+
+on:
+  push:
+    tags:
+      - 'v*' # 只在 v* 标签被推送时触发
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest # 在 GitHub 的 Linux 服务器上运行
+
+    # 授予工作流“写入”权限，以便它能创建Release和上传文件
+    permissions:
+      contents: write
+
+    steps:
+      # 步骤 1: 检出标签对应的源码
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 步骤 2: 设置 Java 17
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin' # Adoptium 提供的 JDK
+
+      # 步骤 3: (可选但推荐) 缓存 Gradle 依赖
+      # 这会缓存插件和库，让构建更快
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      # 步骤 4: 授予 gradlew 执行权限
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
+      # ----------------------------------------------------------
+      # 步骤 5: 运行 "shadowJar" 任务来构建“胖 Jar”
+      # ----------------------------------------------------------
+      - name: Build with Gradle (create shadow jar)
+        run: ./gradlew shadowJar
+
+      # 步骤 6: 创建 GitHub Release 并上传“胖 Jar”
+      - name: Create GitHub Release and Upload Asset
+        uses: softprops/action-gh-release@v2
+        with:
+          # (可选) 自动根据 commit 历史生成发布日志
+          # generate_release_notes: true 
+
+          # ----------------------------------------------------------
+          # 关键：告诉 Action 在哪里找到要上传的文件
+          # 使用 INFUSE-*.jar 来匹配在 build.gradle 中设置的新文件名
+          # (例如: INFUSE-1.0.1-jdk17.jar)
+          # ----------------------------------------------------------
+          files: build/libs/INFUSE-*.jar
+
