@@ -77,22 +77,22 @@ test {
     }
 }
 
-task vendorDependencies(type: Copy) {
-    // 1. 复制主代码的 *编译* 依赖 (e.g., compileOnly)
-    from configurations.compileClasspath
+// task vendorDependencies(type: Copy) {
+//     // 1. 复制主代码的 *编译* 依赖 (e.g., compileOnly)
+//     from configurations.compileClasspath
 
-    // 2. 复制主代码的 *运行* 依赖 (e.g., implementation, fastjson)
-    from configurations.runtimeClasspath
+//     // 2. 复制主代码的 *运行* 依赖 (e.g., implementation, fastjson)
+//     from configurations.runtimeClasspath
 
-    // 3. 复制测试代码的 *编译* 依赖 (e.g., testImplementation, junit-api, apiguardian)
-    from configurations.testCompileClasspath
+//     // 3. 复制测试代码的 *编译* 依赖 (e.g., testImplementation, junit-api, apiguardian)
+//     from configurations.testCompileClasspath
 
-    // 4. 复制测试代码的 *运行* 依赖 (e.g., testRuntimeOnly, junit-engine)
-    from configurations.testRuntimeClasspath
+//     // 4. 复制测试代码的 *运行* 依赖 (e.g., testRuntimeOnly, junit-engine)
+//     from configurations.testRuntimeClasspath
 
-    // 目标目录
-    into 'libs'
+//     // 目标目录
+//     into 'libs'
     
-    // Copy 任务会自动处理重复的文件（即同一个 jar 包被包含多次）
-    // 所以这样是 100% 安全的
-}
+//     // Copy 任务会自动处理重复的文件（即同一个 jar 包被包含多次）
+//     // 所以这样是 100% 安全的
+// }
