@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# INFUSE项目不依赖Gradle的测试执行脚本
+# UDPE项目不依赖Gradle的测试执行脚本
 # 严格按照测试用例(TestCase1, TestCase2, TestCase3)的逻辑执行
 
 set -e
@@ -75,7 +75,7 @@ validate_files_equal() {
     fi
 }
 
-# 公共函数：运行INFUSE程序
+# 公共函数：运行UDPE程序
 run() {
     local approach="$1"
     local resource_dir="$2"
@@ -95,7 +95,7 @@ run() {
         "-mfuncs" "$resource_dir/Mfunction.class"
         "-data" "$resource_dir/data.txt"
         "-datatype" "rawData"
-        "-incs" "$resource_dir/result.txt"
+        "-incs" "$resource_dir/results.txt"
         "${extra_args[@]}"
     )
 
@@ -104,7 +104,7 @@ run() {
     java -cp "$FULL_CP" com.CC.CLIParser "${args[@]}"
 
     if [[ $? -ne 0 ]]; then
-        echo "错误: INFUSE程序执行失败"
+        echo "错误: UDPE程序执行失败"
         return 1
     fi
 }
@@ -126,7 +126,7 @@ run_T1_STATIC() {
     # 编译测试函数
     compile_test_functions "$resource_dir" || return 1
 
-    # 运行静态任务构建方法 (PCC+GEAS_ori)
+    # 运行静态任务构建方法
     echo "运行静态任务构建方法..."
     run "PCC+GEAS_ori" "$resource_dir" "$output_file" "-taskOut" "$output_file" || return 1
 
@@ -157,7 +157,7 @@ run_T1_DYNAMIC() {
     # 编译测试函数
     compile_test_functions "$resource_dir" || return 1
 
-    # 运行动态任务构建方法 (INFUSE)
+    # 运行动态任务构建方法
     echo "运行动态任务构建方法..."
     run "INFUSE" "$resource_dir" "$output_file" "-taskOut" "$output_file" || return 1
 
@@ -192,9 +192,9 @@ run_T2_INCREMENTAL() {
     echo "运行增量方法..."
     run "PCC+IMD" "$resource_dir" "$output_file" || return 1
 
-    # 验证输出结果 (注意：输出文件应该是result.txt，但验证时使用results_incremental.txt)
-    if [[ -f "$resource_dir/result.txt" ]]; then
-        mv "$resource_dir/result.txt" "$output_file"
+    # 验证输出结果 (注意：输出文件应该是results.txt，但验证时使用results_incremental.txt)
+    if [[ -f "$resource_dir/results.txt" ]]; then
+        mv "$resource_dir/results.txt" "$output_file"
     fi
 
     echo "验证增量方法输出结果..."
@@ -227,13 +227,13 @@ run_T2_FUSION() {
     # 编译测试函数
     compile_test_functions "$resource_dir" || return 1
 
-    # 运行融合式方法 (INFUSE)
+    # 运行融合式方法
     echo "运行融合方法..."
     run "INFUSE" "$resource_dir" "$output_file" || return 1
 
     # 验证输出结果
-    if [[ -f "$resource_dir/result.txt" ]]; then
-        mv "$resource_dir/result.txt" "$output_file"
+    if [[ -f "$resource_dir/results.txt" ]]; then
+        mv "$resource_dir/results.txt" "$output_file"
     fi
 
     echo "验证融合方法输出结果..."
@@ -268,7 +268,7 @@ run_with_timing() {
         "-mfuncs" "$resource_dir/Mfunction.class"
         "-data" "$resource_dir/data.txt"
         "-datatype" "rawData"
-        "-incs" "$resource_dir/result.txt"
+        "-incs" "$resource_dir/results.txt"
     )
 
     
@@ -281,13 +281,13 @@ run_with_timing() {
     local execution_time=$(( (end_time - start_time) / 1000000 ))
 
     if [[ $? -ne 0 ]]; then
-        echo "错误: INFUSE程序执行失败"
+        echo "错误: UDPE程序执行失败"
         return 1
     fi
 
     # 重命名输出文件
-    if [[ -f "$resource_dir/result.txt" ]]; then
-        mv "$resource_dir/result.txt" "$output_file"
+    if [[ -f "$resource_dir/results.txt" ]]; then
+        mv "$resource_dir/results.txt" "$output_file"
     fi
 
     echo "$execution_time"
@@ -298,18 +298,18 @@ run_T3_PERFORMANCE_INCREMENTAL() {
     echo "=== 测试T3_PERFORMANCE_INCREMENTAL: 增量式泛在数据处理方法性能 ==="
 
     local resource_dir="$PROJECT_ROOT/src/test/resources/testcase3"
-    local baseline_result="$resource_dir/result_baseline.txt"
-    local incremental_result="$resource_dir/result_incremental.txt"
+    local baseline_result="$resource_dir/results_baseline.txt"
+    local incremental_result="$resource_dir/results_incremental.txt"
 
     # 编译测试函数
     compile_test_functions "$resource_dir" || return 1
 
-    # 运行基准方法 (ECC+IMD)
+    # 运行基准方法
     echo "运行基准方法..."
     local baseline_time=$(run_with_timing "ECC+IMD" "$resource_dir" "$baseline_result")
     echo "基准方法执行时间: $baseline_time ms"
 
-    # 运行增量方法 (PCC+IMD)
+    # 运行增量方法
     echo "运行增量方法..."
     local incremental_time=$(run_with_timing "PCC+IMD" "$resource_dir" "$incremental_result")
     echo "增量方法执行时间: $incremental_time ms"
@@ -345,18 +345,18 @@ run_T3_PERFORMANCE_FUSION() {
     echo "=== 测试T3_PERFORMANCE_FUSION: 融合式泛在数据处理方法性能 ==="
 
     local resource_dir="$PROJECT_ROOT/src/test/resources/testcase3"
-    local baseline_result="$resource_dir/result_baseline.txt"
-    local fusion_result="$resource_dir/result_fusion.txt"
+    local baseline_result="$resource_dir/results_baseline.txt"
+    local fusion_result="$resource_dir/results_fusion.txt"
 
     # 编译测试函数
     compile_test_functions "$resource_dir" || return 1
 
-    # 运行基准方法 (ECC+IMD)
+    # 运行基准方法
     echo "运行基准方法..."
     local baseline_time=$(run_with_timing "ECC+IMD" "$resource_dir" "$baseline_result")
     echo "基准方法执行时间: $baseline_time ms"
 
-    # 运行融合方法 (INFUSE)
+    # 运行融合方法
     echo "运行融合方法..."
     local fusion_time=$(run_with_timing "INFUSE" "$resource_dir" "$fusion_result")
     echo "融合方法执行时间: $fusion_time ms"
@@ -480,10 +480,10 @@ run_clean() {
     # 清理测试输出文件
     echo "清理测试输出文件..."
     # 只删除程序生成的临时输出文件，保留oracle基准文件
-    find "$PROJECT_ROOT/src/test/resources" -name "result.txt" -delete 2>/dev/null || true
-    find "$PROJECT_ROOT/src/test/resources" -name "result_baseline.txt" -delete 2>/dev/null || true
-    find "$PROJECT_ROOT/src/test/resources" -name "result_incremental.txt" -delete 2>/dev/null || true
-    find "$PROJECT_ROOT/src/test/resources" -name "result_fusion.txt" -delete 2>/dev/null || true
+    find "$PROJECT_ROOT/src/test/resources" -name "results.txt" -delete 2>/dev/null || true
+    find "$PROJECT_ROOT/src/test/resources" -name "results_baseline.txt" -delete 2>/dev/null || true
+    find "$PROJECT_ROOT/src/test/resources" -name "results_incremental.txt" -delete 2>/dev/null || true
+    find "$PROJECT_ROOT/src/test/resources" -name "results_fusion.txt" -delete 2>/dev/null || true
     find "$PROJECT_ROOT/src/test/resources" -name "taskout*.txt" -delete 2>/dev/null || true
     find "$PROJECT_ROOT/src/test/resources" -name "*.sorted" -delete 2>/dev/null || true
 

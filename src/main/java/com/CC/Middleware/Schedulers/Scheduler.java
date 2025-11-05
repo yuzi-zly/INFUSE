@@ -50,7 +50,13 @@ public abstract class Scheduler {
                 if (i < changes.size() - 1) sb.append(", ");
             }
         }
-        return String.format("[%s] %d: %s", this.strategy, size, sb.toString());
+        if (this.strategy.equals("GEAS_ori")) {
+            return String.format("[%s] %d: %s", "STATIC", size, sb.toString());
+        } else if (this.strategy.equals("INFUSE_S")) {
+            return String.format("[%s] %d: %s", "DYNAMIC", size, sb.toString());
+        } else {
+            return String.format("[%s] %d: %s", this.strategy, size, sb.toString());
+        }
     }
 
     protected void writeTaskInfo(String info) {
