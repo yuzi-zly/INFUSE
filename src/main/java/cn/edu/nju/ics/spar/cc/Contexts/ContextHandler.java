@@ -3,6 +3,7 @@ package cn.edu.nju.ics.spar.cc.Contexts;
 import cn.edu.nju.ics.spar.cc.Patterns.Pattern;
 import cn.edu.nju.ics.spar.cc.Patterns.PatternHandler;
 import cn.edu.nju.ics.spar.cc.Patterns.types.FreshnessType;
+import cn.edu.nju.ics.spar.cc.Util.InfuseException;
 import cn.edu.nju.ics.spar.cc.Util.Loggable;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -63,10 +64,8 @@ public class ContextHandler implements Loggable{
             return generateFromRawDataLine(line);
         }
         else{
-            logger.error("Illegal dataType.");
-            System.exit(1);
+            throw new InfuseException("Illegal dataType: " + dataType + ". Must be either 'change' or 'rawData'");
         }
-        return null;
     }
 
     private List<ContextChange> generateFromChangeLine(String line){

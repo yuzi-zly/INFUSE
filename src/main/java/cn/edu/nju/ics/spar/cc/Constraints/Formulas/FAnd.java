@@ -7,6 +7,7 @@ import cn.edu.nju.ics.spar.cc.Constraints.Runtime.RuntimeNode;
 import cn.edu.nju.ics.spar.cc.Contexts.ContextChange;
 import cn.edu.nju.ics.spar.cc.Middleware.Checkers.Checker;
 import cn.edu.nju.ics.spar.cc.Middleware.Schedulers.Scheduler;
+import cn.edu.nju.ics.spar.cc.Util.InfuseException;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -24,8 +25,7 @@ public class FAnd extends Formula {
 
     public void replaceSubformula(int pos, Formula formula){
         if( pos < 0 || pos >= 2){
-            System.err.println("CHICC: [FAND] position is out of range.");
-            System.exit(1);
+            throw new InfuseException("[FAND] position is out of range: " + pos);
         }
         this.subformulas[pos] = formula;
     }

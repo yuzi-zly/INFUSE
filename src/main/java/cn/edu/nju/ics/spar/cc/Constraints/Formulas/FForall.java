@@ -9,6 +9,7 @@ import cn.edu.nju.ics.spar.cc.Contexts.ContextChange;
 import cn.edu.nju.ics.spar.cc.Middleware.Checkers.*;
 import cn.edu.nju.ics.spar.cc.Middleware.Schedulers.GEAS_opt_c;
 import cn.edu.nju.ics.spar.cc.Middleware.Schedulers.Scheduler;
+import cn.edu.nju.ics.spar.cc.Util.InfuseException;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -160,8 +161,7 @@ public class FForall extends Formula{
                         boolean tmpResult = future.get();
                         result = result && tmpResult;
                     } catch (ExecutionException | InterruptedException e) {
-                        e.printStackTrace();
-                        System.exit(1);
+                        throw new InfuseException("Failed to get result from future in FForall truth evaluation", e);
                     }
                 }
 
@@ -210,14 +210,8 @@ public class FForall extends Formula{
                 }
             }
             if(meet_cnt != 1){
-                for(RuntimeNode child : curNode.getChildren()){
-                    HashMap<String, Context> varEnv = child.getVarEnv();
-                    if(varEnv.get(this.var).equals(delChange.getContext())) {//找到了对应分支
-                        System.out.println("error");
-                    }
-                }
+                throw new InfuseException("Expected exactly 1 matching branch in FForall sideEffectResolution, but found: " + meet_cnt);
             }
-            assert meet_cnt == 1;
         }
         else{
             if(canConcurrent){
@@ -235,8 +229,7 @@ public class FForall extends Formula{
                     try {
                         future.get();
                     } catch (InterruptedException | ExecutionException e) {
-                        e.printStackTrace();
-                        System.exit(1);
+                        throw new InfuseException("Failed to get result from future in FForall side effect", e);
                     }
                 }
 
@@ -669,8 +662,7 @@ public class FForall extends Formula{
                 try {
                     curNode.getChildren().add(future.get());
                 } catch (Exception e) {
-                    System.out.println("get returnNode error");
-                    System.exit(1);
+                    throw new InfuseException("Failed to get returnNode from future in FForall", e);
                 }
             }
         }
@@ -707,8 +699,7 @@ public class FForall extends Formula{
                     boolean tempresult = truth.get();
                     result = result && tempresult;
                 } catch (Exception e) {
-                    System.out.println("get truth error");
-                    System.exit(1);
+                    throw new InfuseException("Failed to get truth from future in FForall", e);
                 }
             }
             curNode.setTruth(result);
@@ -766,8 +757,7 @@ public class FForall extends Formula{
                 try {
                     childLink = entry.getValue().get();
                 } catch (Exception e) {
-                    System.out.println("get links error");
-                    System.exit(1);
+                    throw new InfuseException("Failed to get links from future in FForall", e);
                 }
                 Set<Link> initialSet = new HashSet<>();
                 Link initialLink = new Link(Link.Link_Type.VIOLATED);
@@ -1162,9 +1152,7 @@ public class FForall extends Formula{
                     curNode.getChildren().add(child);
                     child.setParent(curNode);
                 } catch (Exception e) {
-                    System.out.println(e.getMessage());
-                    System.out.println("get returnNode error");
-                    System.exit(1);
+                    throw new InfuseException("Failed to get returnNode from future in FForall DIS", e);
                 }
             }
         }
@@ -1228,10 +1216,7 @@ public class FForall extends Formula{
                 try {
                     future.get();
                 } catch (Exception e) {
-                    e.printStackTrace();
-                    System.out.println(e.getMessage());
-                    System.out.println("get Void error");
-                    System.exit(1);
+                    throw new InfuseException("Failed to get Void from future in FForall DIS", e);
                 }
             }
             //添加分支
@@ -1241,9 +1226,7 @@ public class FForall extends Formula{
                     child.setParent(curNode);
                     curNode.getChildren().add(child);
                 } catch (Exception e) {
-                    System.out.println(e.getMessage());
-                    System.out.println("get returnNode error");
-                    System.exit(1);
+                    throw new InfuseException("Failed to get returnNode from future in FForall DIS (2)", e);
                 }
             }
         }
@@ -1318,9 +1301,7 @@ public class FForall extends Formula{
                             boolean tempresult = truth.get();
                             result = result && tempresult;
                         } catch (Exception e) {
-                            System.out.println(e.getMessage());
-                            System.out.println("get truth error A");
-                            System.exit(1);
+                            throw new InfuseException("Failed to get truth from future in FForall DIS (A)", e);
                         }
                     }
                     //virtual truth
@@ -1376,9 +1357,7 @@ public class FForall extends Formula{
                                 boolean tempresult = truth.get();
                                 result = result && tempresult;
                             } catch (Exception e) {
-                                System.out.println(e.getMessage());
-                                System.out.println("get truth error NA and DE");
-                                System.exit(1);
+                                throw new InfuseException("Failed to get truth from future in FForall DIS (NA and DE)", e);
                             }
                         }
                         //virtual truth
@@ -1430,9 +1409,7 @@ public class FForall extends Formula{
                                 boolean tempresult = truth.get();
                                 result = result && tempresult;
                             } catch (Exception e) {
-                                System.out.println(e.getMessage());
-                                System.out.println("get truth error NA and DNE");
-                                System.exit(1);
+                                throw new InfuseException("Failed to get truth from future in FForall DIS (NA and DNE)", e);
                             }
                         }
                         //virtual truth
@@ -1507,9 +1484,7 @@ public class FForall extends Formula{
                             try {
                                 childLink = entry.getValue().get();
                             } catch (Exception e) {
-                                System.out.println(e.getMessage());
-                                System.out.println("get links error A and C com");
-                                System.exit(1);
+                                throw new InfuseException("Failed to get links from future in FForall DIS (A and C com)", e);
                             }
                             Set<Link> initialSet = new HashSet<>();
                             Link initialLink = new Link(Link.Link_Type.VIOLATED);
@@ -1571,9 +1546,7 @@ public class FForall extends Formula{
                                 try {
                                     childLink = entry.getValue().get();
                                 } catch (Exception e) {
-                                    System.out.println(e.getMessage());
-                                    System.out.println("get links error NA and DE");
-                                    System.exit(1);
+                                    throw new InfuseException("Failed to get links from future in FForall DIS (NA and DE)", e);
                                 }
                                 Set<Link> initialSet = new HashSet<>();
                                 Link initialLink = new Link(Link.Link_Type.VIOLATED);
@@ -1630,9 +1603,7 @@ public class FForall extends Formula{
                                 try {
                                     childLink = entry.getValue().get();
                                 } catch (Exception e) {
-                                    System.out.println(e.getMessage());
-                                    System.out.println("get links error NA and DNE");
-                                    System.exit(1);
+                                    throw new InfuseException("Failed to get links from future in FForall DIS (NA and DNE)", e);
                                 }
                                 Set<Link> initialSet = new HashSet<>();
                                 Link initialLink = new Link(Link.Link_Type.VIOLATED);
@@ -1725,9 +1696,7 @@ public class FForall extends Formula{
                             try {
                                 childLink = entry.getValue().get();
                             } catch (Exception e) {
-                                System.out.println(e.getMessage());
-                                System.out.println("get links error A and C com");
-                                System.exit(1);
+                                throw new InfuseException("Failed to get links from future in FForall DIS (A and C com 2)", e);
                             }
                             Set<Link> initialSet = new HashSet<>();
                             Link initialLink = new Link(Link.Link_Type.VIOLATED);
@@ -1804,9 +1773,7 @@ public class FForall extends Formula{
                                 try {
                                     childLink = entry.getValue().get();
                                 } catch (Exception e) {
-                                    System.out.println(e.getMessage());
-                                    System.out.println("get links error NA and DE");
-                                    System.exit(1);
+                                    throw new InfuseException("Failed to get links from future in FForall DIS (NA and DE 2)", e);
                                 }
                                 Set<Link> initialSet = new HashSet<>();
                                 Link initialLink = new Link(Link.Link_Type.VIOLATED);
@@ -1890,9 +1857,7 @@ public class FForall extends Formula{
                                 try {
                                     childLink = entry.getValue().get();
                                 } catch (Exception e) {
-                                    System.out.println(e.getMessage());
-                                    System.out.println("get links error NA and DNE");
-                                    System.exit(1);
+                                    throw new InfuseException("Failed to get links from future in FForall DIS (NA and DNE 2)", e);
                                 }
                                 Set<Link> initialSet = new HashSet<>();
                                 Link initialLink = new Link(Link.Link_Type.VIOLATED);

@@ -10,6 +10,7 @@ import cn.edu.nju.ics.spar.cc.Contexts.ContextPool;
 import cn.edu.nju.ics.spar.cc.Middleware.Checkers.*;
 import cn.edu.nju.ics.spar.cc.Middleware.Schedulers.*;
 import cn.edu.nju.ics.spar.cc.Patterns.PatternHandler;
+import cn.edu.nju.ics.spar.cc.Util.InfuseException;
 import cn.edu.nju.ics.spar.cc.Util.Loggable;
 
 import java.io.*;
@@ -62,7 +63,7 @@ public class OfflineStarter implements Loggable {
         try {
             buildRulesAndPatterns();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new InfuseException("Failed to build rules and patterns", e);
         }
 
         Object bfuncInstance = null;
@@ -70,7 +71,7 @@ public class OfflineStarter implements Loggable {
             bfuncInstance = loadBfuncFile();
             logger.info("Load bfunctions successfully.");
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new InfuseException("Failed to load bfunction file: " + bfuncFile, e);
         }
 
         String technique = null;
@@ -139,7 +140,7 @@ public class OfflineStarter implements Loggable {
             run();
             incsOutput();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new InfuseException("Failed to run offline checking", e);
         }
     }
 
@@ -171,7 +172,7 @@ public class OfflineStarter implements Loggable {
             bfuncInstance = constructor.newInstance();
         } catch (ClassNotFoundException | InvocationTargetException | NoSuchMethodException | InstantiationException |
                  IllegalAccessException | IOException e) {
-            throw new RuntimeException(e);
+            throw new InfuseException("Failed to load bfunction class from: " + bfuncFile, e);
         }
         return bfuncInstance;
     }

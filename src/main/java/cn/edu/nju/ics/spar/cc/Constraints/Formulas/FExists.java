@@ -9,6 +9,7 @@ import cn.edu.nju.ics.spar.cc.Contexts.ContextChange;
 import cn.edu.nju.ics.spar.cc.Middleware.Checkers.*;
 import cn.edu.nju.ics.spar.cc.Middleware.Schedulers.GEAS_opt_c;
 import cn.edu.nju.ics.spar.cc.Middleware.Schedulers.Scheduler;
+import cn.edu.nju.ics.spar.cc.Util.InfuseException;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -157,8 +158,7 @@ public class FExists extends Formula{
                         boolean tmpResult = future.get();
                         result = result && tmpResult;
                     } catch (ExecutionException | InterruptedException e) {
-                        e.printStackTrace();
-                        System.exit(1);
+                        throw new InfuseException("Failed to get result from future in FExists truth evaluation", e);
                     }
                 }
 
@@ -204,7 +204,9 @@ public class FExists extends Formula{
                     child.getFormula().sideEffectResolution(child, ((FExists)originFormula).getSubformula(), this.var, delChange, addChange, false, scheduler);
                 }
             }
-            assert meet_cnt == 1;
+            if(meet_cnt != 1){
+                throw new InfuseException("Expected exactly 1 matching branch in FExists sideEffectResolution, but found: " + meet_cnt);
+            }
         }
         else{
             if(canConcurrent){
@@ -222,8 +224,7 @@ public class FExists extends Formula{
                     try {
                         future.get();
                     } catch (InterruptedException | ExecutionException e) {
-                        e.printStackTrace();
-                        System.exit(1);
+                        throw new InfuseException("Failed to get result from future in FExists side effect", e);
                     }
                 }
 
@@ -658,8 +659,7 @@ public class FExists extends Formula{
                 try {
                     curNode.getChildren().add(future.get());
                 } catch (Exception e) {
-                   System.out.println("get returnNode error");
-                   System.exit(1);
+                   throw new InfuseException("Failed to get returnNode from future in FExists", e);
                 }
             }
         }
@@ -695,8 +695,7 @@ public class FExists extends Formula{
                     boolean tempresult = truth.get();
                     result = result || tempresult;
                 } catch (Exception e) {
-                    System.out.println("get truth error");
-                    System.exit(1);
+                    throw new InfuseException("Failed to get truth from future in FExists", e);
                 }
             }
             curNode.setTruth(result);
@@ -754,8 +753,7 @@ public class FExists extends Formula{
                 try {
                     childLink = entry.getValue().get();
                 } catch (Exception e) {
-                    System.out.println("get links error");
-                    System.exit(1);
+                    throw new InfuseException("Failed to get links from future in FExists", e);
                 }
                 Set<Link> initialSet = new HashSet<>();
                 Link initialLink = new Link(Link.Link_Type.SATISFIED);
@@ -1148,8 +1146,7 @@ public class FExists extends Formula{
                     child.setParent(curNode);
                     curNode.getChildren().add(child);
                 } catch (Exception e) {
-                    System.out.println("get returnNode error");
-                    System.exit(1);
+                    throw new InfuseException("Failed to get returnNode from future in FExists DIS (3)", e);
                 }
             }
         }
@@ -1212,9 +1209,7 @@ public class FExists extends Formula{
                 try {
                     future.get();
                 } catch (Exception e) {
-                    System.out.println(e.getMessage());
-                    System.out.println("get Void error");
-                    System.exit(1);
+                    throw new InfuseException("Failed to get Void from future in FExists DIS", e);
                 }
             }
 
@@ -1225,9 +1220,7 @@ public class FExists extends Formula{
                     child.setParent(curNode);
                     curNode.getChildren().add(child);
                 } catch (Exception e) {
-                    System.out.println(e.getMessage());
-                    System.out.println("get returnNode error");
-                    System.exit(1);
+                    throw new InfuseException("Failed to get returnNode from future in FExists DIS (2)", e);
                 }
             }
         }
@@ -1298,9 +1291,7 @@ public class FExists extends Formula{
                             boolean tempresult = truth.get();
                             result = result || tempresult;
                         } catch (Exception e) {
-                            System.out.println(e.getMessage());
-                            System.out.println("get truth error");
-                            System.exit(1);
+                            throw new InfuseException("Failed to get truth from future in FExists DIS (A)", e);
                         }
                     }
                     //virtual truth
@@ -1356,9 +1347,7 @@ public class FExists extends Formula{
                                 boolean tempresult = truth.get();
                                 result = result || tempresult;
                             } catch (Exception e) {
-                                System.out.println(e.getMessage());
-                                System.out.println("get truth error");
-                                System.exit(1);
+                                throw new InfuseException("Failed to get truth from future in FExists DIS (NA and DE)", e);
                             }
                         }
                         //virtutal truth
@@ -1408,9 +1397,7 @@ public class FExists extends Formula{
                                 boolean tempresult = truth.get();
                                 result = result || tempresult;
                             } catch (Exception e) {
-                                System.out.println(e.getMessage());
-                                System.out.println("get truth error");
-                                System.exit(1);
+                                throw new InfuseException("Failed to get truth from future in FExists DIS (NA and DNE)", e);
                             }
                         }
                         //virtual truth
@@ -1485,8 +1472,7 @@ public class FExists extends Formula{
                             try {
                                 childLink = entry.getValue().get();
                             } catch (Exception e) {
-                                System.out.println("get links error");
-                                System.exit(1);
+                                throw new InfuseException("Failed to get links from future in FExists DIS", e);
                             }
                             Set<Link> initialSet = new HashSet<>();
                             Link initialLink = new Link(Link.Link_Type.SATISFIED);
@@ -1548,8 +1534,7 @@ public class FExists extends Formula{
                                 try {
                                     childLink = entry.getValue().get();
                                 } catch (Exception e) {
-                                    System.out.println("get links error");
-                                    System.exit(1);
+                                    throw new InfuseException("Failed to get links from future in FExists DIS", e);
                                 }
                                 Set<Link> initialSet = new HashSet<>();
                                 Link initialLink = new Link(Link.Link_Type.SATISFIED);
@@ -1606,8 +1591,7 @@ public class FExists extends Formula{
                                 try {
                                     childLink = entry.getValue().get();
                                 } catch (Exception e) {
-                                    System.out.println("get links error");
-                                    System.exit(1);
+                                    throw new InfuseException("Failed to get links from future in FExists DIS", e);
                                 }
                                 Set<Link> initialSet = new HashSet<>();
                                 Link initialLink = new Link(Link.Link_Type.SATISFIED);
@@ -1698,8 +1682,7 @@ public class FExists extends Formula{
                             try {
                                 childLink = entry.getValue().get();
                             } catch (Exception e) {
-                                System.out.println("get links error");
-                                System.exit(1);
+                                throw new InfuseException("Failed to get links from future in FExists DIS", e);
                             }
                             Set<Link> initialSet = new HashSet<>();
                             Link initialLink = new Link(Link.Link_Type.SATISFIED);
@@ -1776,8 +1759,7 @@ public class FExists extends Formula{
                                 try {
                                     childLink = entry.getValue().get();
                                 } catch (Exception e) {
-                                    System.out.println("get links error");
-                                    System.exit(1);
+                                    throw new InfuseException("Failed to get links from future in FExists DIS", e);
                                 }
                                 Set<Link> initialSet = new HashSet<>();
                                 Link initialLink = new Link(Link.Link_Type.SATISFIED);
@@ -1861,8 +1843,7 @@ public class FExists extends Formula{
                                 try {
                                     childLink = entry.getValue().get();
                                 } catch (Exception e) {
-                                    System.out.println("get links error");
-                                    System.exit(1);
+                                    throw new InfuseException("Failed to get links from future in FExists DIS", e);
                                 }
                                 Set<Link> initialSet = new HashSet<>();
                                 Link initialLink = new Link(Link.Link_Type.SATISFIED);

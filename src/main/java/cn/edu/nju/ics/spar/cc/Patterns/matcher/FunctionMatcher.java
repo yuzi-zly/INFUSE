@@ -3,6 +3,7 @@ package cn.edu.nju.ics.spar.cc.Patterns.matcher;
 
 import cn.edu.nju.ics.spar.cc.Contexts.Context;
 import cn.edu.nju.ics.spar.cc.Patterns.types.MatcherType;
+import cn.edu.nju.ics.spar.cc.Util.InfuseException;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -27,7 +28,7 @@ public class FunctionMatcher extends AbstractMatcher{
             Method m = this.mfuncInstance.getClass().getMethod("mfunc", String.class, Class.forName("java.util.Map"), Class.forName("java.util.List"));
             result = (boolean) m.invoke(this.mfuncInstance, funcName, context.getCtx_fields(), extraArgList);
         } catch (NoSuchMethodException | ClassNotFoundException | InvocationTargetException | IllegalAccessException e) {
-            throw new RuntimeException(e);
+            throw new InfuseException("Failed to invoke match function: " + funcName, e);
         }
         return result;
     }

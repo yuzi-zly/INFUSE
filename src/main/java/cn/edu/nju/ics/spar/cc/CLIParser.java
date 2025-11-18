@@ -1,5 +1,6 @@
 package cn.edu.nju.ics.spar.cc;
 
+import cn.edu.nju.ics.spar.cc.Util.InfuseException;
 import cn.edu.nju.ics.spar.cc.Util.Loggable;
 import org.apache.commons.cli.*;
 
@@ -116,7 +117,7 @@ public class CLIParser implements Loggable {
             cli = cliParser.parse(options, args);
         } catch (ParseException e) {
             helpFormatter.printHelp("java -jar INFUSE-version.jar [Options]", options, true);
-            e.printStackTrace();
+            throw new InfuseException(e);
         }
 
         assert cli != null;
@@ -143,14 +144,14 @@ java -jar INFUSE.jar
             if(!cli.hasOption("mode")){
                 logger.error("\033[91m" + "No specified mode, please use option \"-mode\", available modes: [offline/online]" + "\033[0m");
                 logger.info("\033[92m" + "Use option \"-help\" for more information"  + "\033[0m");
-                System.exit(1);
+                throw new InfuseException("No specified mode");
             }
             else{
                 checkingMode = cli.getOptionValue("mode");
                 if(!checkingMode.equalsIgnoreCase("offline") && !checkingMode.equalsIgnoreCase("online")){
                     logger.error("\033[91m" + "The mode is illegal, available modes: [offline/online]" + "\033[0m");
                     logger.info("\033[92m" + "Use option \"-help\" for more information"  + "\033[0m");
-                    System.exit(1);
+                    throw new InfuseException("The mode is illegal: " + checkingMode);
                 }
             }
             // checking approach
@@ -158,14 +159,14 @@ java -jar INFUSE.jar
             if(!cli.hasOption("approach")){
                 logger.error("\033[91m" + "No specified approach, please use option \"-approach \", available approaches: [ECC+IMD/ECC+GEAS_ori/PCC+IMD/PCC+GEAS_ori/ConC+IMD/ConC+GEAS_ori/INFUSE]" + "\033[0m");
                 logger.info("\033[92m" + "Use option \"-help\" for more information"  + "\033[0m");
-                System.exit(1);
+                throw new InfuseException("No specified approach");
             }
             else{
                 approach = cli.getOptionValue("approach");
                 if(!legalApproaches.contains(approach)){
                     logger.error("\033[91m" + "The approach is illegal, available approaches: [ECC+IMD/ECC+GEAS_ori/PCC+IMD/PCC+GEAS_ori/ConC+IMD/ConC+GEAS_ori/INFUSE]" + "\033[0m");
                     logger.info("\033[92m" + "Use option \"-help\" for more information"  + "\033[0m");
-                    System.exit(1);
+                    throw new InfuseException("The approach is illegal: " + approach);
                 }
             }
             // rule file
@@ -173,7 +174,7 @@ java -jar INFUSE.jar
             if(!cli.hasOption("rules")){
                 logger.error("\033[91m" + "No specified rule file, please use option \"-rules\"" + "\033[0m");
                 logger.info("\033[92m" + "Use option \"-help\" for more information"  + "\033[0m");
-                System.exit(1);
+                throw new InfuseException("No specified rule file");
             }
             else{
                 ruleFile = cli.getOptionValue("rules");
@@ -184,7 +185,7 @@ java -jar INFUSE.jar
             if(!cli.hasOption("bfuncs")){
                 logger.error("\033[91m" + "No specified bfunction file, please use option \"-bfuncs\"" + "\033[0m");
                 logger.info("\033[92m" + "Use option \"-help\" for more information"  + "\033[0m");
-                System.exit(1);
+                throw new InfuseException("No specified bfunction file");
             }
             else{
                 bfuncFile = cli.getOptionValue("bfuncs");
@@ -195,7 +196,7 @@ java -jar INFUSE.jar
             if(!cli.hasOption("patterns")){
                 logger.error("\033[91m" + "No specified pattern file, please use option \"-patterns\"" + "\033[0m");
                 logger.info("\033[92m" + "Use option \"-help\" for more information"  + "\033[0m");
-                System.exit(1);
+                throw new InfuseException("No specified pattern file");
             }
             else{
                 patternFile = cli.getOptionValue("patterns");
@@ -217,7 +218,7 @@ java -jar INFUSE.jar
                 if(!cli.hasOption("data")){
                     logger.error("\033[91m" + "No specified data file in offline mode, please use option \"-data\"" + "\033[0m");
                     logger.info("\033[92m" + "Use option \"-help\" for more information"  + "\033[0m");
-                    System.exit(1);
+                    throw new InfuseException("No specified data file in offline mode");
                 }
                 else{
                     dataFile = cli.getOptionValue("data");
@@ -228,7 +229,7 @@ java -jar INFUSE.jar
                 if(cli.hasOption("data")){
                     logger.error("\033[91m" + "Cannot specify data file in online mode" + "\033[0m");
                     logger.info("\033[92m" + "Use option \"-help\" for more information"  + "\033[0m");
-                    System.exit(1);
+                    throw new InfuseException("Cannot specify data file in online mode");
                 }
             }
             // data type
@@ -236,14 +237,14 @@ java -jar INFUSE.jar
             if(!cli.hasOption("datatype")){
                 logger.error("\033[91m" + "No specified data type, please use option \"-datatype\", available datatypes: [rawData/change]" + "\033[0m");
                 logger.info("\033[92m" + "Use option \"-help\" for more information"  + "\033[0m");
-                System.exit(1);
+                throw new InfuseException("No specified data type");
             }
             else{
                 dataType = cli.getOptionValue("datatype");
                 if(!dataType.equals("rawData") && !dataType.equals("change")){
                     logger.error("\033[91m" + "The data type is illegal, available datatypes: [rawData/change]" + "\033[0m");
                     logger.info("\033[92m" + "Use option \"-help\" for more information"  + "\033[0m");
-                    System.exit(1);
+                    throw new InfuseException("The data type is illegal: " + dataType);
                 }
             }
             // isMG or not

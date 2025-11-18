@@ -18,7 +18,7 @@ application {
 }
 
 group 'cn.edu.nju.ics.spar'
-version '1.0.1-jdk17' 
+version '1.0.2-alpha+testAdaptor.jdk17' 
 
 repositories {
     mavenCentral()

@@ -5,6 +5,7 @@ import cn.edu.nju.ics.spar.cc.Constraints.Formulas.FExists;
 import cn.edu.nju.ics.spar.cc.Constraints.Formulas.FForall;
 import cn.edu.nju.ics.spar.cc.Constraints.Formulas.Formula;
 import cn.edu.nju.ics.spar.cc.Contexts.Context;
+import cn.edu.nju.ics.spar.cc.Util.InfuseException;
 
 import java.util.*;
 
@@ -83,7 +84,7 @@ public class RuntimeNode {
             try {
                 result.add(link.clone());
             } catch (CloneNotSupportedException e) {
-                e.printStackTrace();
+                throw new InfuseException("Failed to clone link", e);
             }
         }
         return result;

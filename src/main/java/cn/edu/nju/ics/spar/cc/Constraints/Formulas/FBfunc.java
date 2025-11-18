@@ -7,6 +7,7 @@ import cn.edu.nju.ics.spar.cc.Contexts.Context;
 import cn.edu.nju.ics.spar.cc.Contexts.ContextChange;
 import cn.edu.nju.ics.spar.cc.Middleware.Checkers.Checker;
 import cn.edu.nju.ics.spar.cc.Middleware.Schedulers.Scheduler;
+import cn.edu.nju.ics.spar.cc.Util.InfuseException;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -350,7 +351,7 @@ public class FBfunc extends Formula {
             Method m = bfuncInstance.getClass().getMethod("bfunc", String.class, Class.forName("java.util.Map"));
             result = (boolean) m.invoke(bfuncInstance,func, vcMap);
         } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException | ClassNotFoundException e) {
-            throw new RuntimeException(e);
+            throw new InfuseException("Failed to invoke bfunction: " + func, e);
         }
         return result;
     }

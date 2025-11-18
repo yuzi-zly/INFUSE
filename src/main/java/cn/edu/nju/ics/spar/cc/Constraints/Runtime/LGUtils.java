@@ -1,5 +1,7 @@
 package cn.edu.nju.ics.spar.cc.Constraints.Runtime;
 
+import cn.edu.nju.ics.spar.cc.Util.InfuseException;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -22,11 +24,7 @@ public class LGUtils {
 
     public Link cartesian(Link link1, Link link2) {
         if (link1.getLinkType() != link2.getLinkType()){
-            System.out.println("LGUtils: [Cartesian] The link type of two links are different.");
-            System.out.println(link1);
-            System.out.println(link2);
-            System.exit(1);
-            return null;
+            throw new InfuseException("LGUtils: [Cartesian] The link type of two links are different: " + link1.getLinkType() + " vs " + link2.getLinkType());
         }
         else{
             Link link = new Link(link1.getLinkType());
@@ -62,7 +60,7 @@ public class LGUtils {
             try {
                 result.add(link.clone());
             } catch (CloneNotSupportedException e) {
-                e.printStackTrace();
+                throw new InfuseException("Failed to clone link", e);
             }
         }
         return result;
