@@ -1,6 +1,7 @@
 package cn.edu.nju.ics.spar.cc.Contexts;
 
 import cn.edu.nju.ics.spar.cc.Constraints.Rules.Rule;
+import cn.edu.nju.ics.spar.cc.Util.InfuseException;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -121,8 +122,7 @@ public class ContextPool {
                 }
             }
             else {
-                System.out.println("Error");
-                System.exit(1);
+                throw new InfuseException("Invalid context change type: " + contextChange.getChange_type());
             }
         }
 

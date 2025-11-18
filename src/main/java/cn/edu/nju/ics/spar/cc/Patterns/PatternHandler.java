@@ -3,6 +3,7 @@ package cn.edu.nju.ics.spar.cc.Patterns;
 import cn.edu.nju.ics.spar.cc.Patterns.matcher.FunctionMatcher;
 import cn.edu.nju.ics.spar.cc.Patterns.matcher.PrimaryKeyMatcher;
 import cn.edu.nju.ics.spar.cc.Patterns.types.FreshnessType;
+import cn.edu.nju.ics.spar.cc.Util.InfuseException;
 import cn.edu.nju.ics.spar.cc.Util.Loggable;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -95,7 +96,7 @@ public class PatternHandler implements Loggable {
             }
         }
         catch (DocumentException | IOException e) {
-            throw new RuntimeException(e);
+            throw new InfuseException("Failed to parse pattern file: " + patternFile, e);
         }
     }
 
@@ -110,7 +111,7 @@ public class PatternHandler implements Loggable {
             mfuncInstance = constructor.newInstance();
         } catch (IOException | ClassNotFoundException | NoSuchMethodException | InvocationTargetException |
                  InstantiationException | IllegalAccessException e) {
-            throw new RuntimeException(e);
+            throw new InfuseException("Failed to load mfunction file: " + mfuncFile, e);
         }
         return mfuncInstance;
     }

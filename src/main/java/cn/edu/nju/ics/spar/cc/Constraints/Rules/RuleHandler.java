@@ -7,11 +7,11 @@ import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 
-import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class RuleHandler implements Loggable {
 
@@ -58,7 +58,8 @@ public class RuleHandler implements Loggable {
                 tmpForall.setSubformula(resolveFormula(eFormula.elements().get(0), varPatternMap, patToFormula, patToRunTimeNode, depth + 1));
                 varPatternMap.put(eFormula.attributeValue("var"), eFormula.attributeValue("in"));
                 patToFormula.put(eFormula.attributeValue("in"), tmpForall);
-                patToRunTimeNode.put(eFormula.attributeValue("in"), new HashSet<>());
+                // 使用线程安全的 Set 实现，支持并发访问
+                patToRunTimeNode.put(eFormula.attributeValue("in"), ConcurrentHashMap.newKeySet());
                 retFormula = tmpForall;
                 break;
             }
@@ -68,7 +69,8 @@ public class RuleHandler implements Loggable {
                 tmpExists.setSubformula(resolveFormula(eFormula.elements().get(0), varPatternMap, patToFormula, patToRunTimeNode, depth + 1));
                 varPatternMap.put(eFormula.attributeValue("var"), eFormula.attributeValue("in"));
                 patToFormula.put(eFormula.attributeValue("in"), tmpExists);
-                patToRunTimeNode.put(eFormula.attributeValue("in"), new HashSet<>());
+                // 使用线程安全的 Set 实现，支持并发访问
+                patToRunTimeNode.put(eFormula.attributeValue("in"), ConcurrentHashMap.newKeySet());
                 retFormula = tmpExists;
                 break;
             }

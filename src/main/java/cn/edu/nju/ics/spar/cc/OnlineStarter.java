@@ -10,6 +10,7 @@ import cn.edu.nju.ics.spar.cc.Contexts.ContextPool;
 import cn.edu.nju.ics.spar.cc.Middleware.Checkers.*;
 import cn.edu.nju.ics.spar.cc.Middleware.Schedulers.*;
 import cn.edu.nju.ics.spar.cc.Patterns.PatternHandler;
+import cn.edu.nju.ics.spar.cc.Util.InfuseException;
 import cn.edu.nju.ics.spar.cc.Util.Loggable;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -71,7 +72,7 @@ public class OnlineStarter implements Loggable {
             try {
                 buildRulesAndPatterns();
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                throw new InfuseException("Failed to build rules and patterns", e);
             }
 
             Object bfuncInstance = null;
@@ -79,7 +80,7 @@ public class OnlineStarter implements Loggable {
                 bfuncInstance = loadBfuncFile();
                 logger.info("Load bfunctions successfully.");
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                throw new InfuseException("Failed to load bfunction file: " + bfuncFile, e);
             }
 
             String technique = null;
@@ -171,7 +172,7 @@ public class OnlineStarter implements Loggable {
                 bfuncInstance = constructor.newInstance();
             } catch (ClassNotFoundException | InvocationTargetException | NoSuchMethodException | InstantiationException |
                      IllegalAccessException | IOException e) {
-                throw new RuntimeException(e);
+                throw new InfuseException("Failed to load bfunction class from: " + bfuncFile, e);
             }
             return bfuncInstance;
         }
@@ -183,8 +184,7 @@ public class OnlineStarter implements Loggable {
                 datagramSocket = new DatagramSocket(6244);
                 datagramSocket.setSoTimeout(10000);
             } catch (SocketException e) {
-                logger.error("Fail to build datagramSocket.");
-                e.printStackTrace();
+                throw new InfuseException("Failed to build datagramSocket on port 6244", e);
             }
             logger.info("Build datagramSocket (localhost:6244) successfully.");
             logger.info("Checking starts at " + new Date(System.currentTimeMillis()));
@@ -200,8 +200,7 @@ public class OnlineStarter implements Loggable {
                     this.scheduler.doSchedule(contextChange);
                     totalTime_det += System.currentTimeMillis() - oldTime_chk;
                 } catch (Exception e) {
-                    logger.error("Fail to schedule \"" + contextChange +"\"");
-                    e.printStackTrace();
+                    throw new InfuseException("Failed to schedule context change: " + contextChange, e);
                 }
             }
             long oldTime_chk = System.currentTimeMillis();
@@ -246,17 +245,14 @@ public class OnlineStarter implements Loggable {
                         changeQueue.addAll(changeList);
                         return changeQueue.poll();
                     } catch (Exception ex) {
-                        throw new RuntimeException(ex);
+                        throw new InfuseException("Failed to generate final context changes on timeout", ex);
                     }
                 }
             } catch (ParseException e) {
-                logger.error("\033[91m" + "SimpleDateFormat failed to parse" + "\033[0m");
-                e.printStackTrace();
+                throw new InfuseException("SimpleDateFormat failed to parse timestamp", e);
             } catch (Exception e) {
-                logger.error("\033[91m" + "Fail to generate changes" + "\033[0m");
-                e.printStackTrace();
+                throw new InfuseException("Failed to generate context changes", e);
             }
-            return null;
         }
 
         private void incsOutput() throws Exception {
@@ -389,7 +385,7 @@ public class OnlineStarter implements Loggable {
             //clientTask.get();
             serverTask.get();
         } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
+            throw new InfuseException("Failed to execute online checking server", e);
         }
     }
 }
