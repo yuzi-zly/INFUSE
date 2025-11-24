@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+
+<rules>
+
+    <rule>
+        <id>rule_llm</id>
+        <formula>
+            <forall var = "v1" in = "pat_00">
+                <or>
+                    <bfunc name = "taxiId_check">
+                        <param pos = "1" var = "v1"/>
+                    </bfunc>
+                    <bfunc name = "expr_check">
+                        <param pos = "1" var = "v1"/>
+                    </bfunc>
+                </or>        
+            </forall>
+        </formula>
+    </rule>
+
+</rules>

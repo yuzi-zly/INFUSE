@@ -1,19 +1,12 @@
 package cn.edu.nju.ics.spar.cc;
 
-import cn.edu.nju.ics.spar.cc.Constraints.Rules.Rule;
-import cn.edu.nju.ics.spar.cc.Constraints.Rules.RuleHandler;
-import cn.edu.nju.ics.spar.cc.Constraints.Runtime.Link;
-import cn.edu.nju.ics.spar.cc.Contexts.Context;
-import cn.edu.nju.ics.spar.cc.Contexts.ContextChange;
-import cn.edu.nju.ics.spar.cc.Contexts.ContextHandler;
-import cn.edu.nju.ics.spar.cc.Contexts.ContextPool;
-import cn.edu.nju.ics.spar.cc.Middleware.Checkers.*;
-import cn.edu.nju.ics.spar.cc.Middleware.Schedulers.*;
-import cn.edu.nju.ics.spar.cc.Patterns.PatternHandler;
-import cn.edu.nju.ics.spar.cc.Util.InfuseException;
-import cn.edu.nju.ics.spar.cc.Util.Loggable;
-
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
@@ -26,6 +19,32 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import cn.edu.nju.ics.spar.cc.Constraints.Rules.Rule;
+import cn.edu.nju.ics.spar.cc.Constraints.Rules.RuleHandler;
+import cn.edu.nju.ics.spar.cc.Constraints.Runtime.Link;
+import cn.edu.nju.ics.spar.cc.Contexts.Context;
+import cn.edu.nju.ics.spar.cc.Contexts.ContextChange;
+import cn.edu.nju.ics.spar.cc.Contexts.ContextHandler;
+import cn.edu.nju.ics.spar.cc.Contexts.ContextPool;
+import cn.edu.nju.ics.spar.cc.IoC.ServiceContainer;
+import cn.edu.nju.ics.spar.cc.Middleware.Checkers.BASE;
+import cn.edu.nju.ics.spar.cc.Middleware.Checkers.Checker;
+import cn.edu.nju.ics.spar.cc.Middleware.Checkers.ConC;
+import cn.edu.nju.ics.spar.cc.Middleware.Checkers.ECC;
+import cn.edu.nju.ics.spar.cc.Middleware.Checkers.INFUSE_C;
+import cn.edu.nju.ics.spar.cc.Middleware.Checkers.PCC;
+import cn.edu.nju.ics.spar.cc.Middleware.Schedulers.GEAS_opt_c;
+import cn.edu.nju.ics.spar.cc.Middleware.Schedulers.GEAS_opt_s;
+import cn.edu.nju.ics.spar.cc.Middleware.Schedulers.GEAS_ori;
+import cn.edu.nju.ics.spar.cc.Middleware.Schedulers.IMD;
+import cn.edu.nju.ics.spar.cc.Middleware.Schedulers.INFUSE_S;
+import cn.edu.nju.ics.spar.cc.Middleware.Schedulers.Scheduler;
+import cn.edu.nju.ics.spar.cc.Patterns.PatternHandler;
+import cn.edu.nju.ics.spar.cc.Services.Impl.LLMServiceImpl;
+import cn.edu.nju.ics.spar.cc.Services.LLMService;
+import cn.edu.nju.ics.spar.cc.Util.InfuseException;
+import cn.edu.nju.ics.spar.cc.Util.Loggable;
 
 public class OfflineStarter implements Loggable {
 
@@ -43,104 +62,141 @@ public class OfflineStarter implements Loggable {
     private PatternHandler patternHandler;
     private ContextHandler contextHandler;
     private ContextPool contextPool;
+    
+    // Flag to determine if we use async mode (e.g., LLM service)
+    private boolean useAsyncMode;
 
 
-    public OfflineStarter() {}
+    public OfflineStarter() {
+        // Register built-in services
+        ServiceContainer.getInstance().registerService(new LLMServiceImpl());
+    }
 
     public void start(String approach, String ruleFile, String bfuncFile, String patternFile, String mfuncFile, String dataFile, String dataType, boolean isMG, String incOutFile){
-        this.ruleFile = ruleFile;
-        this.bfuncFile = bfuncFile;
-        this.patternFile = patternFile;
-        this.mfuncFile = mfuncFile;
-        this.dataFile = dataFile;
-        this.incOutFile = incOutFile;
-
-        this.ruleHandler = new RuleHandler();
-        this.patternHandler = new PatternHandler();
-        this.contextHandler = new ContextHandler(patternHandler, dataType);
-        this.contextPool = new ContextPool();
-
         try {
-            buildRulesAndPatterns();
-        } catch (Exception e) {
-            throw new InfuseException("Failed to build rules and patterns", e);
-        }
+            this.ruleFile = ruleFile;
+            this.bfuncFile = bfuncFile;
+            this.patternFile = patternFile;
+            this.mfuncFile = mfuncFile;
+            this.dataFile = dataFile;
+            this.incOutFile = incOutFile;
 
-        Object bfuncInstance = null;
-        try {
-            bfuncInstance = loadBfuncFile();
-            logger.info("Load bfunctions successfully.");
-        } catch (Exception e) {
-            throw new InfuseException("Failed to load bfunction file: " + bfuncFile, e);
-        }
+            this.ruleHandler = new RuleHandler();
+            this.patternHandler = new PatternHandler();
+            this.contextHandler = new ContextHandler(patternHandler, dataType);
+            this.contextPool = new ContextPool();
 
-        String technique = null;
-        String schedule = null;
-        if(approach.contains("+")){
-            technique = approach.substring(0, approach.indexOf("+"));
-            schedule = approach.substring(approach.indexOf("+") + 1);
-        }
-        else{
-            if(approach.equalsIgnoreCase("INFUSE_base")){
-                technique = "INFUSE_base";
-                schedule = "IMD";
+            try {
+                buildRulesAndPatterns();
+            } catch (Exception e) {
+                throw new InfuseException("Failed to build rules and patterns", e);
             }
-            else if(approach.equalsIgnoreCase("INFUSE")){
-                technique = "INFUSE_C";
-                schedule = "INFUSE_S";
+
+            try {
+                initializeContextPool();
+            } catch (Exception e) {
+                throw new InfuseException("Failed to initialize context pool", e);
             }
-        }
 
-        logger.debug("Checking technique is " + technique + ", scheduling strategy is " + schedule + ", with MG " + (isMG ? "on" : "off"));
-        assert technique != null;
+            Object bfuncInstance = null;
+            try {
+                bfuncInstance = loadBfuncFile();
+                // Inject services into bfunc instance
+                ServiceContainer.getInstance().inject(bfuncInstance);
+                logger.info("Load bfunctions successfully.");
+            } catch (Exception e) {
+                throw new InfuseException("Failed to load bfunction file: " + bfuncFile, e);
+            }
 
-        switch (technique) {
-            case "ECC":
-                this.checker = new ECC(this.ruleHandler, this.contextPool, bfuncInstance, isMG);
-                break;
-            case "ConC":
-                this.checker = new ConC(this.ruleHandler, this.contextPool, bfuncInstance, isMG);
-                break;
-            case "PCC":
-                this.checker = new PCC(this.ruleHandler, this.contextPool, bfuncInstance, isMG);
-                break;
-            case "INFUSE_base":
-                this.checker = new BASE(this.ruleHandler, this.contextPool, bfuncInstance, isMG);
-                break;
-            case "INFUSE_C":
-                this.checker = new INFUSE_C(this.ruleHandler, this.contextPool, bfuncInstance, isMG);
-                break;
-        }
+            String technique = null;
+            String schedule = null;
+            if(approach.contains("+")){
+                technique = approach.substring(0, approach.indexOf("+"));
+                schedule = approach.substring(approach.indexOf("+") + 1);
+            }
+            else{
+                if(approach.equalsIgnoreCase("INFUSE_base")){
+                    technique = "INFUSE_base";
+                    schedule = "IMD";
+                }
+                else if(approach.equalsIgnoreCase("INFUSE")){
+                    technique = "INFUSE_C";
+                    schedule = "INFUSE_S";
+                }
+            }
 
-        switch (schedule){
-            case "IMD":
-                this.scheduler = new IMD(ruleHandler, contextPool, checker);
-                break;
-            case "GEAS_ori":
-                this.scheduler = new GEAS_ori(ruleHandler, contextPool, checker);
-                break;
-            case "GEAS_opt_s":
-                this.scheduler = new GEAS_opt_s(ruleHandler, contextPool, checker);
-                break;
-            case "GEAS_opt_c":
-                this.scheduler = new GEAS_opt_c(ruleHandler, contextPool, checker);
-                break;
-            case "INFUSE_S":
-                this.scheduler = new INFUSE_S(ruleHandler, contextPool, checker);
-                break;
-        }
+            logger.debug("Checking technique is " + technique + ", scheduling strategy is " + schedule + ", with MG " + (isMG ? "on" : "off"));
+            assert technique != null;
 
-        //check init
-        this.checker.checkInit();
-        logger.info("Init checking successfully.");
+            // Check if LLM service is available
+            boolean hasLLMService = ServiceContainer.getInstance().getService(LLMService.class) != null;
+            
+            // Async mode (LLM or other async services) is only supported for ECC technique
+            if (hasLLMService && !technique.equals("ECC")) {
+                throw new InfuseException("Asynchronous service call (e.g., LLM) is only supported for ECC technique. " +
+                        "Current technique: " + technique + ". " +
+                        "Please either use ECC technique or disable async services.");
+            }
+            
+            // Store flag for later use
+            this.useAsyncMode = hasLLMService;
 
-        //run
-        try {
-            logger.info("Start running......");
-            run();
-            incsOutput();
-        } catch (Exception e) {
-            throw new InfuseException("Failed to run offline checking", e);
+            switch (technique) {
+                case "ECC":
+                    this.checker = new ECC(this.ruleHandler, this.contextPool, bfuncInstance, isMG);
+                    break;
+                case "ConC":
+                    this.checker = new ConC(this.ruleHandler, this.contextPool, bfuncInstance, isMG);
+                    break;
+                case "PCC":
+                    this.checker = new PCC(this.ruleHandler, this.contextPool, bfuncInstance, isMG);
+                    break;
+                case "INFUSE_base":
+                    this.checker = new BASE(this.ruleHandler, this.contextPool, bfuncInstance, isMG);
+                    break;
+                case "INFUSE_C":
+                    this.checker = new INFUSE_C(this.ruleHandler, this.contextPool, bfuncInstance, isMG);
+                    break;
+            }
+
+            switch (schedule){
+                case "IMD":
+                    this.scheduler = new IMD(ruleHandler, contextPool, checker);
+                    break;
+                case "GEAS_ori":
+                    this.scheduler = new GEAS_ori(ruleHandler, contextPool, checker);
+                    break;
+                case "GEAS_opt_s":
+                    this.scheduler = new GEAS_opt_s(ruleHandler, contextPool, checker);
+                    break;
+                case "GEAS_opt_c":
+                    this.scheduler = new GEAS_opt_c(ruleHandler, contextPool, checker);
+                    break;
+                case "INFUSE_S":
+                    this.scheduler = new INFUSE_S(ruleHandler, contextPool, checker);
+                    break;
+            }
+
+            //check init
+            if (this.useAsyncMode) {
+                logger.info("Using async-aware mode for initial checking...");
+                this.checker.checkInitAsync();
+            } else {
+                this.checker.checkInit();
+            }
+            logger.info("Init checking successfully.");
+
+            //run
+            try {
+                logger.info("Start running......");
+                run();
+                incsOutput();
+            } catch (Exception e) {
+                throw new InfuseException("Failed to run offline checking", e);
+            }
+        } finally {
+            // Cleanup services
+            ServiceContainer.getInstance().clear();
         }
     }
 
@@ -149,7 +205,9 @@ public class OfflineStarter implements Loggable {
         logger.info("Build rules successfully.");
         this.patternHandler.buildPatterns(patternFile, mfuncFile);
         logger.info("Build patterns successfully.");
+    }
 
+    private void initializeContextPool() throws Exception {
         for(Rule rule : ruleHandler.getRuleMap().values()){
             contextPool.poolInit(rule);
             //S-condition
@@ -161,6 +219,8 @@ public class OfflineStarter implements Loggable {
         for(String pattern_id : patternHandler.getPatternMap().keySet()){
             contextPool.threeSetsInit(pattern_id);
         }
+
+        contextHandler.initActivateContextsNumberMap(patternHandler.getPatternMap());
     }
 
     private Object loadBfuncFile() {
@@ -208,6 +268,19 @@ public class OfflineStarter implements Loggable {
         OutputStream outputStream = Files.newOutputStream(Paths.get(incOutFile));
         OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
         BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
+        
+        if (this.useAsyncMode) {
+            // Async mode: use AsyncTruthValue-based links
+            incsOutputAsync(bufferedWriter);
+        } else {
+            // Sync mode: use boolean-based links
+            incsOutputSync(bufferedWriter);
+        }
+        
+        bufferedWriter.close();
+    }
+    
+    private void incsOutputSync(BufferedWriter bufferedWriter) throws Exception {
         //对每个rule遍历
         for(Map.Entry<String, List<Map.Entry<Boolean, Set<Link>>>> entry : this.checker.getRuleLinksMap().entrySet()){
             StringBuilder stringBuilder = new StringBuilder();
@@ -250,10 +323,62 @@ public class OfflineStarter implements Loggable {
                 bufferedWriter.flush();
             }
         }
-
-        bufferedWriter.close();
-        outputStreamWriter.close();
-        outputStream.close();
+    }
+    
+    private void incsOutputAsync(BufferedWriter bufferedWriter) throws Exception {
+        //对每个rule遍历 (Async mode uses AsyncTruthValue)
+        for(Map.Entry<String, List<Map.Entry<RuntimeNode.AsyncTruthValue, Set<Link>>>> entry : this.checker.getRuleLinksMapAsync().entrySet()){
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append(entry.getKey()).append('(');
+            //累计每一次的link，分为violated和satisfied
+            Set<Link> accumVioLinks = new HashSet<>();
+            Set<Link> accumSatLinks = new HashSet<>();
+            
+            for(Map.Entry<RuntimeNode.AsyncTruthValue, Set<Link>> resultEntry : entry.getValue()){
+                // Map AsyncTruthValue to violated/satisfied
+                if(resultEntry.getKey() == RuntimeNode.AsyncTruthValue.DETERMINED_TRUE){
+                    accumSatLinks.addAll(resultEntry.getValue());
+                }
+                else if(resultEntry.getKey() == RuntimeNode.AsyncTruthValue.DETERMINED_FALSE){
+                    accumVioLinks.addAll(resultEntry.getValue());
+                }
+                // PENDING_ASYNC: conservatively treat as both violated and satisfied
+                else {
+                    accumVioLinks.addAll(resultEntry.getValue());
+                    accumSatLinks.addAll(resultEntry.getValue());
+                }
+            }
+            
+            // Output violated links
+            for(Link link : accumVioLinks){
+                Link.Link_Type linkType = Link.Link_Type.VIOLATED;
+                StringBuilder tmpBuilder = new StringBuilder(stringBuilder);
+                tmpBuilder.append(linkType.name()).append(",{");
+                //对当前每个link的变量赋值遍历
+                for(Map.Entry<String, Context> va : link.getVaSet()){
+                    tmpBuilder.append("(").append(va.getKey()).append(",").append(Integer.parseInt(va.getValue().getCtx_id().substring(4)) + 1).append("),");
+                }
+                tmpBuilder.deleteCharAt(tmpBuilder.length() - 1);
+                tmpBuilder.append("})");
+                bufferedWriter.write(tmpBuilder.toString() + "\n");
+                bufferedWriter.flush();
+            }
+            
+            // Output satisfied links
+            for(Link link : accumSatLinks){
+                Link.Link_Type linkType = Link.Link_Type.SATISFIED;
+                StringBuilder tmpBuilder = new StringBuilder(stringBuilder);
+                tmpBuilder.append(linkType.name()).append(",{");
+                //对当前每个link的变量赋值遍历
+                for(Map.Entry<String, Context> va : link.getVaSet()){
+                    tmpBuilder.append("(").append(va.getKey()).append(",").append(Integer.parseInt(va.getValue().getCtx_id().substring(4)) + 1).append("),");
+                }
+                tmpBuilder.deleteCharAt(tmpBuilder.length() - 1);
+                tmpBuilder.append("})");
+                bufferedWriter.write(tmpBuilder.toString() + "\n");
+                bufferedWriter.flush();
+            }
+        }
     }
 
 }

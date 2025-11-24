@@ -1,16 +1,17 @@
 package cn.edu.nju.ics.spar.cc.Constraints.Formulas;
 
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import cn.edu.nju.ics.spar.cc.Constraints.Rules.Rule;
 import cn.edu.nju.ics.spar.cc.Constraints.Runtime.LGUtils;
 import cn.edu.nju.ics.spar.cc.Constraints.Runtime.Link;
 import cn.edu.nju.ics.spar.cc.Constraints.Runtime.RuntimeNode;
+import cn.edu.nju.ics.spar.cc.Constraints.Runtime.RuntimeNode.AsyncTruthValue;
 import cn.edu.nju.ics.spar.cc.Contexts.ContextChange;
 import cn.edu.nju.ics.spar.cc.Middleware.Checkers.Checker;
 import cn.edu.nju.ics.spar.cc.Middleware.Schedulers.Scheduler;
-
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 public class FNot extends Formula{
     private Formula subformula;
@@ -177,6 +178,73 @@ public class FNot extends Formula{
         // only one case: all
         Set<Link> ret = runtimeNode.getFormula().linksGeneration_ECC(runtimeNode, ((FNot)originFormula).getSubformula(), prevSubstantialNodes, checker);
         Set<Link> result = lgUtils.flipSet(ret);
+        curNode.setLinks(result);
+        return curNode.getLinks();
+    }
+
+    // Async-aware ECC: truth evaluation (negate child's async truth value)
+    @Override
+    public AsyncTruthValue truthEvaluationAsync_ECC(RuntimeNode curNode, Formula originFormula, Checker checker) {
+        RuntimeNode child = curNode.getChildren().get(0);
+        
+        // Evaluate child
+        AsyncTruthValue childResult = child.getFormula().truthEvaluationAsync_ECC(
+            child, ((FNot)originFormula).getSubformula(), checker);
+        
+        // Negate the result
+        AsyncTruthValue finalResult;
+        if (childResult == AsyncTruthValue.DETERMINED_TRUE) {
+            finalResult = AsyncTruthValue.DETERMINED_FALSE;  // !TRUE = FALSE
+        } else if (childResult == AsyncTruthValue.DETERMINED_FALSE) {
+            finalResult = AsyncTruthValue.DETERMINED_TRUE;   // !FALSE = TRUE
+        } else {
+            finalResult = AsyncTruthValue.PENDING_ASYNC;     // !PENDING = PENDING
+        }
+        
+        curNode.setAsyncTruthValue(finalResult);
+        return finalResult;
+    }
+
+    // Update truth value after executeAllAsync (propagate from child)
+    @Override
+    public void updateTruthValueAsync(RuntimeNode curNode, Formula originFormula) {
+        // Only update if current node is PENDING
+        if (curNode.getAsyncTruthValue() != AsyncTruthValue.PENDING_ASYNC) {
+            return;
+        }
+        
+        RuntimeNode child = curNode.getChildren().get(0);
+        
+        // Recursively update child first
+        child.getFormula().updateTruthValueAsync(child, ((FNot)originFormula).getSubformula());
+        
+        // Recalculate current node's truth value (negate child)
+        AsyncTruthValue childResult = child.getAsyncTruthValue();
+        
+        // After executeAllAsync, child should be TRUE or FALSE (no PENDING)
+        AsyncTruthValue finalResult;
+        if (childResult == AsyncTruthValue.DETERMINED_TRUE) {
+            finalResult = AsyncTruthValue.DETERMINED_FALSE;
+        } else {
+            // Child is FALSE
+            assert childResult == AsyncTruthValue.DETERMINED_FALSE;
+            finalResult = AsyncTruthValue.DETERMINED_TRUE;
+        }
+        
+        curNode.setAsyncTruthValue(finalResult);
+    }
+    
+    // Async-aware ECC: links generation (flip child's links)
+    @Override
+    public Set<Link> linksGenerationAsync_ECC(RuntimeNode curNode, Formula originFormula, Checker checker) {
+        RuntimeNode child = curNode.getChildren().get(0);
+        LGUtils lgUtils = new LGUtils();
+        
+        // Get child's links and flip them
+        Set<Link> childLinks = child.getFormula().linksGenerationAsync_ECC(
+            child, ((FNot)originFormula).getSubformula(), checker);
+        Set<Link> result = lgUtils.flipSet(childLinks);
+        
         curNode.setLinks(result);
         return curNode.getLinks();
     }

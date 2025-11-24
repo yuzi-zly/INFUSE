@@ -1,13 +1,17 @@
 package cn.edu.nju.ics.spar.cc.Constraints.Runtime;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import cn.edu.nju.ics.spar.cc.Constraints.Formulas.FBfunc;
 import cn.edu.nju.ics.spar.cc.Constraints.Formulas.FExists;
 import cn.edu.nju.ics.spar.cc.Constraints.Formulas.FForall;
 import cn.edu.nju.ics.spar.cc.Constraints.Formulas.Formula;
 import cn.edu.nju.ics.spar.cc.Contexts.Context;
 import cn.edu.nju.ics.spar.cc.Util.InfuseException;
-
-import java.util.*;
 
 public class RuntimeNode {
 
@@ -30,6 +34,20 @@ public class RuntimeNode {
     private RuntimeNode parent;
     private final HashMap<Context, Virtual_Truth_Type> kidsVT; //only for forall and exists
 
+    //for async external calls (e.g., LLM, database, API)
+    public enum AsyncTruthValue {
+        /** Determined as true (does not depend on async call) */
+        DETERMINED_TRUE,
+        
+        /** Determined as false (does not depend on async call) */
+        DETERMINED_FALSE,
+        
+        /** Depends on async call, result is pending */
+        PENDING_ASYNC
+    }
+    private AsyncTruthValue asyncTruthValue;
+    private String asyncRequestId;
+
     //constructor
     public RuntimeNode(Formula formula){
         //need to create a new formula
@@ -40,6 +58,11 @@ public class RuntimeNode {
         this.parent = null;
         this.kidsVT = new HashMap<>();
         this.links = new HashSet<>();
+        
+        // Initialize async resolution fields
+        this.asyncTruthValue = null; // Will be set during truthEvaluationAsync_ECC phase
+        this.asyncRequestId = null; // Only set if async call is pending
+        
         if(formula.getFormula_type() == Formula.Formula_Type.FORALL){
             this.setTruth(true);
             this.setOptTruth(true);
@@ -133,6 +156,22 @@ public class RuntimeNode {
 
     public void setDepth(int depth) {
         this.depth = depth;
+    }
+
+    public AsyncTruthValue getAsyncTruthValue() {
+        return asyncTruthValue;
+    }
+
+    public void setAsyncTruthValue(AsyncTruthValue asyncTruthValue) {
+        this.asyncTruthValue = asyncTruthValue;
+    }
+
+    public String getAsyncRequestId() {
+        return asyncRequestId;
+    }
+
+    public void setAsyncRequestId(String asyncRequestId) {
+        this.asyncRequestId = asyncRequestId;
     }
 
     public void setChildren(List<RuntimeNode> children) {

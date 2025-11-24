@@ -2,10 +2,6 @@ import java.util.Map;
 
 public class Bfunction {
 
-    public void test(String funcName){
-        System.out.println(funcName);
-    }
-
     public boolean bfunc(String funcName, Map<String, Map<String, String>> vcMap) throws Exception {
         switch (funcName){
             case "same": return funcSame(vcMap);

@@ -1,17 +1,18 @@
 package cn.edu.nju.ics.spar.cc.Constraints.Formulas;
 
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import cn.edu.nju.ics.spar.cc.Constraints.Rules.Rule;
 import cn.edu.nju.ics.spar.cc.Constraints.Runtime.LGUtils;
 import cn.edu.nju.ics.spar.cc.Constraints.Runtime.Link;
 import cn.edu.nju.ics.spar.cc.Constraints.Runtime.RuntimeNode;
+import cn.edu.nju.ics.spar.cc.Constraints.Runtime.RuntimeNode.AsyncTruthValue;
 import cn.edu.nju.ics.spar.cc.Contexts.ContextChange;
 import cn.edu.nju.ics.spar.cc.Middleware.Checkers.Checker;
 import cn.edu.nju.ics.spar.cc.Middleware.Schedulers.Scheduler;
 import cn.edu.nju.ics.spar.cc.Util.InfuseException;
-
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 public class FAnd extends Formula {
     private final Formula[] subformulas;
@@ -268,6 +269,139 @@ public class FAnd extends Formula {
                 result.addAll(ret2);
             }
         }
+        curNode.setLinks(result);
+        return curNode.getLinks();
+    }
+
+    // Async-aware ECC: truth evaluation with short-circuit optimization
+    @Override
+    public AsyncTruthValue truthEvaluationAsync_ECC(RuntimeNode curNode, Formula originFormula, Checker checker) {
+        RuntimeNode child1 = curNode.getChildren().get(0);
+        RuntimeNode child2 = curNode.getChildren().get(1);
+        
+        // Evaluate child1
+        AsyncTruthValue result1 = child1.getFormula().truthEvaluationAsync_ECC(
+            child1, ((FAnd)originFormula).getSubformulas()[0], checker);
+        
+        // Short-circuit: If child1 is FALSE, entire AND is FALSE
+        if (result1 == AsyncTruthValue.DETERMINED_FALSE) {
+            curNode.setAsyncTruthValue(AsyncTruthValue.DETERMINED_FALSE);
+            return AsyncTruthValue.DETERMINED_FALSE;
+        }
+        
+        // Evaluate child2
+        AsyncTruthValue result2 = child2.getFormula().truthEvaluationAsync_ECC(
+            child2, ((FAnd)originFormula).getSubformulas()[1], checker);
+        
+        // Short-circuit: If child2 is FALSE, entire AND is FALSE
+        if (result2 == AsyncTruthValue.DETERMINED_FALSE) {
+            curNode.setAsyncTruthValue(AsyncTruthValue.DETERMINED_FALSE);
+            return AsyncTruthValue.DETERMINED_FALSE;
+        }
+        
+        // Both children are not FALSE: determine final result
+        AsyncTruthValue finalResult;
+        if (result1 == AsyncTruthValue.DETERMINED_TRUE && result2 == AsyncTruthValue.DETERMINED_TRUE) {
+            finalResult = AsyncTruthValue.DETERMINED_TRUE;
+        } else {
+            // At least one is PENDING
+            finalResult = AsyncTruthValue.PENDING_ASYNC;
+        }
+        
+        curNode.setAsyncTruthValue(finalResult);
+        return finalResult;
+    }
+
+    // Update truth value after executeAllAsync (propagate from children)
+    @Override
+    public void updateTruthValueAsync(RuntimeNode curNode, Formula originFormula) {
+        // Only update if current node is PENDING (short-circuited nodes don't need update)
+        if (curNode.getAsyncTruthValue() != AsyncTruthValue.PENDING_ASYNC) {
+            return;
+        }
+        
+        RuntimeNode child1 = curNode.getChildren().get(0);
+        RuntimeNode child2 = curNode.getChildren().get(1);
+        
+        // Recursively update children first
+        child1.getFormula().updateTruthValueAsync(child1, ((FAnd)originFormula).getSubformulas()[0]);
+        child2.getFormula().updateTruthValueAsync(child2, ((FAnd)originFormula).getSubformulas()[1]);
+        
+        // Recalculate current node's truth value (children are now determined after executeAllAsync)
+        AsyncTruthValue result1 = child1.getAsyncTruthValue();
+        AsyncTruthValue result2 = child2.getAsyncTruthValue();
+        
+        // After executeAllAsync, children should be TRUE or FALSE (no PENDING)
+        AsyncTruthValue finalResult;
+        if (result1 == AsyncTruthValue.DETERMINED_FALSE || result2 == AsyncTruthValue.DETERMINED_FALSE) {
+            finalResult = AsyncTruthValue.DETERMINED_FALSE;
+        } else {
+            // Both are TRUE
+            assert result1 == AsyncTruthValue.DETERMINED_TRUE && result2 == AsyncTruthValue.DETERMINED_TRUE;
+            finalResult = AsyncTruthValue.DETERMINED_TRUE;
+        }
+        
+        curNode.setAsyncTruthValue(finalResult);
+    }
+
+    // Async-aware ECC: links generation (no MG support, simplified)
+    @Override
+    public Set<Link> linksGenerationAsync_ECC(RuntimeNode curNode, Formula originFormula, Checker checker) {
+        Set<Link> result = new HashSet<>();
+        RuntimeNode child1 = curNode.getChildren().get(0);
+        RuntimeNode child2 = curNode.getChildren().get(1);
+        LGUtils lgUtils = new LGUtils();
+        
+        AsyncTruthValue status1 = child1.getAsyncTruthValue();
+        AsyncTruthValue status2 = child2.getAsyncTruthValue();
+        
+        // Case analysis based on async truth values
+        if (status1 == AsyncTruthValue.DETERMINED_TRUE) {
+            if (status2 == AsyncTruthValue.DETERMINED_TRUE) {
+                // T && T: Cartesian product
+                Set<Link> ret1 = child1.getFormula().linksGenerationAsync_ECC(
+                    child1, ((FAnd)originFormula).getSubformulas()[0], checker);
+                Set<Link> ret2 = child2.getFormula().linksGenerationAsync_ECC(
+                    child2, ((FAnd)originFormula).getSubformulas()[1], checker);
+                result.addAll(lgUtils.cartesianSet(ret1, ret2));
+            } else {
+                assert status2 == AsyncTruthValue.DETERMINED_FALSE;
+                // T && F: Only false branch matters
+                child1.getFormula().linksGenerationAsync_ECC(
+                    child1, ((FAnd)originFormula).getSubformulas()[0], checker);
+                Set<Link> ret2 = child2.getFormula().linksGenerationAsync_ECC(
+                    child2, ((FAnd)originFormula).getSubformulas()[1], checker);
+                result.addAll(ret2);
+            }
+        } else if (status1 == AsyncTruthValue.DETERMINED_FALSE) {
+            if (status2 == AsyncTruthValue.DETERMINED_TRUE) {
+                // F && T: Only false branch matters
+                Set<Link> ret1 = child1.getFormula().linksGenerationAsync_ECC(
+                    child1, ((FAnd)originFormula).getSubformulas()[0], checker);
+                child2.getFormula().linksGenerationAsync_ECC(
+                    child2, ((FAnd)originFormula).getSubformulas()[1], checker);
+                result.addAll(ret1);
+            } else if (status2 == AsyncTruthValue.DETERMINED_FALSE) {
+                // F && F: Both branches matter
+                Set<Link> ret1 = child1.getFormula().linksGenerationAsync_ECC(
+                    child1, ((FAnd)originFormula).getSubformulas()[0], checker);
+                Set<Link> ret2 = child2.getFormula().linksGenerationAsync_ECC(
+                    child2, ((FAnd)originFormula).getSubformulas()[1], checker);
+                result.addAll(ret1);
+                result.addAll(ret2);
+            } else {
+                // F && PENDING
+                Set<Link> ret1 = child1.getFormula().linksGenerationAsync_ECC(
+                    child1, ((FAnd)originFormula).getSubformulas()[0], checker);
+                result.addAll(ret1);
+            }
+        } else {
+            assert status2 == AsyncTruthValue.DETERMINED_FALSE;
+            Set<Link> ret2 = child2.getFormula().linksGenerationAsync_ECC(
+                child2, ((FAnd)originFormula).getSubformulas()[1], checker);
+            result.addAll(ret2);
+        }
+        
         curNode.setLinks(result);
         return curNode.getLinks();
     }

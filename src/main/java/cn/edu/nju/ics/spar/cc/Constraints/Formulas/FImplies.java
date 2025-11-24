@@ -1,17 +1,18 @@
 package cn.edu.nju.ics.spar.cc.Constraints.Formulas;
 
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import cn.edu.nju.ics.spar.cc.Constraints.Rules.Rule;
 import cn.edu.nju.ics.spar.cc.Constraints.Runtime.LGUtils;
 import cn.edu.nju.ics.spar.cc.Constraints.Runtime.Link;
 import cn.edu.nju.ics.spar.cc.Constraints.Runtime.RuntimeNode;
+import cn.edu.nju.ics.spar.cc.Constraints.Runtime.RuntimeNode.AsyncTruthValue;
 import cn.edu.nju.ics.spar.cc.Contexts.ContextChange;
 import cn.edu.nju.ics.spar.cc.Middleware.Checkers.Checker;
 import cn.edu.nju.ics.spar.cc.Middleware.Schedulers.Scheduler;
 import cn.edu.nju.ics.spar.cc.Util.InfuseException;
-
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 public class FImplies extends Formula{
     private final Formula[] subformulas;
@@ -261,6 +262,138 @@ public class FImplies extends Formula{
                 result.addAll(runtimeNode2.getFormula().linksGeneration_ECC(runtimeNode2, ((FImplies) originFormula).getSubformulas()[1], prevSubstantialNodes, checker));
             }
         }
+        curNode.setLinks(result);
+        return curNode.getLinks();
+    }
+
+    // Async-aware ECC: truth evaluation with short-circuit optimization
+    // A -> B is equivalent to !A || B
+    @Override
+    public AsyncTruthValue truthEvaluationAsync_ECC(RuntimeNode curNode, Formula originFormula, Checker checker) {
+        RuntimeNode antecedent = curNode.getChildren().get(0);  // A
+        RuntimeNode consequent = curNode.getChildren().get(1);  // B
+        
+        // Evaluate antecedent (A)
+        AsyncTruthValue resultA = antecedent.getFormula().truthEvaluationAsync_ECC(
+            antecedent, ((FImplies)originFormula).getSubformulas()[0], checker);
+        
+        // Short-circuit: If A is FALSE, then !A is TRUE, so (A -> B) is TRUE
+        if (resultA == AsyncTruthValue.DETERMINED_FALSE) {
+            curNode.setAsyncTruthValue(AsyncTruthValue.DETERMINED_TRUE);
+            return AsyncTruthValue.DETERMINED_TRUE;
+        }
+        
+        // Evaluate consequent (B)
+        AsyncTruthValue resultB = consequent.getFormula().truthEvaluationAsync_ECC(
+            consequent, ((FImplies)originFormula).getSubformulas()[1], checker);
+        
+        // Short-circuit: If B is TRUE, entire IMPLIES is TRUE (A -> TRUE = TRUE)
+        if (resultB == AsyncTruthValue.DETERMINED_TRUE) {
+            curNode.setAsyncTruthValue(AsyncTruthValue.DETERMINED_TRUE);
+            return AsyncTruthValue.DETERMINED_TRUE;
+        }
+        
+        // A is not FALSE (already short-circuited), B is not TRUE: determine final result
+        AsyncTruthValue finalResult;
+        if (resultA == AsyncTruthValue.DETERMINED_TRUE && resultB == AsyncTruthValue.DETERMINED_FALSE) {
+            // TRUE -> FALSE = FALSE
+            finalResult = AsyncTruthValue.DETERMINED_FALSE;
+        } else {
+            // At least one is PENDING
+            finalResult = AsyncTruthValue.PENDING_ASYNC;
+        }
+        
+        curNode.setAsyncTruthValue(finalResult);
+        return finalResult;
+    }
+
+    // Update truth value after executeAllAsync (propagate from children)
+    @Override
+    public void updateTruthValueAsync(RuntimeNode curNode, Formula originFormula) {
+        // Only update if current node is PENDING (short-circuited nodes don't need update)
+        if (curNode.getAsyncTruthValue() != AsyncTruthValue.PENDING_ASYNC) {
+            return;
+        }
+        
+        RuntimeNode antecedent = curNode.getChildren().get(0);
+        RuntimeNode consequent = curNode.getChildren().get(1);
+        
+        // Recursively update children first
+        antecedent.getFormula().updateTruthValueAsync(antecedent, ((FImplies)originFormula).getSubformulas()[0]);
+        consequent.getFormula().updateTruthValueAsync(consequent, ((FImplies)originFormula).getSubformulas()[1]);
+        
+        // Recalculate current node's truth value (A -> B = !A || B)
+        AsyncTruthValue resultA = antecedent.getAsyncTruthValue();
+        AsyncTruthValue resultB = consequent.getAsyncTruthValue();
+        
+        // After executeAllAsync, children should be TRUE or FALSE (no PENDING)
+        AsyncTruthValue finalResult;
+        if (resultA == AsyncTruthValue.DETERMINED_FALSE || resultB == AsyncTruthValue.DETERMINED_TRUE) {
+            finalResult = AsyncTruthValue.DETERMINED_TRUE;
+        } else {
+            // A is TRUE and B is FALSE
+            assert resultA == AsyncTruthValue.DETERMINED_TRUE && resultB == AsyncTruthValue.DETERMINED_FALSE;
+            finalResult = AsyncTruthValue.DETERMINED_FALSE;
+        }
+        
+        curNode.setAsyncTruthValue(finalResult);
+    }
+
+    // Async-aware ECC: links generation (no MG support, simplified)
+    // A -> B is equivalent to !A || B
+    @Override
+    public Set<Link> linksGenerationAsync_ECC(RuntimeNode curNode, Formula originFormula, Checker checker) {
+        Set<Link> result = new HashSet<>();
+        RuntimeNode antecedent = curNode.getChildren().get(0);  // A
+        RuntimeNode consequent = curNode.getChildren().get(1);  // B
+        LGUtils lgUtils = new LGUtils();
+        
+        AsyncTruthValue statusA = antecedent.getAsyncTruthValue();
+        AsyncTruthValue statusB = consequent.getAsyncTruthValue();
+        
+        // Case analysis based on async truth values (simplified, no MG)
+        if (statusA == AsyncTruthValue.DETERMINED_TRUE) {
+            if (statusB == AsyncTruthValue.DETERMINED_TRUE) {
+                // T -> T: Only consequent matters
+                antecedent.getFormula().linksGenerationAsync_ECC(
+                    antecedent, ((FImplies)originFormula).getSubformulas()[0], checker);
+                result.addAll(consequent.getFormula().linksGenerationAsync_ECC(
+                    consequent, ((FImplies)originFormula).getSubformulas()[1], checker));
+            } else {
+                // T -> F: Cartesian product of flip(!A) and B
+                Set<Link> retA = antecedent.getFormula().linksGenerationAsync_ECC(
+                    antecedent, ((FImplies)originFormula).getSubformulas()[0], checker);
+                Set<Link> retB = consequent.getFormula().linksGenerationAsync_ECC(
+                    consequent, ((FImplies)originFormula).getSubformulas()[1], checker);
+                result.addAll(lgUtils.cartesianSet(lgUtils.flipSet(retA), retB));
+            }
+        } else if (statusA == AsyncTruthValue.DETERMINED_FALSE) {
+            if (statusB == AsyncTruthValue.DETERMINED_TRUE) {
+                // F -> T: Both flip(!A) and B contribute
+                Set<Link> retA = antecedent.getFormula().linksGenerationAsync_ECC(
+                    antecedent, ((FImplies)originFormula).getSubformulas()[0], checker);
+                Set<Link> retB = consequent.getFormula().linksGenerationAsync_ECC(
+                    consequent, ((FImplies)originFormula).getSubformulas()[1], checker);
+                result.addAll(lgUtils.flipSet(retA));
+                result.addAll(retB);
+            } else {
+                // F -> F: Only flip(!A) matters (since !A is TRUE)
+                Set<Link> retA = antecedent.getFormula().linksGenerationAsync_ECC(
+                    antecedent, ((FImplies)originFormula).getSubformulas()[0], checker);
+                consequent.getFormula().linksGenerationAsync_ECC(
+                    consequent, ((FImplies)originFormula).getSubformulas()[1], checker);
+                result.addAll(lgUtils.flipSet(retA));
+            }
+        } else {
+            // PENDING_ASYNC involved: collect all possible links conservatively
+            Set<Link> retA = antecedent.getFormula().linksGenerationAsync_ECC(
+                antecedent, ((FImplies)originFormula).getSubformulas()[0], checker);
+            Set<Link> retB = consequent.getFormula().linksGenerationAsync_ECC(
+                consequent, ((FImplies)originFormula).getSubformulas()[1], checker);
+            result.addAll(lgUtils.flipSet(retA));
+            result.addAll(retB);
+        }
+        
         curNode.setLinks(result);
         return curNode.getLinks();
     }

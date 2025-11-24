@@ -4,6 +4,7 @@ import cn.edu.nju.ics.spar.cc.Constraints.Rules.Rule;
 import cn.edu.nju.ics.spar.cc.Constraints.Runtime.LGUtils;
 import cn.edu.nju.ics.spar.cc.Constraints.Runtime.Link;
 import cn.edu.nju.ics.spar.cc.Constraints.Runtime.RuntimeNode;
+import cn.edu.nju.ics.spar.cc.Constraints.Runtime.RuntimeNode.AsyncTruthValue;
 import cn.edu.nju.ics.spar.cc.Contexts.Context;
 import cn.edu.nju.ics.spar.cc.Contexts.ContextChange;
 import cn.edu.nju.ics.spar.cc.Middleware.Checkers.*;
@@ -416,6 +417,92 @@ public class FExists extends Formula{
             // case 3: MG && false --> none
             // do nothing
         }
+        curNode.setLinks(result);
+        return curNode.getLinks();
+    }
+
+    // Async-aware ECC: truth evaluation (exists is like OR over all instances)
+    // No short-circuit: must evaluate all children
+    @Override
+    public AsyncTruthValue truthEvaluationAsync_ECC(RuntimeNode curNode, Formula originFormula, Checker checker) {
+        AsyncTruthValue finalResult = AsyncTruthValue.DETERMINED_FALSE; // Default for exists (at least one must be true)
+        
+        // Evaluate all children (no short-circuit)
+        for (RuntimeNode child : curNode.getChildren()) {
+            AsyncTruthValue childResult = child.getFormula().truthEvaluationAsync_ECC(
+                child, ((FExists)originFormula).getSubformula(), checker);
+            
+            // Update finalResult based on priority: PENDING > TRUE > FALSE
+            if (childResult == AsyncTruthValue.PENDING_ASYNC) {
+                finalResult = AsyncTruthValue.PENDING_ASYNC; // Highest priority
+            } else if (childResult == AsyncTruthValue.DETERMINED_TRUE && finalResult != AsyncTruthValue.PENDING_ASYNC) {
+                finalResult = AsyncTruthValue.DETERMINED_TRUE;
+            }
+            // If childResult is FALSE, keep current finalResult
+        }
+        
+        curNode.setAsyncTruthValue(finalResult);
+        return finalResult;
+    }
+
+    // Update truth value after executeAllAsync (propagate from all children)
+    @Override
+    public void updateTruthValueAsync(RuntimeNode curNode, Formula originFormula) {
+        // Only update if current node is PENDING
+        if (curNode.getAsyncTruthValue() != AsyncTruthValue.PENDING_ASYNC) {
+            return;
+        }
+        
+        // Recursively update children and recalculate (exists: at least one must be true)
+        // No short-circuit: must update all children
+        boolean hasTrue = false;
+        
+        for (RuntimeNode child : curNode.getChildren()) {
+            // Update child first
+            child.getFormula().updateTruthValueAsync(child, ((FExists)originFormula).getSubformula());
+            
+            // Check child's value
+            if (child.getAsyncTruthValue() == AsyncTruthValue.DETERMINED_TRUE) {
+                hasTrue = true;
+            }
+        }
+        
+        AsyncTruthValue finalResult = hasTrue ? AsyncTruthValue.DETERMINED_TRUE : AsyncTruthValue.DETERMINED_FALSE;
+        curNode.setAsyncTruthValue(finalResult);
+    }
+
+    // Async-aware ECC: links generation (no MG support, simplified)
+    @Override
+    public Set<Link> linksGenerationAsync_ECC(RuntimeNode curNode, Formula originFormula, Checker checker) {
+        Set<Link> result = new HashSet<>();
+        LGUtils lgUtils = new LGUtils();
+        
+        // For each child that is TRUE, generate links
+        for (RuntimeNode child : curNode.getChildren()) {
+            AsyncTruthValue childStatus = child.getAsyncTruthValue();
+
+            // Create initial link with variable assignment (SATISFIED for exists)
+            Set<Link> initialSet = new HashSet<>();
+            Link initialLink = new Link(Link.Link_Type.SATISFIED);
+            initialLink.AddVA(this.var, child.getVarEnv().get(this.var));
+            initialSet.add(initialLink);
+            
+            // Get child's links
+            Set<Link> childLinks = child.getFormula().linksGenerationAsync_ECC(
+                child, ((FExists)originFormula).getSubformula(), checker);
+
+            // Skip FALSE children (they don't satisfy the exists)
+            if (childStatus == AsyncTruthValue.DETERMINED_FALSE) {
+                continue;
+            }
+
+            assert childStatus == AsyncTruthValue.DETERMINED_TRUE;
+            
+            // Cartesian product: combine variable assignment with child's links
+            Set<Link> res = lgUtils.cartesianSet(initialSet, childLinks);
+            result.addAll(res);
+        }
+        
         curNode.setLinks(result);
         return curNode.getLinks();
     }

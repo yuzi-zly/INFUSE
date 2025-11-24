@@ -1,8 +1,19 @@
-.gradle
-.idea
-.vscode
-.claude
-build
-bin
+# IDE and Editor files
+.idea/
+.vscode/
+.claude/
+
+# Build and output directories
+.gradle/
+build/
+bin/
+
+# Compiled class files
+*.class
+
+# System and OS files
 *.DS_Store
-.vscode
+
+# Temporary files
+*.tmp
+*.temp

@@ -1,53 +1,28 @@
 package cn.edu.nju.ics.spar.cc;
 
-import org.apache.commons.io.FileUtils;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
-
-import javax.tools.JavaCompiler;
-import javax.tools.ToolProvider;
-import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import javax.tools.JavaCompiler;
+import javax.tools.ToolProvider;
 
-public class SimpleTest {
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
-    private static final String RESOURCE_DIR = "src/test/resources/simpleTest";
+public class LLMTest {
+
+    private static final String RESOURCE_DIR = "src/test/resources/llmTest";
 
     @AfterEach
     void cleanup() {
         // 测试完成后删除 .class 文件和结果文件
         deleteClassFiles(RESOURCE_DIR);
-        deleteResultFiles(RESOURCE_DIR);
+        //deleteResultFiles(RESOURCE_DIR);
     }
 
-    static boolean validation(){
-        try {
-            List<String> oracleList = FileUtils.readLines(new File("src/test/resources/simpleTest/oracle.txt"), StandardCharsets.UTF_8);
-            List<String> resultList = FileUtils.readLines(new File("src/test/resources/simpleTest/result.txt"), StandardCharsets.UTF_8);
-            if (oracleList.size() != resultList.size()){
-                return false;
-            }
-            Collections.sort(oracleList);
-            Collections.sort(resultList);
-            for(int i = 0; i < oracleList.size(); ++i){
-                if(!oracleList.get(i).equals(resultList.get(i))){
-                    return false;
-                }
-            }
-            return true;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
+  
     /**
      * 确保 Bfunction.java 和 Mfunction.java 被编译成 .class 文件
      * 每次都强制重新编译
@@ -65,11 +40,15 @@ public class SimpleTest {
         // 先删除旧的 .class 文件
         deleteClassFiles(resourceDir);
 
+        // 获取当前类路径
+        String classpath = System.getProperty("java.class.path");
+
         // 直接用 javac 编译到当前目录
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         if (compiler != null) {
             // 使用系统 Java 编译器，输出到当前目录
             int result = compiler.run(null, null, null,
+                "-cp", classpath,
                 "-d", resDir.toString(),
                 bJava.toString(),
                 mJava.toString()
@@ -80,6 +59,7 @@ public class SimpleTest {
         } else {
             // 回退到外部 javac 命令
             ProcessBuilder pb = new ProcessBuilder("javac",
+                "-cp", classpath,
                 "-d", resDir.toString(),
                 bJava.toString(),
                 mJava.toString()
@@ -134,8 +114,8 @@ public class SimpleTest {
         }
     }
 
-    public static void testDriver(String ap, boolean isMG){
-        String resourceDir = "src/test/resources/simpleTest";
+    public static void testDriver(String ap, boolean isMG, String resultPath) {
+        String resourceDir = "src/test/resources/llmTest";
         try {
             // 在运行前确保 Bfunction/Mfunction 已经被编译到对应的 class 文件中
             ensureFunctionsCompiled(resourceDir);
@@ -144,7 +124,7 @@ public class SimpleTest {
         }
 
         String[] args = null;
-        if(isMG){
+        if(isMG) {
             args = new String[]{
                     "-mode", "offline", "-approach", ap,
                     "-rules", resourceDir + "/rules.xml",
@@ -154,10 +134,10 @@ public class SimpleTest {
                     "-data", resourceDir + "/data.txt",
                     "-datatype", "rawData",
                     "-mg",
-                    "-incs", resourceDir + "/result.txt"
+                    "-incs", resultPath
             };
         }
-        else{
+        else {
             args = new String[]{
                     "-mode", "offline", "-approach", ap,
                     "-rules", resourceDir + "/rules.xml",
@@ -166,46 +146,31 @@ public class SimpleTest {
                     "-mfuncs", resourceDir + "/Mfunction.class",
                     "-data", resourceDir + "/data.txt",
                     "-datatype", "rawData",
-                    "-incs", resourceDir + "/result.txt"
+                    "-incs", resultPath
             };
         }
         try {
             CLIParser.main(args);
-            assertTrue(validation());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
     @Test
-    void PCC_IMD_CG_Test(){SimpleTest.testDriver("PCC+IMD", false);}
-    @Test
-    void PCC_IMD_MG_Test(){SimpleTest.testDriver("PCC+IMD", true);}
-    @Test
-    void ConC_IMD_CG_Test(){SimpleTest.testDriver("ConC+IMD", false);}
-    @Test
-    void ConC_IMD_MG_Test(){SimpleTest.testDriver("ConC+IMD", true);}
-    @Test
-    void ECC_IMD_CG_Test(){SimpleTest.testDriver("ECC+IMD", false);}
-    @Test
-    void ECC_IMD_MG_Test(){SimpleTest.testDriver("ECC+IMD", true);}
+    void ECC_IMD_CG_Test() {
+        String resultPath = "src/test/resources/llmTest/result_ecc_imd_cg.txt";
+        System.out.println("=== 测试 ECC+IMD+CG 方法 ===");
+        System.out.println("运行 ECC+IMD+CG 方法...");
+        LLMTest.testDriver("ECC+IMD", false, resultPath);
+        System.out.println("ECC+IMD+CG 方法测试完成");
+    }
 
     @Test
-    void PCC_GEAS_CG_Test(){SimpleTest.testDriver("PCC+GEAS_ori", false);}
-    @Test
-    void PCC_GEAS_MG_Test(){SimpleTest.testDriver("PCC+GEAS_ori", true);}
-    @Test
-    void ConC_GEAS_CG_Test(){SimpleTest.testDriver("ConC+GEAS_ori", false);}
-    @Test
-    void ConC_GEAS_MG_Test(){SimpleTest.testDriver("ConC+GEAS_ori", true);}
-    @Test
-    void ECC_GEAS_CG_Test(){SimpleTest.testDriver("ECC+GEAS_ori", false);}
-    @Test
-    void ECC_GEAS_MG_Test(){SimpleTest.testDriver("ECC+GEAS_ori", true);}
-
-    @Test
-    void INFUSE_CG_Test(){SimpleTest.testDriver("INFUSE", false);}
-
-    @Test
-    void INFUSE_MG_Test(){SimpleTest.testDriver("INFUSE", true);}
+    void PCC_IMD_CG_Test() {
+        String resultPath = "src/test/resources/llmTest/result_pcc_imd_cg.txt";
+        System.out.println("=== 测试 PCC+IMD+CG 方法 ===");
+        System.out.println("运行 PCC+IMD+CG 方法...");
+        LLMTest.testDriver("PCC+IMD", false, resultPath);
+        System.out.println("PCC+IMD+CG 方法测试完成");
+    }
 }

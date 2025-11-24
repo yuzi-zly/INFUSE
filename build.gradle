@@ -34,6 +34,11 @@ dependencies {
     implementation 'commons-io:commons-io:2.11.0'
     implementation 'org.apache.logging.log4j:log4j-api:2.19.0'
     implementation 'org.apache.logging.log4j:log4j-core:2.19.0'
+    // Bridge SLF4J 2.x (used by LangChain4j) to Log4j2
+    implementation 'org.apache.logging.log4j:log4j-slf4j2-impl:2.19.0'
+
+    implementation 'dev.langchain4j:langchain4j-open-ai:1.8.0'
+    implementation 'dev.langchain4j:langchain4j:1.8.0'
 }
 
 // 为了正确处理 Log4j2，合并 "services" 和 "Log4j2Plugins.dat" 两个文件。

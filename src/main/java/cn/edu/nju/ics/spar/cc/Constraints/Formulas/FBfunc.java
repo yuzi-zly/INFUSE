@@ -1,17 +1,23 @@
 package cn.edu.nju.ics.spar.cc.Constraints.Formulas;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import cn.edu.nju.ics.spar.cc.Constraints.Rules.Rule;
 import cn.edu.nju.ics.spar.cc.Constraints.Runtime.Link;
 import cn.edu.nju.ics.spar.cc.Constraints.Runtime.RuntimeNode;
+import cn.edu.nju.ics.spar.cc.Constraints.Runtime.RuntimeNode.AsyncTruthValue;
 import cn.edu.nju.ics.spar.cc.Contexts.Context;
 import cn.edu.nju.ics.spar.cc.Contexts.ContextChange;
+import cn.edu.nju.ics.spar.cc.IoC.ServiceContainer;
 import cn.edu.nju.ics.spar.cc.Middleware.Checkers.Checker;
 import cn.edu.nju.ics.spar.cc.Middleware.Schedulers.Scheduler;
+import cn.edu.nju.ics.spar.cc.Services.LLMService;
 import cn.edu.nju.ics.spar.cc.Util.InfuseException;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.*;
 
 public class FBfunc extends Formula {
 
@@ -181,6 +187,51 @@ public class FBfunc extends Formula {
 
     @Override
     public Set<Link> linksGeneration_ECC(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker) {
+        Set<Link> result = new HashSet<>(1);
+        curNode.setLinks(result);
+        return curNode.getLinks();
+    }
+    
+    // Async-aware ECC (for async external calls like LLM, database, API)
+    @Override
+    public AsyncTruthValue truthEvaluationAsync_ECC(RuntimeNode curNode, Formula originFormula, Checker checker) {
+        // 1. Call user's bfunc (may internally call external async service like LLM)
+        boolean result = bfuncCaller(curNode.getVarEnv(), checker);
+        
+        // 2. Check if an async call was made by polling ThreadLocal (e.g., LLMService.pollAsyncRequestId())
+        LLMService llmService = ServiceContainer.getInstance().getService(LLMService.class);
+        
+        String requestId = null;
+        if (llmService != null) {
+            requestId = llmService.pollAsyncRequestId();
+        }
+        
+        // 3. Determine the async truth value
+        if (requestId != null) {
+            // Async call detected - mark as pending
+            curNode.setAsyncTruthValue(AsyncTruthValue.PENDING_ASYNC);
+            curNode.setAsyncRequestId(requestId);
+            checker.getAsyncPendingNodes().put(requestId, curNode);
+            return AsyncTruthValue.PENDING_ASYNC;
+        } else {
+            // No async call - use bfunc result directly
+            AsyncTruthValue status = result 
+                ? AsyncTruthValue.DETERMINED_TRUE 
+                : AsyncTruthValue.DETERMINED_FALSE;
+            curNode.setAsyncTruthValue(status);
+            return status;
+        }
+    }
+    
+    // Update truth value after executeAllAsync (for bfunc, already updated in executeAllAsyncIfNeeded)
+    @Override
+    public void updateTruthValueAsync(RuntimeNode curNode, Formula originFormula) {
+        // Leaf node: asyncTruthValue already updated by executeAllAsyncIfNeeded
+        // No further action needed
+    }
+    
+    @Override
+    public Set<Link> linksGenerationAsync_ECC(RuntimeNode curNode, Formula originFormula, Checker checker) {
         Set<Link> result = new HashSet<>(1);
         curNode.setLinks(result);
         return curNode.getLinks();
