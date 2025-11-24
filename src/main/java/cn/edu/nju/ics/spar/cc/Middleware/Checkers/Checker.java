@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import cn.edu.nju.ics.spar.cc.Constraints.Rules.Rule;
 import cn.edu.nju.ics.spar.cc.Constraints.Rules.RuleHandler;
@@ -19,6 +18,7 @@ import cn.edu.nju.ics.spar.cc.Contexts.ContextChange;
 import cn.edu.nju.ics.spar.cc.Contexts.ContextPool;
 import cn.edu.nju.ics.spar.cc.IoC.ServiceContainer;
 import cn.edu.nju.ics.spar.cc.Services.LLMService;
+import cn.edu.nju.ics.spar.cc.Constraints.Runtime.AsyncEvaluationResult;
 import cn.edu.nju.ics.spar.cc.Util.InfuseException;
 import cn.edu.nju.ics.spar.cc.Util.NotSupportedException;
 
@@ -38,7 +38,7 @@ public abstract class Checker {
     protected final Map<String, List<Map.Entry<AsyncTruthValue, Set<Link>>>> ruleLinksMapAsync;
     
     // For async request resolution: requestId -> RuntimeNode mapping
-    protected final ConcurrentHashMap<String, RuntimeNode> asyncPendingNodes;
+    // Removed global asyncPendingNodes - now using AsyncEvaluationResult.pendingNodes instead
 
     public Checker(RuleHandler ruleHandler, ContextPool contextPool, Object bfuncInstance, boolean isMG) {
         this.ruleHandler = ruleHandler;
@@ -48,7 +48,6 @@ public abstract class Checker {
         this.substantialNodes = new HashMap<>();
         this.ruleLinksMap = new HashMap<>();
         this.ruleLinksMapAsync = new HashMap<>();
-        this.asyncPendingNodes = new ConcurrentHashMap<>();
     }
 
     protected void storeLink(String rule_id, boolean truth, Set<Link> linkSet){
@@ -129,45 +128,41 @@ public abstract class Checker {
         return isMG;
     }
     
-    // Async pending nodes management
-    public ConcurrentHashMap<String, RuntimeNode> getAsyncPendingNodes() {
-        return asyncPendingNodes;
-    }
-    
-    public void clearAsyncPendingNodes() {
-        asyncPendingNodes.clear();
-    }
-    
-    // Helper method: Execute all pending async calls only if root status is PENDING_ASYNC
-    // (If root is already determined due to short-circuit, no need to execute async calls)
-    protected void executeAllAsyncIfNeeded(Rule rule) {
+    protected void executeAllAsyncIfNeeded(Rule rule, AsyncEvaluationResult evaluationResult) {
+        if (!evaluationResult.hasPendingRequests()) {
+            return;
+        }
+
         RuntimeNode root = rule.getCCTRoot();
-        if (!this.asyncPendingNodes.isEmpty() && 
-            root.getAsyncTruthValue() == AsyncTruthValue.PENDING_ASYNC) {
+
+        // Only execute if root status is PENDING_ASYNC
+        if (root.getAsyncTruthValue() == AsyncTruthValue.PENDING_ASYNC) {
             LLMService llmService = ServiceContainer.getInstance().getService(LLMService.class);
             if (llmService != null) {
                 try {
+                    // Clean up redundant async requests
+                    llmService.retainAsyncRequests(evaluationResult.getPendingRequestIds());
+
                     // Execute all async calls and get results
                     Map<String, Boolean> results = llmService.executeAllAsync();
-                    
-                    // Update pending nodes with results
+
+                    // Update pending nodes with results using the mapping from AsyncEvaluationResult
                     for (Map.Entry<String, Boolean> entry : results.entrySet()) {
-                        RuntimeNode node = this.asyncPendingNodes.get(entry.getKey());
+                        RuntimeNode node = evaluationResult.getPendingNodes().get(entry.getKey());
                         if (node != null) {
-                            node.setAsyncTruthValue(entry.getValue() ? 
-                                AsyncTruthValue.DETERMINED_TRUE : 
+                            node.setAsyncTruthValue(entry.getValue() ?
+                                AsyncTruthValue.DETERMINED_TRUE :
                                 AsyncTruthValue.DETERMINED_FALSE);
                         }
                     }
-                    
+
                     // Propagate truth value updates from leaves to root
                     rule.updateTruthValueAsync();
-                    
+
                 } catch (Exception e) {
                     throw new InfuseException("Failed to execute async calls", e);
                 } finally {
-                    // Clear pending nodes and async queues
-                    this.clearAsyncPendingNodes();
+                    // Clear async queues
                     llmService.clearAsync();
                 }
             }

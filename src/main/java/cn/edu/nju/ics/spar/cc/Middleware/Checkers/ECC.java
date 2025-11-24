@@ -8,6 +8,7 @@ import cn.edu.nju.ics.spar.cc.Constraints.Rules.Rule;
 import cn.edu.nju.ics.spar.cc.Constraints.Rules.RuleHandler;
 import cn.edu.nju.ics.spar.cc.Constraints.Runtime.Link;
 import cn.edu.nju.ics.spar.cc.Constraints.Runtime.RuntimeNode;
+import cn.edu.nju.ics.spar.cc.Constraints.Runtime.AsyncEvaluationResult;
 import cn.edu.nju.ics.spar.cc.Contexts.ContextChange;
 import cn.edu.nju.ics.spar.cc.Contexts.ContextPool;
 
@@ -75,12 +76,11 @@ public class ECC extends Checker{
         for(Rule rule : ruleHandler.getRuleMap().values()){
             rule.buildCCT_ECCPCC(this);
             
-            // Phase 1: Async truth evaluation (replaces truthEvaluation_ECC)
-            rule.truthEvaluationAsync_ECC(this);
-            
-            // Phase 2: Execute pending async calls if root status is PENDING_ASYNC
-            // After execution, updateTruthValueAsync is called to propagate updates
-            executeAllAsyncIfNeeded(rule);
+            // Phase 1: Async truth evaluation with short-circuit optimization
+            AsyncEvaluationResult evaluationResult = rule.truthEvaluationAsync_ECC(this);
+
+            // Phase 2: Clean up redundant async requests and execute if needed
+            executeAllAsyncIfNeeded(rule, evaluationResult);
             
             // Phase 3: Links generation (no MG support)
             Set<Link> links = rule.linksGenerationAsync_ECC(this);
@@ -100,11 +100,11 @@ public class ECC extends Checker{
                 // Build CCT
                 rule.buildCCT_ECCPCC(this);
                 
-                // Phase 1: Async truth evaluation
-                rule.truthEvaluationAsync_ECC(this);
-                
-                // Phase 2: Execute pending async calls and update truth values
-                executeAllAsyncIfNeeded(rule);
+                // Phase 1: Async truth evaluation with short-circuit optimization
+                AsyncEvaluationResult evaluationResult = rule.truthEvaluationAsync_ECC(this);
+
+                // Phase 2: Clean up redundant async requests and execute if needed
+                executeAllAsyncIfNeeded(rule, evaluationResult);
                 
                 // Phase 3: Links generation (no MG support)
                 Set<Link> links = rule.linksGenerationAsync_ECC(this);
@@ -125,11 +125,11 @@ public class ECC extends Checker{
         // Build CCT
         rule.buildCCT_ECCPCC(this);
         
-        // Phase 1: Async truth evaluation
-        rule.truthEvaluationAsync_ECC(this);
-        
-        // Phase 2: Execute pending async calls and update truth values
-        executeAllAsyncIfNeeded(rule);
+        // Phase 1: Async truth evaluation with short-circuit optimization
+        AsyncEvaluationResult evaluationResult = rule.truthEvaluationAsync_ECC(this);
+
+        // Phase 2: Clean up redundant async requests and execute if needed
+        executeAllAsyncIfNeeded(rule, evaluationResult);
         
         // Phase 3: Links generation (no MG support)
         Set<Link> links = rule.linksGenerationAsync_ECC(this);

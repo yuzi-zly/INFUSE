@@ -1,6 +1,7 @@
 package cn.edu.nju.ics.spar.cc.Services;
 
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Interface for Large Language Model services.
@@ -84,6 +85,14 @@ public interface LLMService {
      * to prepare for the next batch.
      */
     void clearAsync();
+
+    /**
+     * [INTERNAL] Retain only the specified async requests and remove all others.
+     * This is used to clean up redundant async requests after short-circuit optimization.
+     *
+     * @param validRequestIds The set of request IDs that should be retained
+     */
+    void retainAsyncRequests(Set<String> validRequestIds);
 
     /**
      * [INTERNAL] Poll and clear the current async requestId from ThreadLocal.

@@ -11,7 +11,7 @@ import java.util.TreeMap;
 import cn.edu.nju.ics.spar.cc.Constraints.Formulas.Formula;
 import cn.edu.nju.ics.spar.cc.Constraints.Runtime.Link;
 import cn.edu.nju.ics.spar.cc.Constraints.Runtime.RuntimeNode;
-import cn.edu.nju.ics.spar.cc.Constraints.Runtime.RuntimeNode.AsyncTruthValue;
+import cn.edu.nju.ics.spar.cc.Constraints.Runtime.AsyncEvaluationResult;
 import cn.edu.nju.ics.spar.cc.Contexts.Context;
 import cn.edu.nju.ics.spar.cc.Contexts.ContextChange;
 import cn.edu.nju.ics.spar.cc.Middleware.Checkers.Checker;
@@ -201,14 +201,14 @@ public class Rule {
     }
     
     // Async-aware ECC check (no MG support)
-    public AsyncTruthValue truthEvaluationAsync_ECC(Checker checker) {
-        AsyncTruthValue result = this.CCTRoot.getFormula().truthEvaluationAsync_ECC(this.CCTRoot, this.formula, checker);
-        this.CCTRoot.setAsyncTruthValue(result);
+    public AsyncEvaluationResult truthEvaluationAsync_ECC(Checker checker) {
+        AsyncEvaluationResult result = this.CCTRoot.getFormula().truthEvaluationAsync_ECC(this.CCTRoot, this.formula, checker);
+        this.CCTRoot.setAsyncTruthValue(result.getTruthValue());
         return result;
     }
     
     // Update truth value after executeAllAsync (propagate from leaves to root)
-    public void updateTruthValueAsync() {
+    public void  updateTruthValueAsync() {
         this.CCTRoot.getFormula().updateTruthValueAsync(this.CCTRoot, this.formula);
     }
     

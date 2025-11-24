@@ -7,6 +7,7 @@ import cn.edu.nju.ics.spar.cc.Constraints.Rules.Rule;
 import cn.edu.nju.ics.spar.cc.Constraints.Runtime.Link;
 import cn.edu.nju.ics.spar.cc.Constraints.Runtime.RuntimeNode;
 import cn.edu.nju.ics.spar.cc.Constraints.Runtime.RuntimeNode.AsyncTruthValue;
+import cn.edu.nju.ics.spar.cc.Constraints.Runtime.AsyncEvaluationResult;
 import cn.edu.nju.ics.spar.cc.Contexts.ContextChange;
 import cn.edu.nju.ics.spar.cc.Middleware.Checkers.Checker;
 import cn.edu.nju.ics.spar.cc.Middleware.Schedulers.Scheduler;
@@ -60,8 +61,8 @@ public abstract class Formula {
     public abstract boolean truthEvaluation_ECC(RuntimeNode curNode, Formula originFormula, Checker checker);
     public abstract Set<Link> linksGeneration_ECC(RuntimeNode curNode, Formula originFormula, final Set<RuntimeNode> prevSubstantialNodes, Checker checker);
     
-    // Async-aware ECC: use AsyncTruthValue instead of boolean, no MG support
-    public abstract AsyncTruthValue truthEvaluationAsync_ECC(RuntimeNode curNode, Formula originFormula, Checker checker);
+    // Async-aware ECC: use AsyncEvaluationResult instead of boolean, no MG support
+    public abstract AsyncEvaluationResult truthEvaluationAsync_ECC(RuntimeNode curNode, Formula originFormula, Checker checker);
     
     // Async-aware ECC: update truth value after executeAllAsync (propagate from leaves to root)
     public abstract void updateTruthValueAsync(RuntimeNode curNode, Formula originFormula);

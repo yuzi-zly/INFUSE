@@ -9,6 +9,7 @@ import cn.edu.nju.ics.spar.cc.Constraints.Runtime.LGUtils;
 import cn.edu.nju.ics.spar.cc.Constraints.Runtime.Link;
 import cn.edu.nju.ics.spar.cc.Constraints.Runtime.RuntimeNode;
 import cn.edu.nju.ics.spar.cc.Constraints.Runtime.RuntimeNode.AsyncTruthValue;
+import cn.edu.nju.ics.spar.cc.Constraints.Runtime.AsyncEvaluationResult;
 import cn.edu.nju.ics.spar.cc.Contexts.ContextChange;
 import cn.edu.nju.ics.spar.cc.Middleware.Checkers.Checker;
 import cn.edu.nju.ics.spar.cc.Middleware.Schedulers.Scheduler;
@@ -184,25 +185,27 @@ public class FNot extends Formula{
 
     // Async-aware ECC: truth evaluation (negate child's async truth value)
     @Override
-    public AsyncTruthValue truthEvaluationAsync_ECC(RuntimeNode curNode, Formula originFormula, Checker checker) {
+    public AsyncEvaluationResult truthEvaluationAsync_ECC(RuntimeNode curNode, Formula originFormula, Checker checker) {
         RuntimeNode child = curNode.getChildren().get(0);
-        
+
         // Evaluate child
-        AsyncTruthValue childResult = child.getFormula().truthEvaluationAsync_ECC(
+        AsyncEvaluationResult childResult = child.getFormula().truthEvaluationAsync_ECC(
             child, ((FNot)originFormula).getSubformula(), checker);
-        
-        // Negate the result
-        AsyncTruthValue finalResult;
-        if (childResult == AsyncTruthValue.DETERMINED_TRUE) {
-            finalResult = AsyncTruthValue.DETERMINED_FALSE;  // !TRUE = FALSE
-        } else if (childResult == AsyncTruthValue.DETERMINED_FALSE) {
-            finalResult = AsyncTruthValue.DETERMINED_TRUE;   // !FALSE = TRUE
+
+        // Negate the result, preserve pending requests
+        AsyncTruthValue finalTruth;
+        if (childResult.getTruthValue() == AsyncTruthValue.DETERMINED_TRUE) {
+            finalTruth = AsyncTruthValue.DETERMINED_FALSE;  // !TRUE = FALSE
+        } else if (childResult.getTruthValue() == AsyncTruthValue.DETERMINED_FALSE) {
+            finalTruth = AsyncTruthValue.DETERMINED_TRUE;   // !FALSE = TRUE
         } else {
-            finalResult = AsyncTruthValue.PENDING_ASYNC;     // !PENDING = PENDING
+            finalTruth = AsyncTruthValue.PENDING_ASYNC;     // !PENDING = PENDING
         }
-        
-        curNode.setAsyncTruthValue(finalResult);
-        return finalResult;
+
+        curNode.setAsyncTruthValue(finalTruth);
+
+        // FNot passes through child's pending requests unchanged
+        return new AsyncEvaluationResult(finalTruth, childResult.getPendingNodes());
     }
 
     // Update truth value after executeAllAsync (propagate from child)

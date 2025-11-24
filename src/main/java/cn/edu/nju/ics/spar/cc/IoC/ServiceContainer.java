@@ -2,6 +2,7 @@ package cn.edu.nju.ics.spar.cc.IoC;
 
 import cn.edu.nju.ics.spar.cc.Util.InfuseException;
 import cn.edu.nju.ics.spar.cc.Util.Loggable;
+import cn.edu.nju.ics.spar.cc.Services.Impl.LLMServiceImpl;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -102,5 +103,18 @@ public class ServiceContainer implements Loggable {
      */
     public void clear() {
         services.clear();
+    }
+
+    /**
+     * Initialize core services based on configuration.
+     * This method should be called during application startup.
+     */
+    public void initializeServices(boolean enableServices) {
+        if (enableServices) {
+            // Register LLM service when services are enabled
+            registerService(new LLMServiceImpl());
+        } else {
+            logger.info("Services are disabled - skipping service registration");
+        }
     }
 }

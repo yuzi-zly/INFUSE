@@ -24,7 +24,8 @@ public class Bfunction {
     private boolean funcExprCheck(Map<String, Map<String, String>> vcMap) throws Exception {
         // Ask LLM asynchronously - returns true as placeholder, actual result determined later
         if (llm != null) {
-            return llm.askAsync("Is 1 + 1 = 1?");
+            // return llm.askAsync("Is 1 + 1 = 1?");
+            return llm.ask("Is 1 + 1 = 1?");
         }
         return false;
     }

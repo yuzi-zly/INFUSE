@@ -23,6 +23,7 @@ import java.util.Set;
 import cn.edu.nju.ics.spar.cc.Constraints.Rules.Rule;
 import cn.edu.nju.ics.spar.cc.Constraints.Rules.RuleHandler;
 import cn.edu.nju.ics.spar.cc.Constraints.Runtime.Link;
+import cn.edu.nju.ics.spar.cc.Constraints.Runtime.RuntimeNode;
 import cn.edu.nju.ics.spar.cc.Contexts.Context;
 import cn.edu.nju.ics.spar.cc.Contexts.ContextChange;
 import cn.edu.nju.ics.spar.cc.Contexts.ContextHandler;
@@ -41,8 +42,6 @@ import cn.edu.nju.ics.spar.cc.Middleware.Schedulers.IMD;
 import cn.edu.nju.ics.spar.cc.Middleware.Schedulers.INFUSE_S;
 import cn.edu.nju.ics.spar.cc.Middleware.Schedulers.Scheduler;
 import cn.edu.nju.ics.spar.cc.Patterns.PatternHandler;
-import cn.edu.nju.ics.spar.cc.Services.Impl.LLMServiceImpl;
-import cn.edu.nju.ics.spar.cc.Services.LLMService;
 import cn.edu.nju.ics.spar.cc.Util.InfuseException;
 import cn.edu.nju.ics.spar.cc.Util.Loggable;
 
@@ -63,13 +62,16 @@ public class OfflineStarter implements Loggable {
     private ContextHandler contextHandler;
     private ContextPool contextPool;
     
-    // Flag to determine if we use async mode (e.g., LLM service)
-    private boolean useAsyncMode;
+    // Flag to determine if we enable external services (e.g., LLM service)
+    public static boolean __ENABLE_SERVICES__ = true;
+
+    // Flag to determine if we use async mode (for async execution optimization)
+    public static boolean __USE_ASYNC_MODE__ = true;
 
 
     public OfflineStarter() {
-        // Register built-in services
-        ServiceContainer.getInstance().registerService(new LLMServiceImpl());
+        // Initialize services based on configuration
+        ServiceContainer.getInstance().initializeServices(__ENABLE_SERVICES__);
     }
 
     public void start(String approach, String ruleFile, String bfuncFile, String patternFile, String mfuncFile, String dataFile, String dataType, boolean isMG, String incOutFile){
@@ -125,21 +127,21 @@ public class OfflineStarter implements Loggable {
                 }
             }
 
+            // Validate async mode dependency on services
+            if (__USE_ASYNC_MODE__ && !__ENABLE_SERVICES__) {
+                throw new InfuseException("Async execution mode requires services to be enabled. " +
+                        "Please either enable services or disable async execution mode.");
+            }
+
+            logger.info("Configuration - Services: " + (__ENABLE_SERVICES__ ? "ENABLED" : "DISABLED") +
+                      ", Async Mode: " + (__USE_ASYNC_MODE__ ? "ENABLED" : "DISABLED"));
             logger.debug("Checking technique is " + technique + ", scheduling strategy is " + schedule + ", with MG " + (isMG ? "on" : "off"));
             assert technique != null;
 
-            // Check if LLM service is available
-            boolean hasLLMService = ServiceContainer.getInstance().getService(LLMService.class) != null;
-            
-            // Async mode (LLM or other async services) is only supported for ECC technique
-            if (hasLLMService && !technique.equals("ECC")) {
-                throw new InfuseException("Asynchronous service call (e.g., LLM) is only supported for ECC technique. " +
-                        "Current technique: " + technique + ". " +
-                        "Please either use ECC technique or disable async services.");
+
+            if (__ENABLE_SERVICES__ && __USE_ASYNC_MODE__ && !technique.equals("ECC")) {
+                throw new InfuseException("Asynchronous execution mode is only supported for ECC technique. " + "Current technique: " + technique + ". " + "Please either use ECC technique or disable async execution mode.");
             }
-            
-            // Store flag for later use
-            this.useAsyncMode = hasLLMService;
 
             switch (technique) {
                 case "ECC":
@@ -161,7 +163,7 @@ public class OfflineStarter implements Loggable {
 
             switch (schedule){
                 case "IMD":
-                    this.scheduler = new IMD(ruleHandler, contextPool, checker);
+                    this.scheduler = new IMD(ruleHandler, contextPool, checker, __USE_ASYNC_MODE__);
                     break;
                 case "GEAS_ori":
                     this.scheduler = new GEAS_ori(ruleHandler, contextPool, checker);
@@ -178,10 +180,11 @@ public class OfflineStarter implements Loggable {
             }
 
             //check init
-            if (this.useAsyncMode) {
-                logger.info("Using async-aware mode for initial checking...");
+            if (__USE_ASYNC_MODE__) {
+                logger.info("Using async-aware execution mode for initial checking...");
                 this.checker.checkInitAsync();
             } else {
+                logger.info("Using synchronous execution mode for initial checking...");
                 this.checker.checkInit();
             }
             logger.info("Init checking successfully.");
@@ -269,7 +272,7 @@ public class OfflineStarter implements Loggable {
         OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8);
         BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
         
-        if (this.useAsyncMode) {
+        if (__USE_ASYNC_MODE__) {
             // Async mode: use AsyncTruthValue-based links
             incsOutputAsync(bufferedWriter);
         } else {

@@ -11,6 +11,7 @@ import cn.edu.nju.ics.spar.cc.Constraints.Rules.Rule;
 import cn.edu.nju.ics.spar.cc.Constraints.Runtime.Link;
 import cn.edu.nju.ics.spar.cc.Constraints.Runtime.RuntimeNode;
 import cn.edu.nju.ics.spar.cc.Constraints.Runtime.RuntimeNode.AsyncTruthValue;
+import cn.edu.nju.ics.spar.cc.Constraints.Runtime.AsyncEvaluationResult;
 import cn.edu.nju.ics.spar.cc.Contexts.Context;
 import cn.edu.nju.ics.spar.cc.Contexts.ContextChange;
 import cn.edu.nju.ics.spar.cc.IoC.ServiceContainer;
@@ -194,32 +195,36 @@ public class FBfunc extends Formula {
     
     // Async-aware ECC (for async external calls like LLM, database, API)
     @Override
-    public AsyncTruthValue truthEvaluationAsync_ECC(RuntimeNode curNode, Formula originFormula, Checker checker) {
+    public AsyncEvaluationResult truthEvaluationAsync_ECC(RuntimeNode curNode, Formula originFormula, Checker checker) {
         // 1. Call user's bfunc (may internally call external async service like LLM)
         boolean result = bfuncCaller(curNode.getVarEnv(), checker);
-        
+
         // 2. Check if an async call was made by polling ThreadLocal (e.g., LLMService.pollAsyncRequestId())
         LLMService llmService = ServiceContainer.getInstance().getService(LLMService.class);
-        
+
         String requestId = null;
         if (llmService != null) {
             requestId = llmService.pollAsyncRequestId();
         }
-        
-        // 3. Determine the async truth value
+
+        // 3. Determine the async evaluation result
         if (requestId != null) {
-            // Async call detected - mark as pending
+            // Async call detected - create pending result with request ID
             curNode.setAsyncTruthValue(AsyncTruthValue.PENDING_ASYNC);
             curNode.setAsyncRequestId(requestId);
-            checker.getAsyncPendingNodes().put(requestId, curNode);
-            return AsyncTruthValue.PENDING_ASYNC;
+
+            // Return AsyncEvaluationResult with requestId-to-node mapping
+            // No global registration needed - parent formulas handle cleanup
+            return AsyncEvaluationResult.pending(requestId, curNode);
         } else {
             // No async call - use bfunc result directly
-            AsyncTruthValue status = result 
-                ? AsyncTruthValue.DETERMINED_TRUE 
+            AsyncTruthValue status = result
+                ? AsyncTruthValue.DETERMINED_TRUE
                 : AsyncTruthValue.DETERMINED_FALSE;
             curNode.setAsyncTruthValue(status);
-            return status;
+
+            return result ? AsyncEvaluationResult.determinedTrue()
+                         : AsyncEvaluationResult.determinedFalse();
         }
     }
     

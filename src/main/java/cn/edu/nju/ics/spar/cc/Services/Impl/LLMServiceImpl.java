@@ -2,6 +2,7 @@ package cn.edu.nju.ics.spar.cc.Services.Impl;
 
 import java.time.Duration;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -221,6 +222,30 @@ public class LLMServiceImpl implements LLMService, Loggable {
         asyncTaskQueue.clear();
         asyncResults.clear();
         logger.debug("[Async LLM] Cleared all async queues and results.");
+    }
+
+    @Override
+    public void retainAsyncRequests(Set<String> validRequestIds) {
+        if (validRequestIds == null) {
+            // If null, clear everything
+            clearAsync();
+            return;
+        }
+
+        int removedAskCount = asyncAskQueue.size();
+        int removedTaskCount = asyncTaskQueue.size();
+
+        // Retain only valid requests
+        asyncAskQueue.keySet().retainAll(validRequestIds);
+        asyncTaskQueue.keySet().retainAll(validRequestIds);
+        asyncResults.keySet().retainAll(validRequestIds);
+
+        removedAskCount -= asyncAskQueue.size();
+        removedTaskCount -= asyncTaskQueue.size();
+
+        logger.debug("[Async LLM] Retained " + asyncAskQueue.size() + " ask requests and " +
+                    asyncTaskQueue.size() + " task requests. Removed " + removedAskCount +
+                    " ask requests and " + removedTaskCount + " task requests.");
     }
 
     @Override

@@ -1,1 +1,10 @@
 {"timestamp": "2011-04-08 04:00:00:000", "fields": {"taxiId": "B019B0", "longitude": "114.10638", "latitude": "22.541292", "speed": "16", "direction": "45", "status": "96"}}
+{"timestamp": "2011-04-08 04:00:00:088", "fields": {"taxiId": "B154Z1", "longitude": "114.04787", "latitude": "22.5398", "speed": "0", "direction": "90", "status": "0"}}
+{"timestamp": "2011-04-08 04:00:00:108", "fields": {"taxiId": "B172C0", "longitude": "113.925", "latitude": "22.4902", "speed": "0", "direction": "270", "status": "0"}}
+{"timestamp": "2011-04-08 04:00:00:122", "fields": {"taxiId": "B176C0", "longitude": "114.033035", "latitude": "22.6153", "speed": "0", "direction": "45", "status": "0"}}
+{"timestamp": "2011-04-08 04:00:00:136", "fields": {"taxiId": "B17F30", "longitude": "114.0416", "latitude": "22.523567", "speed": "0", "direction": "45", "status": "0"}}
+{"timestamp": "2011-04-08 04:00:00:224", "fields": {"taxiId": "B26D01", "longitude": "114.029495", "latitude": "22.650553", "speed": "0", "direction": "0", "status": "0"}}
+{"timestamp": "2011-04-08 04:00:00:231", "fields": {"taxiId": "B30W70", "longitude": "114.11418", "latitude": "22.5375", "speed": "0", "direction": "135", "status": "0"}}
+{"timestamp": "2011-04-08 04:00:00:278", "fields": {"taxiId": "B34L40", "longitude": "114.27714", "latitude": "22.728418", "speed": "0", "direction": "0", "status": "0"}}
+{"timestamp": "2011-04-08 04:00:00:326", "fields": {"taxiId": "B397D0", "longitude": "114.10625", "latitude": "22.553284", "speed": "0", "direction": "90", "status": "0"}}
+{"timestamp": "2011-04-08 04:00:00:428", "fields": {"taxiId": "B50D31", "longitude": "114.05855", "latitude": "22.522467", "speed": "0", "direction": "90", "status": "0"}}

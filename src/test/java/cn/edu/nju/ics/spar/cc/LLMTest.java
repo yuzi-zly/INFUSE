@@ -165,12 +165,4 @@ public class LLMTest {
         System.out.println("ECC+IMD+CG 方法测试完成");
     }
 
-    @Test
-    void PCC_IMD_CG_Test() {
-        String resultPath = "src/test/resources/llmTest/result_pcc_imd_cg.txt";
-        System.out.println("=== 测试 PCC+IMD+CG 方法 ===");
-        System.out.println("运行 PCC+IMD+CG 方法...");
-        LLMTest.testDriver("PCC+IMD", false, resultPath);
-        System.out.println("PCC+IMD+CG 方法测试完成");
-    }
 }

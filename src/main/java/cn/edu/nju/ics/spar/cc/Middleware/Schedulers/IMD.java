@@ -10,16 +10,21 @@ import cn.edu.nju.ics.spar.cc.Middleware.Checkers.ConC;
 
 
 public class IMD extends Scheduler{
+    private final boolean isAsyncMode;
 
-
-    public IMD(RuleHandler ruleHandler, ContextPool contextPool, Checker checker) {
+    public IMD(RuleHandler ruleHandler, ContextPool contextPool, Checker checker, boolean isAsyncMode) {
         super(ruleHandler, contextPool, checker);
         this.strategy = "IMD";
+        this.isAsyncMode = isAsyncMode;
     }
 
     @Override
     public void doSchedule(ContextChange contextChange) throws Exception {
-        this.checker.ctxChangeCheckIMD(contextChange);
+        if (isAsyncMode) {
+            this.checker.ctxChangeCheckIMDAsync(contextChange);
+        } else {
+            this.checker.ctxChangeCheckIMD(contextChange);
+        }
     }
 
     @Override

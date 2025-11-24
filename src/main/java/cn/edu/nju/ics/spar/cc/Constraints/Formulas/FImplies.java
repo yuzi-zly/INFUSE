@@ -3,12 +3,14 @@ package cn.edu.nju.ics.spar.cc.Constraints.Formulas;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.HashMap;
 
 import cn.edu.nju.ics.spar.cc.Constraints.Rules.Rule;
 import cn.edu.nju.ics.spar.cc.Constraints.Runtime.LGUtils;
 import cn.edu.nju.ics.spar.cc.Constraints.Runtime.Link;
 import cn.edu.nju.ics.spar.cc.Constraints.Runtime.RuntimeNode;
 import cn.edu.nju.ics.spar.cc.Constraints.Runtime.RuntimeNode.AsyncTruthValue;
+import cn.edu.nju.ics.spar.cc.Constraints.Runtime.AsyncEvaluationResult;
 import cn.edu.nju.ics.spar.cc.Contexts.ContextChange;
 import cn.edu.nju.ics.spar.cc.Middleware.Checkers.Checker;
 import cn.edu.nju.ics.spar.cc.Middleware.Schedulers.Scheduler;
@@ -269,42 +271,52 @@ public class FImplies extends Formula{
     // Async-aware ECC: truth evaluation with short-circuit optimization
     // A -> B is equivalent to !A || B
     @Override
-    public AsyncTruthValue truthEvaluationAsync_ECC(RuntimeNode curNode, Formula originFormula, Checker checker) {
+    public AsyncEvaluationResult truthEvaluationAsync_ECC(RuntimeNode curNode, Formula originFormula, Checker checker) {
         RuntimeNode antecedent = curNode.getChildren().get(0);  // A
         RuntimeNode consequent = curNode.getChildren().get(1);  // B
-        
+
         // Evaluate antecedent (A)
-        AsyncTruthValue resultA = antecedent.getFormula().truthEvaluationAsync_ECC(
+        AsyncEvaluationResult resultA = antecedent.getFormula().truthEvaluationAsync_ECC(
             antecedent, ((FImplies)originFormula).getSubformulas()[0], checker);
-        
+
         // Short-circuit: If A is FALSE, then !A is TRUE, so (A -> B) is TRUE
-        if (resultA == AsyncTruthValue.DETERMINED_FALSE) {
+        // Don't evaluate consequent B at all to avoid generating unnecessary async calls
+        if (resultA.getTruthValue() == AsyncTruthValue.DETERMINED_FALSE) {
             curNode.setAsyncTruthValue(AsyncTruthValue.DETERMINED_TRUE);
-            return AsyncTruthValue.DETERMINED_TRUE;
+            // Only return antecedent's pending nodes (consequent is never evaluated)
+            return AsyncEvaluationResult.determinedTrue();
         }
-        
-        // Evaluate consequent (B)
-        AsyncTruthValue resultB = consequent.getFormula().truthEvaluationAsync_ECC(
+
+        // Only evaluate consequent B if antecedent A was not FALSE
+        AsyncEvaluationResult resultB = consequent.getFormula().truthEvaluationAsync_ECC(
             consequent, ((FImplies)originFormula).getSubformulas()[1], checker);
-        
+
         // Short-circuit: If B is TRUE, entire IMPLIES is TRUE (A -> TRUE = TRUE)
-        if (resultB == AsyncTruthValue.DETERMINED_TRUE) {
+        if (resultB.getTruthValue() == AsyncTruthValue.DETERMINED_TRUE) {
             curNode.setAsyncTruthValue(AsyncTruthValue.DETERMINED_TRUE);
-            return AsyncTruthValue.DETERMINED_TRUE;
+            // Entire IMPLIES is determined as TRUE, don't pass up any pending nodes
+            return AsyncEvaluationResult.determinedTrue();
         }
-        
+
         // A is not FALSE (already short-circuited), B is not TRUE: determine final result
-        AsyncTruthValue finalResult;
-        if (resultA == AsyncTruthValue.DETERMINED_TRUE && resultB == AsyncTruthValue.DETERMINED_FALSE) {
+        AsyncTruthValue finalTruth;
+        if (resultA.getTruthValue() == AsyncTruthValue.DETERMINED_TRUE &&
+            resultB.getTruthValue() == AsyncTruthValue.DETERMINED_FALSE) {
             // TRUE -> FALSE = FALSE
-            finalResult = AsyncTruthValue.DETERMINED_FALSE;
+            finalTruth = AsyncTruthValue.DETERMINED_FALSE;
         } else {
             // At least one is PENDING
-            finalResult = AsyncTruthValue.PENDING_ASYNC;
+            finalTruth = AsyncTruthValue.PENDING_ASYNC;
         }
-        
-        curNode.setAsyncTruthValue(finalResult);
-        return finalResult;
+
+        curNode.setAsyncTruthValue(finalTruth);
+
+        // Combine pending requests from both children (only needed if final result is PENDING)
+        Map<String, RuntimeNode> allPendingNodes = new HashMap<>();
+        allPendingNodes.putAll(resultA.getPendingNodes());
+        allPendingNodes.putAll(resultB.getPendingNodes());
+
+        return new AsyncEvaluationResult(finalTruth, allPendingNodes);
     }
 
     // Update truth value after executeAllAsync (propagate from children)
@@ -351,46 +363,41 @@ public class FImplies extends Formula{
         AsyncTruthValue statusA = antecedent.getAsyncTruthValue();
         AsyncTruthValue statusB = consequent.getAsyncTruthValue();
         
-        // Case analysis based on async truth values (simplified, no MG)
-        if (statusA == AsyncTruthValue.DETERMINED_TRUE) {
+        if (statusA == AsyncTruthValue.DETERMINED_FALSE) {
+            // Due to short-circuit, consequent was never evaluated (statusB should be null)
+            assert statusB == null : "consequent should not have been evaluated when antecedent is FALSE due to short-circuit";
+            // Only generate links from the antecedent which caused the short-circuit (flip !A)
+            Set<Link> retA = antecedent.getFormula().linksGenerationAsync_ECC(
+                antecedent, ((FImplies)originFormula).getSubformulas()[0], checker);
+            result.addAll(lgUtils.flipSet(retA));
+        } else if (statusA == AsyncTruthValue.DETERMINED_TRUE) {
+            // statusA is TRUE, so consequent must have been evaluated
+            assert statusB != null : "consequent should have been evaluated when antecedent is TRUE";
+
             if (statusB == AsyncTruthValue.DETERMINED_TRUE) {
                 // T -> T: Only consequent matters
-                antecedent.getFormula().linksGenerationAsync_ECC(
-                    antecedent, ((FImplies)originFormula).getSubformulas()[0], checker);
-                result.addAll(consequent.getFormula().linksGenerationAsync_ECC(
-                    consequent, ((FImplies)originFormula).getSubformulas()[1], checker));
+                Set<Link> retB = consequent.getFormula().linksGenerationAsync_ECC(
+                    consequent, ((FImplies)originFormula).getSubformulas()[1], checker);
+                result.addAll(retB);
             } else {
                 // T -> F: Cartesian product of flip(!A) and B
+                assert statusB == AsyncTruthValue.DETERMINED_FALSE;
                 Set<Link> retA = antecedent.getFormula().linksGenerationAsync_ECC(
                     antecedent, ((FImplies)originFormula).getSubformulas()[0], checker);
                 Set<Link> retB = consequent.getFormula().linksGenerationAsync_ECC(
                     consequent, ((FImplies)originFormula).getSubformulas()[1], checker);
                 result.addAll(lgUtils.cartesianSet(lgUtils.flipSet(retA), retB));
             }
-        } else if (statusA == AsyncTruthValue.DETERMINED_FALSE) {
-            if (statusB == AsyncTruthValue.DETERMINED_TRUE) {
-                // F -> T: Both flip(!A) and B contribute
-                Set<Link> retA = antecedent.getFormula().linksGenerationAsync_ECC(
-                    antecedent, ((FImplies)originFormula).getSubformulas()[0], checker);
-                Set<Link> retB = consequent.getFormula().linksGenerationAsync_ECC(
-                    consequent, ((FImplies)originFormula).getSubformulas()[1], checker);
-                result.addAll(lgUtils.flipSet(retA));
-                result.addAll(retB);
-            } else {
-                // F -> F: Only flip(!A) matters (since !A is TRUE)
-                Set<Link> retA = antecedent.getFormula().linksGenerationAsync_ECC(
-                    antecedent, ((FImplies)originFormula).getSubformulas()[0], checker);
-                consequent.getFormula().linksGenerationAsync_ECC(
-                    consequent, ((FImplies)originFormula).getSubformulas()[1], checker);
-                result.addAll(lgUtils.flipSet(retA));
-            }
         } else {
-            // PENDING_ASYNC involved: collect all possible links conservatively
-            Set<Link> retA = antecedent.getFormula().linksGenerationAsync_ECC(
-                antecedent, ((FImplies)originFormula).getSubformulas()[0], checker);
+            // statusA is PENDING_ASYNC, which means it wasn't updated in updateTruthValueAsync
+            // This only happens when the IMPLIES node returned DETERMINED_TRUE (so no update needed)
+            // IMPLIES returns TRUE when antecedent is FALSE
+            // Since statusA is PENDING (not FALSE), consequent must be TRUE
+            assert statusA == AsyncTruthValue.PENDING_ASYNC;
+            assert statusB == AsyncTruthValue.DETERMINED_TRUE;
+            // PENDING -> T: Only consequent matters
             Set<Link> retB = consequent.getFormula().linksGenerationAsync_ECC(
                 consequent, ((FImplies)originFormula).getSubformulas()[1], checker);
-            result.addAll(lgUtils.flipSet(retA));
             result.addAll(retB);
         }
         
