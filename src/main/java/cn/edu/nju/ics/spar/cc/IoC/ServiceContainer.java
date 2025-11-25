@@ -77,7 +77,7 @@ public class ServiceContainer implements Loggable {
         
         // Iterate through all declared fields (including private ones)
         for (Field field : clazz.getDeclaredFields()) {
-            if (field.isAnnotationPresent(InfuseResource.class)) {
+            if (field.isAnnotationPresent(InfuseService.class)) {
                 Class<?> fieldType = field.getType();
                 Object service = services.get(fieldType);
 

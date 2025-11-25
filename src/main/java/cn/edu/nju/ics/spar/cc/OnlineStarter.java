@@ -123,7 +123,7 @@ public class OnlineStarter implements Loggable {
                     this.scheduler = new IMD(ruleHandler, contextPool, checker, false);
                     break;
                 case "GEAS_ori":
-                    this.scheduler = new GEAS_ori(ruleHandler, contextPool, checker);
+                    this.scheduler = new GEAS_ori(ruleHandler, contextPool, checker, false);
                     break;
                 case "GEAS_opt_s":
                     this.scheduler = new GEAS_opt_s(ruleHandler, contextPool, checker);

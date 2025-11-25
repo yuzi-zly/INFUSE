@@ -21,7 +21,7 @@ public class GEAS_opt_c extends GEAS_ori{
     public final ExecutorService ThreadPool;
 
     public GEAS_opt_c(RuleHandler ruleHandler, ContextPool contextPool, Checker checker) {
-        super(ruleHandler, contextPool, checker);
+        super(ruleHandler, contextPool, checker, false);
         this.ThreadPool = Executors.newFixedThreadPool(13);
         this.strategy = "GEAS_opt_c";
     }

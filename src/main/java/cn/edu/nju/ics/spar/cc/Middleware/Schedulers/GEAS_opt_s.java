@@ -15,7 +15,7 @@ public class GEAS_opt_s extends GEAS_ori{
 
 
     public GEAS_opt_s(RuleHandler ruleHandler, ContextPool contextPool, Checker checker) {
-        super(ruleHandler, contextPool, checker);
+        super(ruleHandler, contextPool, checker, false);
         this.strategy = "GEAS_opt_s";
     }
 

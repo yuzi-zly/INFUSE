@@ -128,6 +128,8 @@ public class ECC extends Checker{
         // Phase 1: Async truth evaluation with short-circuit optimization
         AsyncEvaluationResult evaluationResult = rule.truthEvaluationAsync_ECC(this);
 
+        System.out.println("fuck you");
+
         // Phase 2: Clean up redundant async requests and execute if needed
         executeAllAsyncIfNeeded(rule, evaluationResult);
         

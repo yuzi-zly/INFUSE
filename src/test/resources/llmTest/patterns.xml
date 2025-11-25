@@ -6,7 +6,7 @@
         <id>pat_00</id>
         <freshness>
             <type>number</type>
-            <value>1</value>
+            <value>10</value>
         </freshness>
     </pattern>
 

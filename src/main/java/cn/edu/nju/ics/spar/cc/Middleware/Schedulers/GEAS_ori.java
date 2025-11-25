@@ -13,9 +13,12 @@ import java.util.*;
 
 public class GEAS_ori extends Scheduler{
 
-    public GEAS_ori(RuleHandler ruleHandler, ContextPool contextPool, Checker checker) {
+    private final boolean isAsyncMode;
+
+    public GEAS_ori(RuleHandler ruleHandler, ContextPool contextPool, Checker checker, boolean isAsyncMode) {
         super(ruleHandler, contextPool, checker);
         this.strategy = "GEAS_ori";
+        this.isAsyncMode = isAsyncMode;
     }
 
     @Override
@@ -23,7 +26,11 @@ public class GEAS_ori extends Scheduler{
         batchForm(contextChange);
         for(Rule rule : ruleHandler.getRuleMap().values()){
             if(rule.getNewBatch() != null){
-                this.checker.ctxChangeCheckBatch(rule, rule.getBatch());
+                if (this.isAsyncMode) {
+                    this.checker.ctxChangeCheckBatchAsync(rule, rule.getNewBatch());
+                } else {
+                    this.checker.ctxChangeCheckBatch(rule, rule.getNewBatch());
+                }
                 rule.setBatch(rule.getNewBatch());
                 rule.setNewBatch(null);
             }
@@ -91,7 +98,11 @@ public class GEAS_ori extends Scheduler{
         //最后一次检测
         for(Rule rule : ruleHandler.getRuleMap().values()){
             if(rule.getBatch() != null){
-                this.checker.ctxChangeCheckBatch(rule, rule.getBatch());
+                if (this.isAsyncMode) {
+                    this.checker.ctxChangeCheckBatchAsync(rule, rule.getBatch());
+                } else {
+                    this.checker.ctxChangeCheckBatch(rule, rule.getBatch());
+                }
                 rule.setBatch(null);
             }
         }

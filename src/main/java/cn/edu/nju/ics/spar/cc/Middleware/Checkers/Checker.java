@@ -36,9 +36,6 @@ public abstract class Checker {
     
     // For async-aware ECC: rule_id -> [(asyncTruthValue1, linkSet1), (asyncTruthValue2, linkSet2)]
     protected final Map<String, List<Map.Entry<AsyncTruthValue, Set<Link>>>> ruleLinksMapAsync;
-    
-    // For async request resolution: requestId -> RuntimeNode mapping
-    // Removed global asyncPendingNodes - now using AsyncEvaluationResult.pendingNodes instead
 
     public Checker(RuleHandler ruleHandler, ContextPool contextPool, Object bfuncInstance, boolean isMG) {
         this.ruleHandler = ruleHandler;

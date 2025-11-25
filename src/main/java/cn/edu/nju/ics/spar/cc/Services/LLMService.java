@@ -8,15 +8,6 @@ import java.util.Set;
  * User's Bfunction can inject this service to make LLM calls.
  */
 public interface LLMService {
-
-    /**
-     * Predefined task types with optimized prompts.
-     */
-        enum TaskType {
-            // More task types can be added
-        }
-    
-    // ========== Synchronous Methods ==========
     
     /**
      * General-purpose LLM call with custom prompt (synchronous).
@@ -26,19 +17,6 @@ public interface LLMService {
      * @throws Exception if the call fails
      */
     boolean ask(String prompt) throws Exception;
-
-    /**
-     * Execute a predefined task with parameters (synchronous).
-     * This provides a high-level abstraction for common LLM tasks.
-     * 
-     * @param taskType The type of task to execute
-     * @param params Task-specific parameters
-     * @return The boolean result
-     * @throws Exception if the call fails
-     */
-    boolean executeTask(TaskType taskType, Map<String, Object> params) throws Exception;
-
-    // ========== Asynchronous Methods ==========
     
     /**
      * Register an async LLM call with custom prompt.
@@ -49,17 +27,6 @@ public interface LLMService {
      * @return A placeholder boolean value (always true)
      */
     boolean askAsync(String prompt);
-
-    /**
-     * Register an async LLM task with parameters.
-     * This method does NOT immediately execute the call.
-     * The returned boolean is a placeholder value that will be replaced by the actual result later.
-     * 
-     * @param taskType The type of task to execute
-     * @param params Task-specific parameters
-     * @return A placeholder boolean value (always true)
-     */
-    boolean executeTaskAsync(TaskType taskType, Map<String, Object> params);
 
     // ========== INTERNAL API - LLM Async Resolution (Engine Use Only) ==========
     // WARNING: The following methods are used internally by the INFUSE engine.

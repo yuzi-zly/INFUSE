@@ -1,0 +1,45 @@
+var executor = ...
+
+main loop of ECC
+
+if (instance of Bfunc f) {
+    var task = executor.submit(f);
+
+    if (task.isCompleted()) {
+        // sync 
+        // bfunc result handling
+    } else {
+        waitList.add(task);
+    }
+}
+
+var llmRequests = collect LLMTask as list;
+var results = batch request langchain;
+llmRequests.setCompleted(results);
+globalLLMCompleted.signalAll();
+
+waitList.waitAll().forEach(
+    // update bfunc results
+);
+
+
+// Bfunc {
+
+class Bfunc {
+    boolean bfunc() {
+        var res = askAsync();
+        if (res == ??) {
+
+        }
+    }
+}
+
+
+
+boolean askAsync(string prompt) {
+    var uuid = generateUUID();
+    var llmTask = LLmTask(uuid, prompt);
+    globalLlmQue.add(llmTask);
+    globalLLMCompleted.wait();
+    return globalLlmQueue.getResult(uuid);
+}

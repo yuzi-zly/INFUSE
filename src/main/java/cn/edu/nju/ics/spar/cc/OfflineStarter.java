@@ -166,7 +166,7 @@ public class OfflineStarter implements Loggable {
                     this.scheduler = new IMD(ruleHandler, contextPool, checker, __USE_ASYNC_MODE__);
                     break;
                 case "GEAS_ori":
-                    this.scheduler = new GEAS_ori(ruleHandler, contextPool, checker);
+                    this.scheduler = new GEAS_ori(ruleHandler, contextPool, checker, __USE_ASYNC_MODE__);
                     break;
                 case "GEAS_opt_s":
                     this.scheduler = new GEAS_opt_s(ruleHandler, contextPool, checker);

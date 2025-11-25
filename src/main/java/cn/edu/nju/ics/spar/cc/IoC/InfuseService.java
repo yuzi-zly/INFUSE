@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface InfuseResource {
+public @interface InfuseService {
     // No parameters - injection is purely type-based
 }
 

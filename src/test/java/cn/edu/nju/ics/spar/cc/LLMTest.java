@@ -165,4 +165,13 @@ public class LLMTest {
         System.out.println("ECC+IMD+CG 方法测试完成");
     }
 
+    @Test
+    void ECC_GEAS_CG_Test() {
+        String resultPath = "src/test/resources/llmTest/result_ecc_geas_cg.txt";
+        System.out.println("=== 测试 ECC+GEAS_ori+CG 方法 ===");
+        System.out.println("运行 ECC+GEAS_ori+CG 方法...");
+        LLMTest.testDriver("ECC+GEAS_ori", false, resultPath);
+        System.out.println("ECC+GEAS_ori+CG 方法测试完成");
+    }
+
 }
