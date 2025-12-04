@@ -27,9 +27,9 @@ public class GEAS_ori extends Scheduler{
         for(Rule rule : ruleHandler.getRuleMap().values()){
             if(rule.getNewBatch() != null){
                 if (this.isAsyncMode) {
-                    this.checker.ctxChangeCheckBatchAsync(rule, rule.getNewBatch());
+                    this.checker.ctxChangeCheckBatchAsync(rule, rule.getBatch());
                 } else {
-                    this.checker.ctxChangeCheckBatch(rule, rule.getNewBatch());
+                    this.checker.ctxChangeCheckBatch(rule, rule.getBatch());
                 }
                 rule.setBatch(rule.getNewBatch());
                 rule.setNewBatch(null);

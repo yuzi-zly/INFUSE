@@ -6,6 +6,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import cn.edu.nju.ics.spar.cc.Constraints.Rules.Rule;
 import cn.edu.nju.ics.spar.cc.Constraints.Runtime.Link;
@@ -14,14 +19,22 @@ import cn.edu.nju.ics.spar.cc.Constraints.Runtime.RuntimeNode.AsyncTruthValue;
 import cn.edu.nju.ics.spar.cc.Constraints.Runtime.AsyncEvaluationResult;
 import cn.edu.nju.ics.spar.cc.Contexts.Context;
 import cn.edu.nju.ics.spar.cc.Contexts.ContextChange;
-import cn.edu.nju.ics.spar.cc.IoC.ServiceContainer;
 import cn.edu.nju.ics.spar.cc.Middleware.Checkers.Checker;
 import cn.edu.nju.ics.spar.cc.Middleware.Schedulers.Scheduler;
-import cn.edu.nju.ics.spar.cc.Services.LLMService;
 import cn.edu.nju.ics.spar.cc.Util.InfuseException;
 
 public class FBfunc extends Formula {
 
+    // ==================== Static Fields ====================
+    
+    // Shared virtual thread executor for all bfunc executions
+    private static final ExecutorService virtualThreadExecutor = Executors.newVirtualThreadPerTaskExecutor();
+    
+    // ThreadLocal to pass requestId from truthEvaluationAsync_ECC to askAsync
+    private static final ThreadLocal<String> threadLocalRequestId = new ThreadLocal<>();
+
+    // ==================== Instance Fields ====================
+    
     private String func = null;  // Function name
     private HashMap<String, String> params = new HashMap<>();
 
@@ -196,36 +209,50 @@ public class FBfunc extends Formula {
     // Async-aware ECC (for async external calls like LLM, database, API)
     @Override
     public AsyncEvaluationResult truthEvaluationAsync_ECC(RuntimeNode curNode, Formula originFormula, Checker checker) {
-        // 1. Call user's bfunc (may internally call external async service like LLM)
-        boolean result = bfuncCaller(curNode.getVarEnv(), checker);
-
-        // 2. Check if an async call was made by polling ThreadLocal (e.g., LLMService.pollAsyncRequestId())
-        LLMService llmService = ServiceContainer.getInstance().getService(LLMService.class);
-
-        String requestId = null;
-        if (llmService != null) {
-            requestId = llmService.pollAsyncRequestId();
-        }
-
-        // 3. Determine the async evaluation result
-        if (requestId != null) {
-            // Async call detected - create pending result with request ID
-            curNode.setAsyncTruthValue(AsyncTruthValue.PENDING_ASYNC);
-            curNode.setAsyncRequestId(requestId);
-
-            // Return AsyncEvaluationResult with requestId-to-node mapping
-            // No global registration needed - parent formulas handle cleanup
-            return AsyncEvaluationResult.pending(requestId, curNode);
-        } else {
-            // No async call - use bfunc result directly
+        // Generate requestId before submitting to virtual thread
+        final String requestId = UUID.randomUUID().toString();
+        
+        // Submit bfunc execution to shared virtual thread executor
+        // Pass requestId through closure - each virtual thread gets its own requestId
+        Future<Boolean> future = virtualThreadExecutor.submit(() -> 
+            bfuncCallerWithRequestId(curNode.getVarEnv(), checker, requestId)
+        );
+        
+        try {
+            // Try to get result with a short timeout to check if it's synchronous
+            Boolean result = future.get(100, TimeUnit.MILLISECONDS);
+            
+            // Completed immediately - no async calls made
             AsyncTruthValue status = result
                 ? AsyncTruthValue.DETERMINED_TRUE
                 : AsyncTruthValue.DETERMINED_FALSE;
             curNode.setAsyncTruthValue(status);
-
+            
             return result ? AsyncEvaluationResult.determinedTrue()
                          : AsyncEvaluationResult.determinedFalse();
+                         
+        } catch (java.util.concurrent.TimeoutException e) {
+            // Bfunc is blocked (waiting in askAsync), mark as pending
+            // The virtual thread is now blocked waiting for executeAllAsync()
+            
+            curNode.setAsyncTruthValue(AsyncTruthValue.PENDING_ASYNC);
+            
+            // Store the future in Checker for later retrieval using requestId
+            checker.storeBfuncFuture(requestId, future);
+            
+            // Return pending result with the same requestId used by LLMService
+            return AsyncEvaluationResult.pending(requestId, curNode);
+            
+        } catch (Exception e) {
+            throw new InfuseException("Failed to execute bfunc in virtual thread", e);
         }
+    }
+    
+    /**
+     * Get the requestId for current virtual thread (used by LLMService askAsync)
+     */
+    public static String getCurrentRequestId() {
+        return threadLocalRequestId.get();
     }
     
     // Update truth value after executeAllAsync (for bfunc, already updated in executeAllAsyncIfNeeded)
@@ -388,6 +415,20 @@ public class FBfunc extends Formula {
         return curNode.getLinks();
     }
 
+
+    /**
+     * Wrapper for bfuncCaller that stores requestId in ThreadLocal for askAsync to use.
+     * This allows bfunc to call askAsync() without passing requestId explicitly.
+     */
+    private boolean bfuncCallerWithRequestId(HashMap<String, Context> varEnv, Checker checker, String requestId) {
+        // Store requestId in ThreadLocal so nested askAsync calls can use it
+        threadLocalRequestId.set(requestId);
+        try {
+            return bfuncCaller(varEnv, checker);
+        } finally {
+            threadLocalRequestId.remove();
+        }
+    }
 
     public boolean bfuncCaller(HashMap<String, Context> varEnv, Checker checker){
         Map<String, Map<String, String>> vcMap = new HashMap<>();

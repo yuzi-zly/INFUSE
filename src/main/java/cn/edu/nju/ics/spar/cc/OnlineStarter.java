@@ -54,16 +54,16 @@ public class OnlineStarter implements Loggable {
         private final Queue<ContextChange> changeQueue = new LinkedList<>();
         private boolean cleaned = false;
 
-        public CCEServer(String approach, String ruleFile, String bfuncFile, String patternFile, String mfuncFile, String dataType, boolean isMG, String incOutFile) {
-            this.ruleFile = ruleFile;
-            this.bfuncFile = bfuncFile;
-            this.patternFile = patternFile;
-            this.mfuncFile = mfuncFile;
-            this.incOutFile = incOutFile;
+        public CCEServer(InfuseConfig config) {
+            this.ruleFile = config.ruleFile;
+            this.bfuncFile = config.bfuncFile;
+            this.patternFile = config.patternFile;
+            this.mfuncFile = config.mfuncFile;
+            this.incOutFile = config.incFile;
 
             this.ruleHandler = new RuleHandler();
             this.patternHandler = new PatternHandler();
-            this.contextHandler = new ContextHandler(patternHandler, dataType);
+            this.contextHandler = new ContextHandler(patternHandler, config.dataType);
             this.contextPool = new ContextPool();
 
             try {
@@ -82,39 +82,39 @@ public class OnlineStarter implements Loggable {
 
             String technique = null;
             String schedule = null;
-            if(approach.contains("+")){
-                technique = approach.substring(0, approach.indexOf("+"));
-                schedule = approach.substring(approach.indexOf("+") + 1);
+            if(config.approach.contains("+")){
+                technique = config.approach.substring(0, config.approach.indexOf("+"));
+                schedule = config.approach.substring(config.approach.indexOf("+") + 1);
             }
             else{
-                if(approach.equalsIgnoreCase("INFUSE_base")){
+                if(config.approach.equalsIgnoreCase("INFUSE_base")){
                     technique = "INFUSE_base";
                     schedule = "IMD";
                 }
-                else if(approach.equalsIgnoreCase("INFUSE")){
+                else if(config.approach.equalsIgnoreCase("INFUSE")){
                     technique = "INFUSE_C";
                     schedule = "INFUSE_S";
                 }
             }
-            logger.debug("Checking technique is " + technique + ", scheduling strategy is " + schedule + ", with MG " + (isMG ? "on" : "off"));
+            logger.debug("Checking technique is " + technique + ", scheduling strategy is " + schedule + ", with MG " + (config.isMG ? "on" : "off"));
 
             assert technique != null;
 
             switch (technique) {
                 case "ECC":
-                    this.checker = new ECC(this.ruleHandler, this.contextPool, bfuncInstance, isMG);
+                    this.checker = new ECC(this.ruleHandler, this.contextPool, bfuncInstance, config.isMG);
                     break;
                 case "ConC":
-                    this.checker = new ConC(this.ruleHandler, this.contextPool, bfuncInstance, isMG);
+                    this.checker = new ConC(this.ruleHandler, this.contextPool, bfuncInstance, config.isMG);
                     break;
                 case "PCC":
-                    this.checker = new PCC(this.ruleHandler, this.contextPool, bfuncInstance, isMG);
+                    this.checker = new PCC(this.ruleHandler, this.contextPool, bfuncInstance, config.isMG);
                     break;
                 case "INFUSE_base":
-                    this.checker = new BASE(this.ruleHandler, this.contextPool, bfuncInstance, isMG);
+                    this.checker = new BASE(this.ruleHandler, this.contextPool, bfuncInstance, config.isMG);
                     break;
                 case "INFUSE_C":
-                    this.checker = new INFUSE_C(this.ruleHandler, this.contextPool, bfuncInstance, isMG);
+                    this.checker = new INFUSE_C(this.ruleHandler, this.contextPool, bfuncInstance, config.isMG);
                     break;
             }
 
@@ -373,13 +373,10 @@ public class OnlineStarter implements Loggable {
     public OnlineStarter() {
     }
 
-    public void start(String approach, String ruleFile, String bfuncFile, String patternFile, String mfuncFile, String dataType, boolean isMG, String incOutFile){
-       //FutureTask<Void> clientTask = new FutureTask<>(new CCEClient("./taxi/data_5_0-1_new.txt"));
-        FutureTask<Void> serverTask = new FutureTask<>(new CCEServer(approach, ruleFile, bfuncFile, patternFile, mfuncFile, dataType, isMG, incOutFile));
-        //new Thread(clientTask, "Client...").start();
+    public void start(InfuseConfig config) {
+        FutureTask<Void> serverTask = new FutureTask<>(new CCEServer(config));
         new Thread(serverTask, "Server...").start();
         try {
-            //clientTask.get();
             serverTask.get();
         } catch (InterruptedException | ExecutionException e) {
             throw new InfuseException("Failed to execute online checking server", e);

@@ -313,8 +313,8 @@ public class FImplies extends Formula{
 
         // Combine pending requests from both children (only needed if final result is PENDING)
         Map<String, RuntimeNode> allPendingNodes = new HashMap<>();
-        allPendingNodes.putAll(resultA.getPendingNodes());
-        allPendingNodes.putAll(resultB.getPendingNodes());
+        allPendingNodes.putAll(resultA.getPendingBfuncs());
+        allPendingNodes.putAll(resultB.getPendingBfuncs());
 
         return new AsyncEvaluationResult(finalTruth, allPendingNodes);
     }

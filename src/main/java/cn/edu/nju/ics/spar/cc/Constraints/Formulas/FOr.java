@@ -312,8 +312,8 @@ public class FOr extends Formula {
 
         // Combine pending requests from both children (only needed if final result is PENDING)
         Map<String, RuntimeNode> allPendingNodes = new HashMap<>();
-        allPendingNodes.putAll(result1.getPendingNodes());
-        allPendingNodes.putAll(result2.getPendingNodes());
+        allPendingNodes.putAll(result1.getPendingBfuncs());
+        allPendingNodes.putAll(result2.getPendingBfuncs());
 
         return new AsyncEvaluationResult(finalTruth, allPendingNodes);
     }

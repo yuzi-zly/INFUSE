@@ -205,7 +205,7 @@ public class FNot extends Formula{
         curNode.setAsyncTruthValue(finalTruth);
 
         // FNot passes through child's pending requests unchanged
-        return new AsyncEvaluationResult(finalTruth, childResult.getPendingNodes());
+        return new AsyncEvaluationResult(finalTruth, childResult.getPendingBfuncs());
     }
 
     // Update truth value after executeAllAsync (propagate from child)

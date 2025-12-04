@@ -11,7 +11,11 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.Condition;
 
+import cn.edu.nju.ics.spar.cc.Constraints.Formulas.FBfunc;
 import cn.edu.nju.ics.spar.cc.Services.LLMService;
 import cn.edu.nju.ics.spar.cc.Util.InfuseException;
 import cn.edu.nju.ics.spar.cc.Util.Loggable;
@@ -28,10 +32,11 @@ public class LLMServiceImpl implements LLMService, Loggable {
 
     /**
      * AI Service Interface with @MemoryId support for LangChain4j.
+     * Returns raw String response from LLM.
      */
     interface ServiceAgent {
         @SystemMessage("You are a professional programmer and programming language expert.")
-        boolean analyze(@MemoryId Object memoryId, @UserMessage String prompt);
+        String analyze(@MemoryId Object memoryId, @UserMessage String prompt);
     }
 
     // ==================== Fields ====================
@@ -41,14 +46,15 @@ public class LLMServiceImpl implements LLMService, Loggable {
     private boolean isMock;
 
     // Async LLM call management
-    private final ConcurrentHashMap<String, String> asyncAskQueue = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<String, Boolean> asyncResults = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, String> asyncAskQueue;
+    private final ConcurrentHashMap<String, String> asyncResults;
 
     // Thread pool for concurrent async execution
     private final ExecutorService asyncExecutor;
-
-    // ThreadLocal to pass requestId transparently for async detection
-    private final ThreadLocal<String> currentAsyncRequestId = new ThreadLocal<>();
+    
+    // Lock and Condition for thread synchronization (worker threads wait, main thread signals)
+    private final Lock lock;
+    private final Condition resultsReady;
 
     // ==================== Constructor ====================
 
@@ -58,7 +64,7 @@ public class LLMServiceImpl implements LLMService, Loggable {
         if (modelName == null || modelName.isEmpty()) {
             modelName = "deepseek/deepseek-v3.2-exp"; 
         }
-
+        
         if (apiKey != null && !apiKey.isEmpty()) {
             logger.info("Initializing LLM Service with OpenRouter API...");
             try {
@@ -89,82 +95,87 @@ public class LLMServiceImpl implements LLMService, Loggable {
             this.isMock = true;
         }
 
-        // Initialize async executor with a reasonable thread pool size
-        // Use min(10, available processors) to balance concurrency and resource usage
-        int poolSize = Math.min(10, Runtime.getRuntime().availableProcessors());
-        this.asyncExecutor = Executors.newFixedThreadPool(poolSize);
-        logger.info("Async executor initialized with pool size: " + poolSize);
+        this.asyncAskQueue = new ConcurrentHashMap<>();
+        this.asyncResults = new ConcurrentHashMap<>();
+        this.asyncExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+        this.lock = new ReentrantLock();
+        this.resultsReady = lock.newCondition();
 
         // Add shutdown hook for proper resource cleanup
-        addShutdownHook();
+        Runtime.getRuntime().addShutdownHook(new Thread(this::shutdown));
     }
 
     // ==================== Synchronous LLM Call Methods ====================
 
     @Override
-    public boolean ask(String prompt) throws Exception {
+    public String ask(String prompt) {
         if (isMock) {
             logger.debug("[MOCK LLM] Ask: " + prompt);
-            return true;
+            return "true"; // Mock returns string "true"
         }
 
         // Generate a unique memoryId for this interaction
         Object memoryId = UUID.randomUUID();
-        int maxRetries = 10;
-
-        for (int attempt = 1; attempt <= maxRetries; attempt++) {
-            try {
-                logger.debug("[OpenRouter LLM] Ask (Attempt " + attempt + "): " + prompt);
-                boolean result = serviceAgent.analyze(memoryId, prompt);
-                logger.debug("[OpenRouter LLM] Result: " + result);
-                return result;
-            } catch (Exception e) {
-                // Check if it's a parsing error
-                if (e.getClass().getName().contains("OutputParsingException")) {
-                    logger.warn("LLM output parsing failed (Attempt " + attempt + "/" + maxRetries + ")");
-                    
-                    if (attempt == maxRetries) {
-                        logger.error("Max retries reached. Giving up.");
-                        throw new InfuseException("LLM Call Failed after " + maxRetries + " retries", e);
-                    }
-                    
-                    // Continue to next iteration with corrective prompt
-                    // The next call will use the same memoryId, so chat history is preserved
-                    prompt = "Your previous answer was not in valid format.";
-                } else {
-                    // Non-parsing error (e.g., network), throw immediately
-                    logger.error("OpenRouter Call Failed: " + e.getMessage());
-                    throw new InfuseException("LLM Call Failed", e);
-                }
-            }
-        }
         
-        // Should never reach here
-        throw new InfuseException("Unexpected error in LLM retry loop");
+        logger.debug("[OpenRouter LLM] Ask: " + prompt);
+        String result = serviceAgent.analyze(memoryId, prompt);
+        logger.debug("[OpenRouter LLM] Result: " + result + " (Type: " + result.getClass().getName() + ")");
+        return result;
     }
 
     // ==================== Asynchronous LLM Methods ====================
 
     @Override
-    public boolean askAsync(String prompt) {
-        String requestId = UUID.randomUUID().toString();
+    public String askAsync(String prompt) {
+        // Get requestId from FBfunc's ThreadLocal (must be called from bfunc's virtual thread)
+        String requestId = FBfunc.getCurrentRequestId();
+        if (requestId == null) {
+            throw new IllegalStateException(
+                "askAsync() must be called from a bfunc's virtual thread context. No requestId found."
+            );
+        }
+        
+        return _askAsync(requestId, prompt);
+    }
+
+    private String _askAsync(String requestId, String prompt) {
         asyncAskQueue.put(requestId, prompt);
-        currentAsyncRequestId.set(requestId); // Store in ThreadLocal for transparent detection
-        logger.debug("[Async LLM] Registered askAsync with requestId: " + requestId);
-        return true; // Return placeholder value (actual result determined later)
+        
+        logger.debug("[Async LLM] Worker thread registered request: " + requestId);
+        
+        // Block current thread and wait for main thread to execute executeAllAsync()
+        lock.lock();
+        try {
+            // Loop to prevent spurious wakeups
+            while (!asyncResults.containsKey(requestId)) {
+                logger.debug("[Async LLM] Worker thread waiting for result: " + requestId);
+                resultsReady.await(); // Block current virtual thread, release lock
+            }
+            
+            // Get and return the actual result
+            String result = asyncResults.remove(requestId);
+            logger.debug("[Async LLM] Worker thread got result: " + requestId + " -> " + result);
+            return result;
+            
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("LLM request interrupted", e);
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
-    public Map<String, Boolean> executeAllAsync() throws Exception {
+    public void executeAllAsync() {
         if (asyncAskQueue.isEmpty()) {
             logger.info("[Async LLM] No async requests to execute.");
-            return new ConcurrentHashMap<>();
+            return;
         }
 
         logger.info("[Async LLM] Executing " + asyncAskQueue.size() + " async requests concurrently...");
 
         // Create a concurrent map to store results
-        Map<String, Boolean> results = new ConcurrentHashMap<>();
+        Map<String, String> results = new ConcurrentHashMap<>();
         AtomicInteger successCount = new AtomicInteger(0);
         AtomicInteger failureCount = new AtomicInteger(0);
 
@@ -178,15 +189,15 @@ public class LLMServiceImpl implements LLMService, Loggable {
 
             Future<?> future = asyncExecutor.submit(() -> {
                 try {
-                    boolean result = ask(prompt); // Reuse synchronous ask with retry logic
+                    String result = ask(prompt); // Call LLM and get String result
                     results.put(requestId, result);
                     successCount.incrementAndGet();
                     logger.debug("[Async LLM] Completed askAsync requestId: " + requestId + ", result: " + result);
                 } catch (Exception e) {
                     failureCount.incrementAndGet();
                     logger.error("[Async LLM] Failed askAsync requestId: " + requestId + ", error: " + e.getMessage());
-                    // For concurrent execution, we store failure results as false rather than throwing
-                    results.put(requestId, false);
+                    // For concurrent execution, we store failure results as error message
+                    results.put(requestId, "ERROR: " + e.getMessage());
                 }
             });
 
@@ -213,7 +224,15 @@ public class LLMServiceImpl implements LLMService, Loggable {
         logger.info("[Async LLM] All async requests completed. Success: " + successCount.get() +
                    ", Failures: " + failureCount.get() + ", Total results: " + results.size());
 
-        return results;
+        // Write results and wake up all blocked worker threads
+        lock.lock();
+        try {
+            asyncResults.putAll(results);
+            resultsReady.signalAll(); // Wake up all threads waiting in askAsync()
+            logger.debug("[Async LLM] Signaled all waiting worker threads");
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
@@ -239,13 +258,6 @@ public class LLMServiceImpl implements LLMService, Loggable {
 
         logger.debug("[Async LLM] Retained " + asyncAskQueue.size() + " ask requests. Removed " + removedAskCount +
                     " ask requests.");
-    }
-
-    @Override
-    public String pollAsyncRequestId() {
-        String requestId = currentAsyncRequestId.get();
-        currentAsyncRequestId.remove(); // Clear ThreadLocal after reading
-        return requestId;
     }
 
     /**
@@ -280,12 +292,5 @@ public class LLMServiceImpl implements LLMService, Loggable {
             // Force shutdown
             asyncExecutor.shutdownNow();
         }
-    }
-
-    /**
-     * Add a shutdown hook to ensure proper resource cleanup
-     */
-    public void addShutdownHook() {
-        Runtime.getRuntime().addShutdownHook(new Thread(this::shutdown));
-    }
+    } 
 }

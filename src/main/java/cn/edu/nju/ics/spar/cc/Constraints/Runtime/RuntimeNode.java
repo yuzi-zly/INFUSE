@@ -46,7 +46,6 @@ public class RuntimeNode {
         PENDING_ASYNC
     }
     private AsyncTruthValue asyncTruthValue;
-    private String asyncRequestId;
 
     //constructor
     public RuntimeNode(Formula formula){
@@ -61,7 +60,6 @@ public class RuntimeNode {
         
         // Initialize async resolution fields
         this.asyncTruthValue = null; // Will be set during truthEvaluationAsync_ECC phase
-        this.asyncRequestId = null; // Only set if async call is pending
         
         if(formula.getFormula_type() == Formula.Formula_Type.FORALL){
             this.setTruth(true);
@@ -164,14 +162,6 @@ public class RuntimeNode {
 
     public void setAsyncTruthValue(AsyncTruthValue asyncTruthValue) {
         this.asyncTruthValue = asyncTruthValue;
-    }
-
-    public String getAsyncRequestId() {
-        return asyncRequestId;
-    }
-
-    public void setAsyncRequestId(String asyncRequestId) {
-        this.asyncRequestId = asyncRequestId;
     }
 
     public void setChildren(List<RuntimeNode> children) {

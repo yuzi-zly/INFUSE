@@ -1,6 +1,5 @@
 package cn.edu.nju.ics.spar.cc.Services;
 
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -13,20 +12,19 @@ public interface LLMService {
      * General-purpose LLM call with custom prompt (synchronous).
      * 
      * @param prompt The prompt to send
-     * @return The boolean result (True/False)
-     * @throws Exception if the call fails
+     * @return The raw String response from LLM
      */
-    boolean ask(String prompt) throws Exception;
+    String ask(String prompt);
     
     /**
-     * Register an async LLM call with custom prompt.
-     * This method does NOT immediately execute the call.
-     * The returned boolean is a placeholder value that will be replaced by the actual result later.
+     * Register an async LLM call with custom prompt and wait for the result.
+     * This method will block the current thread until the main thread executes all async requests.
+     * Should be called from virtual threads to avoid blocking OS threads.
      * 
      * @param prompt The prompt to send
-     * @return A placeholder boolean value (always true)
+     * @return The actual String result from LLM
      */
-    boolean askAsync(String prompt);
+    String askAsync(String prompt);
 
     // ========== INTERNAL API - LLM Async Resolution (Engine Use Only) ==========
     // WARNING: The following methods are used internally by the INFUSE engine.
@@ -35,16 +33,14 @@ public interface LLMService {
     /**
      * [INTERNAL] Execute all registered async LLM calls in batch.
      * This method synchronously processes all queued async requests and returns the results.
+     * After execution, it will wake up all blocked worker threads waiting in askAsync().
      * 
      * Usage by engine:
      * 1. Checker calls rule.llmResolve_ECC() to collect async LLM requests
      * 2. Checker calls this method to execute all requests in batch
-     * 3. Checker uses the returned map to update RuntimeNode.llmResolveStatus
-     * 
-     * @return A map from requestId to boolean result (true/false)
-     * @throws Exception if any LLM call fails
+     * 3. Results are stored in asyncResults and signaled to waiting threads
      */
-    Map<String, Boolean> executeAllAsync() throws Exception;
+    void executeAllAsync();
 
     /**
      * [INTERNAL] Clear all async queues and results.
@@ -60,20 +56,5 @@ public interface LLMService {
      * @param validRequestIds The set of request IDs that should be retained
      */
     void retainAsyncRequests(Set<String> validRequestIds);
-
-    /**
-     * [INTERNAL] Poll and clear the current async requestId from ThreadLocal.
-     * 
-     * This method is used by the engine to transparently detect if an async LLM call
-     * was made within a bfunc execution. The flow is:
-     * 1. Bfunc calls llmService.askAsync(prompt) or executeTaskAsync(...)
-     * 2. The service stores the requestId in ThreadLocal
-     * 3. After bfunc returns, engine calls this method to check if async call was made
-     * 4. If requestId exists, engine marks the node as PENDING_LLM
-     * 
-     * @return The requestId if an async call was made, or null otherwise
-     */
-    String pollAsyncRequestId();
-
 
 }

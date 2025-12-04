@@ -4,276 +4,263 @@ import cn.edu.nju.ics.spar.cc.Util.InfuseException;
 import cn.edu.nju.ics.spar.cc.Util.Loggable;
 import org.apache.commons.cli.*;
 
-import java.util.ArrayList;
+import java.io.File;
+import java.util.Arrays;
 import java.util.List;
-
-
 
 public class CLIParser implements Loggable {
 
-    public static List<String> legalApproaches = new ArrayList<>(){{
-        add("ECC+IMD");
-        add("ECC+GEAS_ori");
-        add("PCC+IMD");
-        add("PCC+GEAS_ori");
-        add("ConC+IMD");
-        add("ConC+GEAS_ori");
-        add("INFUSE");
-    }};
+    // Valid approach combinations
+    private static final List<String> VALID_APPROACHES = Arrays.asList(
+            "ECC+IMD",
+            "ECC+GEAS_ori",
+            "PCC+IMD",
+            "PCC+GEAS_ori",
+            "ConC+IMD",
+            "ConC+GEAS_ori",
+            "INFUSE"
+    );
 
-    public static String incOut = "inconsistencies.txt";
+    // Valid modes
+    private static final List<String> VALID_MODES = Arrays.asList("offline", "online");
+    
+    // Valid data types
+    private static final List<String> VALID_DATA_TYPES = Arrays.asList("rawData", "change");
+
+    // Default values
+    private static final String DEFAULT_INC_OUT = "inconsistencies.txt";
+    
+    // ANSI color codes for terminal output
+    private static final String COLOR_RED = "\033[91m";
+    private static final String COLOR_GREEN = "\033[92m";
+    private static final String COLOR_RESET = "\033[0m";
+    
+    // Error message templates
+    private static final String HELP_HINT = "Use option \"-help\" for more information";
 
     public static void main(String[] args) throws Exception {
-        // common
-        Option opt_ap = Option.builder("approach")
-                .argName("approach")
-                .hasArg()
-                .required(false)
-                .desc("Use the specified approach for checking [ECC+IMD/ECC+GEAS_ori/PCC+IMD/PCC+GEAS_ori/ConC+IMD/ConC+GEAS_ori/INFUSE_base/INFUSE]")
-                .build();
+        Options options = buildOptions();
+        CommandLine cli = parseCommandLine(args, options);
+        
+        // Show help and exit if requested
+        if (cli.hasOption("help")) {
+            printHelp(options);
+            return;
+        }
+        
+        // Parse and validate all options
+        InfuseConfig config = parseAndValidateOptions(cli);
+        
+        // Execute the command
+        executeCommand(config);
+    }
 
-        Option opt_rf = Option.builder("rules")
-                .argName("file")
-                .hasArg()
-                .required(false)
-                .desc("Load rules from given file (XML file)")
-                .build();
-
-        Option opt_bf = Option.builder("bfuncs")
-                .argName("file")
-                .hasArg()
-                .required(false)
-                .desc("Load bfunctions from given file (Class file)")
-                .build();
-
-
-        Option opt_mg = new Option("mg", false, "Enable link generation minimization");
-        opt_mg.setRequired(false);
-
-        Option opt_h = new Option("help", false, "Print the usage");
-        opt_h.setRequired(false);
-
-        Option opt_oi = Option.builder("incs")
-                .argName("file")
-                .hasArg()
-                .required(false)
-                .desc("Write detected inconsistencies to given file")
-                .build();
-
-        // normal run
-        Option opt_md = Option.builder("mode")
+    /**
+     * Build all command line options
+     */
+    private static Options buildOptions() {
+        Options options = new Options();
+        
+        // Help option
+        options.addOption(new Option("help", false, "Print the usage"));
+        
+        // Mode option
+        options.addOption(Option.builder("mode")
                 .argName("mode")
                 .hasArg()
-                .required(false)
                 .desc("Run under the given mode [offline/online]")
-                .build();
-
-        Option opt_pf = Option.builder("patterns")
+                .build());
+        
+        // Approach option
+        options.addOption(Option.builder("approach")
+                .argName("approach")
+                .hasArg()
+                .desc("Use the specified approach for checking " + VALID_APPROACHES)
+                .build());
+        
+        // Rule file option
+        options.addOption(Option.builder("rules")
                 .argName("file")
                 .hasArg()
-                .required(false)
+                .desc("Load rules from given file (XML file)")
+                .build());
+        
+        // Bfunction file option
+        options.addOption(Option.builder("bfuncs")
+                .argName("file")
+                .hasArg()
+                .desc("Load bfunctions from given file (Class file)")
+                .build());
+        
+        // Pattern file option
+        options.addOption(Option.builder("patterns")
+                .argName("file")
+                .hasArg()
                 .desc("Load patterns from given file (XML file)")
-                .build();
-
-        Option opt_mf = Option.builder("mfuncs")
+                .build());
+        
+        // Mfunction file option
+        options.addOption(Option.builder("mfuncs")
                 .argName("file")
                 .hasArg()
-                .required(false)
                 .desc("Load mfunctions from given file (Class file)")
-                .build();
-
-        Option opt_df = Option.builder("data")
+                .build());
+        
+        // Data file option
+        options.addOption(Option.builder("data")
                 .argName("file")
                 .hasArg()
-                .required(false)
-                .desc("Read data from given file")
-                .build();
-
-        Option opt_dt = Option.builder("datatype")
+                .desc("Read data from given file (offline mode only)")
+                .build());
+        
+        // Data type option
+        options.addOption(Option.builder("datatype")
                 .argName("type")
                 .hasArg()
-                .required(false)
                 .desc("Specify the type of data in dataFile [rawData/change]")
-                .build();
+                .build());
+        
+        // Minimization option
+        options.addOption(new Option("mg", false, "Enable link generation minimization"));
+        
+        // Inconsistency output option
+        options.addOption(Option.builder("incs")
+                .argName("file")
+                .hasArg()
+                .desc("Write detected inconsistencies to given file")
+                .build());
+        
+        return options;
+    }
 
-        Options options = new Options();
-        options.addOption(opt_h);
-        options.addOption(opt_rf);
-        options.addOption(opt_pf);
-        options.addOption(opt_df);
-        options.addOption(opt_ap);
-        options.addOption(opt_md);
-        options.addOption(opt_mf);
-        options.addOption(opt_bf);
-        options.addOption(opt_dt);
-        options.addOption(opt_mg);
-        options.addOption(opt_oi);
-
-        CommandLine cli = null;
-        CommandLineParser cliParser = new DefaultParser();
-        HelpFormatter helpFormatter = new HelpFormatter();
-
+    /**
+     * Parse command line arguments
+     */
+    private static CommandLine parseCommandLine(String[] args, Options options) throws InfuseException {
+        CommandLineParser parser = new DefaultParser();
+        
         try {
-            cli = cliParser.parse(options, args);
+            return parser.parse(options, args);
         } catch (ParseException e) {
-            helpFormatter.printHelp("java -jar INFUSE-version.jar [Options]", options, true);
-            throw new InfuseException(e);
-        }
-
-        assert cli != null;
-        if(cli.hasOption("help")){
-            helpFormatter.printHelp("java -jar INFUSE-version.jar [Options]", options);
-        }
-        else {
-/*
-java -jar INFUSE.jar
--mode offline
--approach INFUSE
--rules rules.xml
--bfuncs bfuncs.class
--patterns patterns.xml
--mfuncs mfuncs.class
--data data.txt
--datatype rawData
--mg
--incs incs.json
-//-fixeddata fiexeddata.txt
- */
-            // checking mode
-            String checkingMode = null;
-            if(!cli.hasOption("mode")){
-                logger.error("\033[91m" + "No specified mode, please use option \"-mode\", available modes: [offline/online]" + "\033[0m");
-                logger.info("\033[92m" + "Use option \"-help\" for more information"  + "\033[0m");
-                throw new InfuseException("No specified mode");
-            }
-            else{
-                checkingMode = cli.getOptionValue("mode");
-                if(!checkingMode.equalsIgnoreCase("offline") && !checkingMode.equalsIgnoreCase("online")){
-                    logger.error("\033[91m" + "The mode is illegal, available modes: [offline/online]" + "\033[0m");
-                    logger.info("\033[92m" + "Use option \"-help\" for more information"  + "\033[0m");
-                    throw new InfuseException("The mode is illegal: " + checkingMode);
-                }
-            }
-            // checking approach
-            String approach = null;
-            if(!cli.hasOption("approach")){
-                logger.error("\033[91m" + "No specified approach, please use option \"-approach \", available approaches: [ECC+IMD/ECC+GEAS_ori/PCC+IMD/PCC+GEAS_ori/ConC+IMD/ConC+GEAS_ori/INFUSE]" + "\033[0m");
-                logger.info("\033[92m" + "Use option \"-help\" for more information"  + "\033[0m");
-                throw new InfuseException("No specified approach");
-            }
-            else{
-                approach = cli.getOptionValue("approach");
-                if(!legalApproaches.contains(approach)){
-                    logger.error("\033[91m" + "The approach is illegal, available approaches: [ECC+IMD/ECC+GEAS_ori/PCC+IMD/PCC+GEAS_ori/ConC+IMD/ConC+GEAS_ori/INFUSE]" + "\033[0m");
-                    logger.info("\033[92m" + "Use option \"-help\" for more information"  + "\033[0m");
-                    throw new InfuseException("The approach is illegal: " + approach);
-                }
-            }
-            // rule file
-            String ruleFile = null;
-            if(!cli.hasOption("rules")){
-                logger.error("\033[91m" + "No specified rule file, please use option \"-rules\"" + "\033[0m");
-                logger.info("\033[92m" + "Use option \"-help\" for more information"  + "\033[0m");
-                throw new InfuseException("No specified rule file");
-            }
-            else{
-                ruleFile = cli.getOptionValue("rules");
-                logger.info(String.format("The rule file is \"%s\"", ruleFile));
-            }
-            // bfunc file
-            String bfuncFile = null;
-            if(!cli.hasOption("bfuncs")){
-                logger.error("\033[91m" + "No specified bfunction file, please use option \"-bfuncs\"" + "\033[0m");
-                logger.info("\033[92m" + "Use option \"-help\" for more information"  + "\033[0m");
-                throw new InfuseException("No specified bfunction file");
-            }
-            else{
-                bfuncFile = cli.getOptionValue("bfuncs");
-                logger.info(String.format("The bfunction file is \"%s\"", bfuncFile));
-            }
-            // pattern file
-            String patternFile = null;
-            if(!cli.hasOption("patterns")){
-                logger.error("\033[91m" + "No specified pattern file, please use option \"-patterns\"" + "\033[0m");
-                logger.info("\033[92m" + "Use option \"-help\" for more information"  + "\033[0m");
-                throw new InfuseException("No specified pattern file");
-            }
-            else{
-                patternFile = cli.getOptionValue("patterns");
-                logger.info(String.format("The pattern file is \"%s\"", patternFile));
-            }
-            // mfunc file
-            String mfuncFile = null;
-            if(!cli.hasOption("mfuncs")){
-                logger.info("No specified mfunction file");
-            }
-            else{
-                mfuncFile = cli.getOptionValue("mfuncs");
-                logger.info(String.format("The mfunction file is \"%s\"", mfuncFile));
-            }
-            // data file [offline]
-            String dataFile = null;
-            if(checkingMode.equalsIgnoreCase("offline")){
-                //data file
-                if(!cli.hasOption("data")){
-                    logger.error("\033[91m" + "No specified data file in offline mode, please use option \"-data\"" + "\033[0m");
-                    logger.info("\033[92m" + "Use option \"-help\" for more information"  + "\033[0m");
-                    throw new InfuseException("No specified data file in offline mode");
-                }
-                else{
-                    dataFile = cli.getOptionValue("data");
-                    logger.info(String.format("The data file is \"%s\"", dataFile));
-                }
-            }
-            else{
-                if(cli.hasOption("data")){
-                    logger.error("\033[91m" + "Cannot specify data file in online mode" + "\033[0m");
-                    logger.info("\033[92m" + "Use option \"-help\" for more information"  + "\033[0m");
-                    throw new InfuseException("Cannot specify data file in online mode");
-                }
-            }
-            // data type
-            String dataType = null;
-            if(!cli.hasOption("datatype")){
-                logger.error("\033[91m" + "No specified data type, please use option \"-datatype\", available datatypes: [rawData/change]" + "\033[0m");
-                logger.info("\033[92m" + "Use option \"-help\" for more information"  + "\033[0m");
-                throw new InfuseException("No specified data type");
-            }
-            else{
-                dataType = cli.getOptionValue("datatype");
-                if(!dataType.equals("rawData") && !dataType.equals("change")){
-                    logger.error("\033[91m" + "The data type is illegal, available datatypes: [rawData/change]" + "\033[0m");
-                    logger.info("\033[92m" + "Use option \"-help\" for more information"  + "\033[0m");
-                    throw new InfuseException("The data type is illegal: " + dataType);
-                }
-            }
-            // isMG or not
-            boolean isMG = cli.hasOption("mg");
-            logger.info(String.format("Minimizing link generation is %s", isMG ? "on" : "off"));
-            // incs
-            String incs = null;
-            if(!cli.hasOption("incs")){
-                incs = incOut;
-                logger.info("The default inconsistency file is \"" + incOut + "\"");
-            }
-            else{
-                incs = cli.getOptionValue("incs");
-                logger.info(String.format("The inconsistency file is \"%s\"", incs));
-            }
-
-            // start
-            if(checkingMode.equalsIgnoreCase("offline")){
-                long startTime = System.nanoTime();
-                OfflineStarter offlineStarter = new OfflineStarter();
-                offlineStarter.start(approach, ruleFile, bfuncFile, patternFile, mfuncFile, dataFile, dataType, isMG, incs);
-                long totalTime = System.nanoTime() - startTime;
-                logger.info("\033[92m" + "Time cost: " + totalTime / 1000000L + " ms\033[0m");
-            }
-            else if(checkingMode.equalsIgnoreCase("online")){
-                OnlineStarter onlineStarter = new OnlineStarter();
-                onlineStarter.start(approach, ruleFile, bfuncFile, patternFile, mfuncFile, dataType, isMG, incs);
-            }
+            printHelp(options);
+            throw new InfuseException("Failed to parse command line arguments", e);
         }
     }
-}
 
+    /**
+     * Print help information
+     */
+    private static void printHelp(Options options) {
+        HelpFormatter helpFormatter = new HelpFormatter();
+        helpFormatter.printHelp("java -jar INFUSE-version.jar [Options]", options);
+    }
+
+    /**
+     * Parse and validate all command line options
+     */
+    private static InfuseConfig parseAndValidateOptions(CommandLine cli) throws InfuseException {
+        InfuseConfig config = new InfuseConfig();
+        
+        // Validate and set mode and approach
+        config.mode = requireChoiceOption(cli, "mode", "mode", VALID_MODES);
+        config.approach = requireChoiceOption(cli, "approach", "approach", VALID_APPROACHES);
+        
+        // Validate and set required files
+        config.ruleFile = requireFileOption(cli, "rules", "rule file");
+        config.bfuncFile = requireFileOption(cli, "bfuncs", "bfunction file");
+        config.patternFile = requireFileOption(cli, "patterns", "pattern file");
+        
+        // Optional mfunction file
+        if (cli.hasOption("mfuncs")) {
+            config.mfuncFile = requireFileOption(cli, "mfuncs", "mfunction file");
+        } else {
+            logger.info("No specified mfunction file");
+        }
+        
+        // Data file validation (offline mode only)
+        if (config.mode.equalsIgnoreCase("offline")) {
+            config.dataFile = requireFileOption(cli, "data", "data file");
+        } else if (cli.hasOption("data")) {
+            throwError("Cannot specify data file in online mode");
+        }
+        
+        // Validate and set data type
+        config.dataType = requireChoiceOption(cli, "datatype", "data type", VALID_DATA_TYPES);
+        
+        // Set boolean options
+        config.isMG = cli.hasOption("mg");
+        logger.info(String.format("Minimizing link generation is %s", config.isMG ? "on" : "off"));
+        
+        // Set inconsistency output file
+        config.incFile = cli.hasOption("incs") ? cli.getOptionValue("incs") : DEFAULT_INC_OUT;
+        logger.info(String.format("The inconsistency file is \"%s\"", config.incFile));
+        
+        return config;
+    }
+
+    /**
+     * Execute the command based on configuration
+     */
+    private static void executeCommand(InfuseConfig config) throws Exception {
+        if (config.mode.equalsIgnoreCase("offline")) {
+            long startTime = System.nanoTime();
+            OfflineStarter offlineStarter = new OfflineStarter();
+            offlineStarter.start(config);
+            long totalTime = System.nanoTime() - startTime;
+            logger.info(colorize("Time cost: " + totalTime / 1000000L + " ms", COLOR_GREEN));
+        } else if (config.mode.equalsIgnoreCase("online")) {
+            OnlineStarter onlineStarter = new OnlineStarter();
+            onlineStarter.start(config);
+        }
+    }
+
+    /**
+     * Require a choice option with validation
+     */
+    private static String requireChoiceOption(CommandLine cli, String optionName, String displayName,List<String> validChoices) throws InfuseException {
+        if (!cli.hasOption(optionName)) {
+            throwError("No specified " + displayName + ", please use option \"-" + optionName + "\"");
+        }
+        String value = cli.getOptionValue(optionName);
+        if (!validChoices.contains(value)) {
+            throwError("The " + displayName + " is illegal: " + value + ", available options: " + validChoices);
+        }
+        logger.info(String.format("The %s is \"%s\"", displayName, value));
+        return value;
+    }
+
+    /**
+     * Require a file option with existence validation
+     */
+    private static String requireFileOption(CommandLine cli, String optionName, String displayName) throws InfuseException {
+        if (!cli.hasOption(optionName)) {
+            throwError("No specified " + displayName + ", please use option \"-" + optionName + "\"");
+        }
+        String filePath = cli.getOptionValue(optionName);
+        File file = new File(filePath);
+        if (!file.exists()) {
+            throwError("The " + displayName + " does not exist: " + filePath);
+        }
+        if (!file.canRead()) {
+            throwError("The " + displayName + " is not readable: " + filePath);
+        }
+        logger.info(String.format("The %s is \"%s\"", displayName, filePath));
+        return filePath;
+    }
+
+    /**
+     * Throw a formatted error with color
+     */
+    private static void throwError(String message) throws InfuseException {
+        logger.error(colorize(message, COLOR_RED));
+        logger.info(colorize(HELP_HINT, COLOR_GREEN));
+        throw new InfuseException(message);
+    }
+
+    /**
+     * Colorize a message with ANSI color codes
+     */
+    private static String colorize(String message, String colorCode) {
+        return colorCode + message + COLOR_RESET;
+    }
+}

@@ -13,12 +13,12 @@ import static cn.edu.nju.ics.spar.cc.Constraints.Runtime.RuntimeNode.AsyncTruthV
  */
 public class AsyncEvaluationResult {
     private final AsyncTruthValue truthValue;
-    private final Map<String, RuntimeNode> pendingNodes;  // requestId -> RuntimeNode映射
+    private final Map<String, RuntimeNode> pendingBfuncs;  // requestId -> Bfunc RuntimeNode映射
 
-    public AsyncEvaluationResult(AsyncTruthValue truthValue, Map<String, RuntimeNode> pendingNodes) {
+    public AsyncEvaluationResult(AsyncTruthValue truthValue, Map<String, RuntimeNode> pendingBfuncs) {
         this.truthValue = truthValue;
-        this.pendingNodes = pendingNodes != null ?
-            new HashMap<>(pendingNodes) : new HashMap<>();
+        this.pendingBfuncs = pendingBfuncs != null ?
+            new HashMap<>(pendingBfuncs) : new HashMap<>();
     }
 
     public AsyncEvaluationResult(AsyncTruthValue truthValue) {
@@ -29,16 +29,16 @@ public class AsyncEvaluationResult {
         return truthValue;
     }
 
-    public Map<String, RuntimeNode> getPendingNodes() {
-        return new HashMap<>(pendingNodes);
+    public Map<String, RuntimeNode> getPendingBfuncs() {
+        return new HashMap<>(pendingBfuncs);
     }
 
     public Set<String> getPendingRequestIds() {
-        return new HashSet<>(pendingNodes.keySet());
+        return new HashSet<>(pendingBfuncs.keySet());
     }
 
-    public boolean hasPendingRequests() {
-        return !pendingNodes.isEmpty();
+    public boolean hasPendingBfuncs() {
+        return !pendingBfuncs.isEmpty();
     }
 
     // 静态工厂方法
@@ -56,18 +56,18 @@ public class AsyncEvaluationResult {
         return new AsyncEvaluationResult(AsyncTruthValue.PENDING_ASYNC, pendingMap);
     }
 
-    public static AsyncEvaluationResult pending(Map<String, RuntimeNode> pendingNodes) {
-        return new AsyncEvaluationResult(AsyncTruthValue.PENDING_ASYNC, pendingNodes);
+    public static AsyncEvaluationResult pending(Map<String, RuntimeNode> pendingBfuncs) {
+        return new AsyncEvaluationResult(AsyncTruthValue.PENDING_ASYNC, pendingBfuncs);
     }
 
     // 合并两个结果（用于逻辑组合）
     public static AsyncEvaluationResult combine(AsyncEvaluationResult... results) {
-        Map<String, RuntimeNode> allPendingNodes = new HashMap<>();
+        Map<String, RuntimeNode> allPendingBfuncs = new HashMap<>();
         AsyncTruthValue combinedTruth = AsyncTruthValue.DETERMINED_TRUE;
 
         for (AsyncEvaluationResult result : results) {
             if (result != null) {
-                allPendingNodes.putAll(result.getPendingNodes());
+                allPendingBfuncs.putAll(result.getPendingBfuncs());
 
                 // 根据优先级确定最终真值
                 if (result.getTruthValue() == AsyncTruthValue.PENDING_ASYNC) {
@@ -79,7 +79,7 @@ public class AsyncEvaluationResult {
             }
         }
 
-        return new AsyncEvaluationResult(combinedTruth, allPendingNodes);
+        return new AsyncEvaluationResult(combinedTruth, allPendingBfuncs);
     }
 
     @Override

@@ -439,7 +439,7 @@ public class FForall extends Formula{
                 child, ((FForall)originFormula).getSubformula(), checker);
 
             // Collect all pending request IDs
-            allPendingNodes.putAll(childResult.getPendingNodes());
+            allPendingNodes.putAll(childResult.getPendingBfuncs());
 
             // Update finalTruth based on priority: PENDING > FALSE > TRUE
             if (childResult.getTruthValue() == AsyncTruthValue.PENDING_ASYNC) {

@@ -22,6 +22,9 @@ import cn.edu.nju.ics.spar.cc.Constraints.Runtime.AsyncEvaluationResult;
 import cn.edu.nju.ics.spar.cc.Util.InfuseException;
 import cn.edu.nju.ics.spar.cc.Util.NotSupportedException;
 
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
+
 public abstract class Checker {
     protected RuleHandler ruleHandler;
     protected ContextPool contextPool;
@@ -36,6 +39,9 @@ public abstract class Checker {
     
     // For async-aware ECC: rule_id -> [(asyncTruthValue1, linkSet1), (asyncTruthValue2, linkSet2)]
     protected final Map<String, List<Map.Entry<AsyncTruthValue, Set<Link>>>> ruleLinksMapAsync;
+    
+    // Store bfunc futures for async execution (requestId -> Future<Boolean>)
+    private final Map<String, Future<Boolean>> bfuncFutures;
 
     public Checker(RuleHandler ruleHandler, ContextPool contextPool, Object bfuncInstance, boolean isMG) {
         this.ruleHandler = ruleHandler;
@@ -45,6 +51,7 @@ public abstract class Checker {
         this.substantialNodes = new HashMap<>();
         this.ruleLinksMap = new HashMap<>();
         this.ruleLinksMapAsync = new HashMap<>();
+        this.bfuncFutures = new ConcurrentHashMap<>();
     }
 
     protected void storeLink(String rule_id, boolean truth, Set<Link> linkSet){
@@ -92,7 +99,8 @@ public abstract class Checker {
     }
 
 
-    //getter
+    // Getter
+
     public RuleHandler getRuleHandler() {
         return ruleHandler;
     }
@@ -100,6 +108,7 @@ public abstract class Checker {
     public ContextPool getContextPool() {
         return contextPool;
     }
+
     public String getTechnique() {
         return technique;
     }
@@ -125,8 +134,29 @@ public abstract class Checker {
         return isMG;
     }
     
+    // Async-aware methods for managing bfunc futures
+
+    public void storeBfuncFuture(String requestId, Future<Boolean> future) {
+        bfuncFutures.put(requestId, future);
+    }
+    
+    public Future<Boolean> getBfuncFuture(String requestId) {
+        return bfuncFutures.get(requestId);
+    }
+    
+    private void clearBfuncFutures() {
+        bfuncFutures.clear();
+    }
+    
     protected void executeAllAsyncIfNeeded(Rule rule, AsyncEvaluationResult evaluationResult) {
-        if (!evaluationResult.hasPendingRequests()) {
+        LLMService llmService = ServiceContainer.getInstance().getService(LLMService.class);
+        if (llmService == null) {
+            return;
+        }
+
+        if (!evaluationResult.hasPendingBfuncs()) {
+            // No pending bfuncs, clear all async queues
+            llmService.clearAsync();
             return;
         }
 
@@ -134,35 +164,51 @@ public abstract class Checker {
 
         // Only execute if root status is PENDING_ASYNC
         if (root.getAsyncTruthValue() == AsyncTruthValue.PENDING_ASYNC) {
-            LLMService llmService = ServiceContainer.getInstance().getService(LLMService.class);
-            if (llmService != null) {
-                try {
-                    // Clean up redundant async requests
-                    llmService.retainAsyncRequests(evaluationResult.getPendingRequestIds());
+            try {
+                // Clean up async requests that were short-circuited
+                // Only retain requests from nodes that are actually pending
+                Set<String> validRequestIds = evaluationResult.getPendingRequestIds();
+                llmService.retainAsyncRequests(validRequestIds);
+                
+                // Execute all async LLM calls in batch and wake up all waiting virtual threads
+                llmService.executeAllAsync();
 
-                    // Execute all async calls and get results
-                    Map<String, Boolean> results = llmService.executeAllAsync();
-
-                    // Update pending nodes with results using the mapping from AsyncEvaluationResult
-                    for (Map.Entry<String, Boolean> entry : results.entrySet()) {
-                        RuntimeNode node = evaluationResult.getPendingNodes().get(entry.getKey());
-                        if (node != null) {
-                            node.setAsyncTruthValue(entry.getValue() ?
+                // Each bfunc will receive its String result from askAsync(), process it, and return boolean
+                for (Map.Entry<String, RuntimeNode> entry : evaluationResult.getPendingBfuncs().entrySet()) {
+                    String requestId = entry.getKey();
+                    RuntimeNode node = entry.getValue();
+                    Future<Boolean> future = getBfuncFuture(requestId);
+                    
+                    if (future != null) {
+                        try {
+                            // Get the final boolean result from bfunc
+                            Boolean bfuncResult = future.get();
+                            
+                            // Update node's truth value
+                            node.setAsyncTruthValue(bfuncResult ?
                                 AsyncTruthValue.DETERMINED_TRUE :
                                 AsyncTruthValue.DETERMINED_FALSE);
+                        } catch (Exception e) {
+                            throw new InfuseException("Failed to get bfunc result from virtual thread", e);
                         }
                     }
-
-                    // Propagate truth value updates from leaves to root
-                    rule.updateTruthValueAsync();
-
-                } catch (Exception e) {
-                    throw new InfuseException("Failed to execute async calls", e);
-                } finally {
-                    // Clear async queues
-                    llmService.clearAsync();
                 }
+                
+                // Clean up bfunc futures
+                clearBfuncFutures();
+
+                // Propagate truth value updates from leaves to root
+                rule.updateTruthValueAsync();
+
+            } catch (Exception e) {
+                throw new InfuseException("Failed to execute async calls", e);
+            } finally {
+                // Clear async queues
+                llmService.clearAsync();
             }
+        } else {
+            // Root is not PENDING, clean up any async requests
+            llmService.clearAsync();
         }
     }
 }

@@ -96,6 +96,7 @@ public class ContextHandler implements Loggable{
         if(line == null){
             latestDate.setTime(latestDate.getTime() + 24*3600*1000L);
             this.cleanOverdueContext(latestDate, changeList);
+            this.cleanNumberContext(changeList);
         }
         else{
             //date
@@ -143,6 +144,21 @@ public class ContextHandler implements Loggable{
             }
             else{
                  break;
+            }
+        }
+    }
+
+    private void cleanNumberContext(List<ContextChange> changeList){
+        for(String patternId : activateContextsNumberMap.keySet()){
+            Queue<Context> queue = activateContextsNumberMap.get(patternId);
+            while(queue.size() > 0){
+                Context oldContext = queue.poll();
+                ContextChange delChange = new ContextChange();
+                delChange.setChange_type(ContextChange.Change_Type.DELETION);
+                delChange.setPattern_id(patternId);
+                delChange.setContext(oldContext);
+                //TODO(): inducing from-pattern changes.
+                changeList.add(delChange);
             }
         }
     }
