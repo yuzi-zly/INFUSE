@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+
+<rules>
+
+    <rule>
+        <id>rule_00</id>
+        <formula>
+            <forall var = "v1" in = "pat_000">
+                <bfunc name = "sz_loc_range">
+                    <param pos = "1" var = "v1"/>
+                </bfunc>
+            </forall>
+        </formula>
+    </rule>
+
+    <rule>
+        <id>rule_01</id>
+        <formula>
+            <forall var = "v1" in = "pat_001">
+                <bfunc name = "sz_spd_range">
+                    <param pos = "1" var = "v1"/>
+                </bfunc>
+            </forall>
+        </formula>
+    </rule>
+
+    <rule>
+        <id>rule_02</id>
+        <formula>
+            <forall var = "v1" in = "pat_002">
+                <bfunc name = "sz_drc_range">
+                    <param pos = "1" var = "v1"/>
+                </bfunc>
+            </forall>
+        </formula>
+    </rule>
+
+    <rule>
+        <id>rule_05</id>
+        <formula>
+            <forall var = "v1" in = "pat_005">
+                <bfunc name = "sz_id_format">
+                    <param pos = "1" var = "v1"/>
+                </bfunc>
+            </forall>
+        </formula>
+    </rule>
+
+
+</rules>

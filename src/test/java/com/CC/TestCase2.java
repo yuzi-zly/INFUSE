@@ -16,21 +16,19 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-// TestCase2: 针对 T2（处理结果正确性测试），验证不同处理方法的结果正确性
+// TestCase2: T2 - 中度负载下基于基础规则的任务构建正确性测试
 public class TestCase2 {
 
     private static final String RESOURCE_DIR = "src/test/resources/testcase2";
     
     @AfterEach
     void cleanup() {
-        // 测试完成后删除 .class 文件
         deleteClassFiles(RESOURCE_DIR);
     }
 
-    private static void runWithResult(String approach, String resultPath) {
+    private static void runWithTaskOut(String approach, String taskOutPath) {
         String resourceDir = "src/test/resources/testcase2";
         try {
-            // 在运行前确保 Bfunction/Mfunction 已经被编译到对应的 class 文件中
             ensureFunctionsCompiled(resourceDir);
         } catch (Exception e) {
             throw new RuntimeException("Failed to compile b/m function sources", e);
@@ -38,18 +36,18 @@ public class TestCase2 {
 
         String[] args = new String[]{
                 "-mode", "offline", "-approach", approach,
-                "-rules", resourceDir + "/rules.xml",
+                "-rules", resourceDir + "/basic_rules.xml",
                 "-bfuncs", resourceDir + "/Bfunction.class",
-                "-patterns", resourceDir + "/patterns.xml",
+                "-patterns", resourceDir + "/basic_patterns.xml",
                 "-mfuncs", resourceDir + "/Mfunction.class",
-                "-data", resourceDir + "/data.txt",
+                "-data", resourceDir + "/median_workload.txt",
                 "-datatype", "rawData",
-                "-incs", resultPath
+                "-incs", resourceDir + "/results.txt",
+                "-taskOut", taskOutPath
         };
 
         try {
-            // 删除旧的输出（如果存在），以免干扰测试（不输出日志）
-            File out = new File(resultPath);
+            File out = new File(taskOutPath);
             if(out.exists()) {
                 out.delete();
             }
@@ -60,71 +58,49 @@ public class TestCase2 {
     }
 
     @Test
-    void T2_INCREMENTAL(){
-        String oracle = "src/test/resources/testcase2/results_oracle.txt";
-        String incremental = "src/test/resources/testcase2/results_incremental.txt";
-        System.out.println("=== 测试增量式泛在数据处理方法结果正确性 ===");
-        System.out.println("运行增量方法...");
-        runWithResult("PCC+IMD", incremental);
-        System.out.println("验证增量方法输出结果...");
-        validateResultsEqual(oracle, incremental);
+    void T2_Baseline(){
+        String out = "src/test/resources/testcase2/taskout_Baseline.txt";
+        String oracle = "src/test/resources/testcase2/oracle_taskout_Baseline.txt";
+        System.out.println("=== T2: 中度负载下基于基础规则 - Baseline任务构建 ===");
+        runWithTaskOut("ConC+GEAS_ori", out);
+        validateTaskOutAgainstOracle(out, oracle);
     }
 
     @Test
-    void T2_FUSION(){
-        String oracle = "src/test/resources/testcase2/results_oracle.txt";
-        String fusion = "src/test/resources/testcase2/results_fusion.txt";
-        System.out.println("=== 测试融合式泛在数据处理方法结果正确性 ===");
-        System.out.println("运行融合方法...");
-        runWithResult("INFUSE", fusion);
-        System.out.println("验证融合方法输出结果...");
-        validateResultsEqual(oracle, fusion);
+    void T2_Fusion(){
+        String out = "src/test/resources/testcase2/taskout_Fusion.txt";
+        String oracle = "src/test/resources/testcase2/oracle_taskout_Fusion.txt";
+        System.out.println("=== T2: 中度负载下基于基础规则 - Fusion任务构建 ===");
+        runWithTaskOut("INFUSE", out);
+        validateTaskOutAgainstOracle(out, oracle);
     }
 
-    private static void validateResultsEqual(String file1, String file2) {
+    private static void validateTaskOutAgainstOracle(String taskOutPath, String oraclePath) {
         try {
-            List<String> result1 = FileUtils.readLines(new File(file1), StandardCharsets.UTF_8);
-            List<String> result2 = FileUtils.readLines(new File(file2), StandardCharsets.UTF_8);
-            
-            // 使用稳定排序确保一致性
-            result1.sort(String::compareTo);
-            result2.sort(String::compareTo);
-            
-            assertTrue(result1.size() == result2.size(), 
-                String.format("Results have different number of lines: file1=%d, file2=%d", 
-                    result1.size(), result2.size()));
-            
-            for (int i = 0; i < result1.size(); i++) {
-                assertTrue(result1.get(i).equals(result2.get(i)), 
-                    String.format("Line %d differs\nfile1: %s\nfile2: %s", i, result1.get(i), result2.get(i)));
+            List<String> oracle = FileUtils.readLines(new File(oraclePath), StandardCharsets.UTF_8);
+            List<String> actual = FileUtils.readLines(new File(taskOutPath), StandardCharsets.UTF_8);
+            assertTrue(oracle.size() == actual.size(), "Oracle and actual taskOut have different number of lines");
+            for (int i = 0; i < oracle.size(); i++) {
+                assertTrue(oracle.get(i).equals(actual.get(i)), String.format("Line %d differs\nexpected: %s\nactual:   %s", i, oracle.get(i), actual.get(i)));
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    /**
-     * 确保 Bfunction.java 和 Mfunction.java 被编译成 .class 文件
-     * 每次都强制重新编译
-     */
     private static void ensureFunctionsCompiled(String resourceDir) throws Exception {
-    
         Path resDir = Paths.get(resourceDir).toAbsolutePath();
         Path bJava = resDir.resolve("Bfunction.java");
         Path mJava = resDir.resolve("Mfunction.java");
         
         if (!Files.exists(bJava) || !Files.exists(mJava)) {
-            // 没有源文件，跳过编译
             return;
         }
 
-        // 先删除旧的 .class 文件
         deleteClassFiles(resourceDir);
 
-        // 直接用 javac 编译到当前目录
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         if (compiler != null) {
-            // 使用系统 Java 编译器，输出到当前目录
             int result = compiler.run(null, null, null, 
                 "-d", resDir.toString(),
                 bJava.toString(), 
@@ -134,7 +110,6 @@ public class TestCase2 {
                 throw new RuntimeException("Compilation failed with exit code: " + result);
             }
         } else {
-            // 回退到外部 javac 命令
             ProcessBuilder pb = new ProcessBuilder("javac", 
                 "-d", resDir.toString(),
                 bJava.toString(), 
@@ -150,9 +125,6 @@ public class TestCase2 {
         }
     }
 
-    /**
-     * 删除测试资源目录中的 .class 文件
-     */
     private static void deleteClassFiles(String resourceDir) {
         try {
             Path resDir = Paths.get(resourceDir).toAbsolutePath();
@@ -169,5 +141,4 @@ public class TestCase2 {
             // 忽略
         }
     }
-
 }

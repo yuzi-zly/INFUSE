@@ -16,21 +16,19 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-// TestCase1: 针对 T1（任务构建正确性测试），验证 -taskOut 功能及输出格式
+// TestCase1: T1 - 轻量负载下基于基础规则的任务构建正确性测试
 public class TestCase1 {
 
     private static final String RESOURCE_DIR = "src/test/resources/testcase1";
     
     @AfterEach
     void cleanup() {
-        // 测试完成后删除 .class 文件
         deleteClassFiles(RESOURCE_DIR);
     }
 
     private static void runWithTaskOut(String approach, String taskOutPath) {
         String resourceDir = "src/test/resources/testcase1";
         try {
-            // 在运行前确保 Bfunction/Mfunction 已经被编译到对应的 class 文件中
             ensureFunctionsCompiled(resourceDir);
         } catch (Exception e) {
             throw new RuntimeException("Failed to compile b/m function sources", e);
@@ -38,18 +36,17 @@ public class TestCase1 {
 
         String[] args = new String[]{
                 "-mode", "offline", "-approach", approach,
-                "-rules", resourceDir + "/rules.xml",
+                "-rules", resourceDir + "/basic_rules.xml",
                 "-bfuncs", resourceDir + "/Bfunction.class",
-                "-patterns", resourceDir + "/patterns.xml",
+                "-patterns", resourceDir + "/basic_patterns.xml",
                 "-mfuncs", resourceDir + "/Mfunction.class",
-                "-data", resourceDir + "/data.txt",
+                "-data", resourceDir + "/light_workload.txt",
                 "-datatype", "rawData",
-                "-incs", resourceDir + "/result.txt",
+                "-incs", resourceDir + "/results.txt",
                 "-taskOut", taskOutPath
         };
 
         try {
-            // 删除旧的输出（如果存在），以免干扰测试
             File out = new File(taskOutPath);
             if(out.exists()) {
                 out.delete();
@@ -61,24 +58,20 @@ public class TestCase1 {
     }
 
     @Test
-    void T1_STATIC(){
-        String out = "src/test/resources/testcase1/taskout_static.txt";
-        String oracle = "src/test/resources/testcase1/oracle_taskout_static.txt";
-        System.out.println("=== 测试静态任务构建方法正确性 ===");
-        System.out.println("运行静态任务构建方法...");
-        runWithTaskOut("PCC+GEAS_ori", out);
-        System.out.println("验证静态任务构建方法输出结果...");
+    void T1_Baseline(){
+        String out = "src/test/resources/testcase1/taskout_Baseline.txt";
+        String oracle = "src/test/resources/testcase1/oracle_taskout_Baseline.txt";
+        System.out.println("=== T1: 轻量负载下基于基础规则 - Baseline任务构建 ===");
+        runWithTaskOut("ConC+GEAS_ori", out);
         validateTaskOutAgainstOracle(out, oracle);
     }
 
     @Test
-    void T1_DYNAMIC(){
-        String out = "src/test/resources/testcase1/taskout_dynamic.txt";
-        String oracle = "src/test/resources/testcase1/oracle_taskout_dynamic.txt";
-        System.out.println("=== 测试动态任务构建方法正确性 ===");
-        System.out.println("运行动态任务构建方法...");
+    void T1_Fusion(){
+        String out = "src/test/resources/testcase1/taskout_Fusion.txt";
+        String oracle = "src/test/resources/testcase1/oracle_taskout_Fusion.txt";
+        System.out.println("=== T1: 轻量负载下基于基础规则 - Fusion任务构建 ===");
         runWithTaskOut("INFUSE", out);
-        System.out.println("验证动态任务构建方法输出结果...");
         validateTaskOutAgainstOracle(out, oracle);
     }
 
@@ -95,28 +88,19 @@ public class TestCase1 {
         }
     }
 
-    /**
-     * 确保 Bfunction.java 和 Mfunction.java 被编译成 .class 文件
-     * 每次都强制重新编译
-     */
     private static void ensureFunctionsCompiled(String resourceDir) throws Exception {
-    
         Path resDir = Paths.get(resourceDir).toAbsolutePath();
         Path bJava = resDir.resolve("Bfunction.java");
         Path mJava = resDir.resolve("Mfunction.java");
         
         if (!Files.exists(bJava) || !Files.exists(mJava)) {
-            // 没有源文件，跳过编译
             return;
         }
 
-        // 先删除旧的 .class 文件
         deleteClassFiles(resourceDir);
 
-        // 直接用 javac 编译到当前目录
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         if (compiler != null) {
-            // 使用系统 Java 编译器，输出到当前目录
             int result = compiler.run(null, null, null, 
                 "-d", resDir.toString(),
                 bJava.toString(), 
@@ -126,7 +110,6 @@ public class TestCase1 {
                 throw new RuntimeException("Compilation failed with exit code: " + result);
             }
         } else {
-            // 回退到外部 javac 命令
             ProcessBuilder pb = new ProcessBuilder("javac", 
                 "-d", resDir.toString(),
                 bJava.toString(), 
@@ -142,9 +125,6 @@ public class TestCase1 {
         }
     }
 
-    /**
-     * 删除测试资源目录中的 .class 文件
-     */
     private static void deleteClassFiles(String resourceDir) {
         try {
             Path resDir = Paths.get(resourceDir).toAbsolutePath();
@@ -161,5 +141,4 @@ public class TestCase1 {
             // 忽略
         }
     }
-
 }
